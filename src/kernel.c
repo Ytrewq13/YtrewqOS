@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 /* kernel.c
  * Copyright Sam Whitehead, 2021
  * Last updated 2021-05-07
@@ -11,8 +9,7 @@
  * - Bootloader jump into this kernel
  */
 
-int main(int argc, char **argv)
+int _start(int argc, char **argv)
 {
-    printf("Hello from kernel.c!\n");
     return 0;
 }

@@ -1,0 +1,5 @@
+ENTRY(_start)
+OUTPUT_FORMAT(binary)
+STARTUP(boot.o)
+SEARCH_DIR(include)
+OUTPUT(kernel.bin)
