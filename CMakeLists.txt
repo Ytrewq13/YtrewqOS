@@ -3,8 +3,11 @@ cmake_minimum_required(VERSION 3.13)
 # Name of the project
 project(YtrewqOS C)
 
+enable_language(ASM-ATT)
+
 # Set the name of the executable target
 set(BINNAME kernel.bin)
+set(BOOTLOADER boot.o)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
@@ -16,13 +19,8 @@ find_package(PkgConfig REQUIRED)
 
 # pkg_check_modules(<PREFIX> [REQUIRED] [QUIET] <MODULE> [<MODULE>]*)
 # This call creates a special `PkgConfig::<PREFIX>` variable
-pkg_check_modules(MODS REQUIRED IMPORTED_TARGET)
-
-# Use `$ pkgconf --list-all | grep -i <MODULE>` to see if <MODULE> can be loaded
-# using pkg-config (the pkg_check_modules() function). If it isn't then you will
-# have to use find_package() with the corresponding Find<MODULE> cmake module,
-# or (if there isn't one) you will have to hardcode the cflags and libraries for
-# linking the executable against.
+pkg_check_modules(MODS REQUIRED IMPORTED_TARGET
+    )
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -31,16 +29,20 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 include_directories(include) # "<project root>/include/"
 
 set(SOURCES "src/kernel.c")
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/tools/linker.ld")
+set(BOOTSOURCE "src/boot.s")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/src/tools/linker.ld")
 
+# Create the targets
 add_executable(${BINNAME} ${SOURCES})
+add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 
 set_target_properties(${BINNAME} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 target_link_options(${BINNAME} PRIVATE -T${LINKER_SCRIPT})
 
+add_dependencies(${BINNAME} ${BOOTLOADER})
+
 # This both links and includes the required libraries
-# TODO: Figure out how to compile a flat binary using CMake
-# TODO: How to use a linker script?
+# TODO: Get the linker script working to produce the flat binary
 target_link_libraries(${BINNAME} PUBLIC)
 
 # This is so we get a compile commands JSON file (used by ALE)
