@@ -7,6 +7,7 @@ enable_language(ASM-ATT)
 
 # Set the name of the executable target
 set(BINNAME kernel.bin)
+set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -30,20 +31,25 @@ include_directories(include) # "<project root>/include/"
 
 set(SOURCES "src/kernel.c")
 set(BOOTSOURCE "src/boot.s")
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/src/tools/linker.ld")
+set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
+set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld")
+set(RUNNER_SCRIPT "${TOOLS_DIR}/run")
 
 # Create the targets
-add_executable(${BINNAME} ${SOURCES})
+add_executable(${BINNAME})
+add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
+add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
 
-set_target_properties(${BINNAME} PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+set_target_properties(${BINNAME} PROPERTIES
+    LINK_DEPENDS "${LINKER_SCRIPT}"
+    RULE_LAUNCH_LINK "${CMAKE_SOURCE_DIR}/src/tools/link.sh <OBJECTS>")
 target_link_options(${BINNAME} PRIVATE -T${LINKER_SCRIPT})
 
-add_dependencies(${BINNAME} ${BOOTLOADER})
+add_dependencies(${BINNAME} ${BOOTLOADER} ${KERNEL})
 
 # This both links and includes the required libraries
-# TODO: Get the linker script working to produce the flat binary
-target_link_libraries(${BINNAME} PUBLIC)
+target_link_libraries(${BINNAME} PUBLIC ${BOOTLOADER} ${KERNEL})
 
 # This is so we get a compile commands JSON file (used by ALE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
