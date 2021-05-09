@@ -2,6 +2,12 @@
 *.elf
 *.o
 *.img
+
+# The build directory should remain but its contents should not be tracked
 build/*
 
+# We don't want to track any PDF files - docs will be generated from source
+*.pdf
+
+# Vim swapfiles
 *.swp

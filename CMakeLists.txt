@@ -29,8 +29,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 # Include local directories
 include_directories(include) # "<project root>/include/"
 
-set(SOURCES "src/kernel.c")
-set(BOOTSOURCE "src/boot.s")
+set(SOURCES "src/kernel/kernel.c")
+set(BOOTSOURCE "src/boot/boot.s")
 set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
 set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld")
 set(RUNNER_SCRIPT "${TOOLS_DIR}/run")
