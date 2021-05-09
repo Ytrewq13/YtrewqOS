@@ -40,6 +40,8 @@ add_executable(${BINNAME})
 add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
+# TODO: should check that binary_dir is safe to delete?
+add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
 
 set_target_properties(${BINNAME} PROPERTIES
     LINK_DEPENDS "${LINKER_SCRIPT}"
