@@ -12,7 +12,7 @@ Name will likely change.
 
 ## Requirements
 
-- CMake $\geq$ v3.20
+- CMake >= v3.20
 - GNU assembler
 - QEMU (x86_64) - for running the OS only
 
