@@ -18,15 +18,17 @@ Name will likely change.
 
 ## Compilation process
 
+To compile the kernel, run the following commands inside the `build` directory.
+
 ```shell
-mkdir build
-cd build
 cmake ..
 make
 ```
 
-Once the "kernel.bin" binary file has been compiled, you can run in using QEMU
-by running the following command in the `build` directory.
+## To run the compiled kernel
+
+Run the following command from inside the `build` directory (can be run before
+compilation as it will compile the binary before running).
 
 ```shell
 make run

@@ -49,6 +49,7 @@ set_target_properties(${BINNAME} PROPERTIES
 target_link_options(${BINNAME} PRIVATE -T${LINKER_SCRIPT})
 
 add_dependencies(${BINNAME} ${BOOTLOADER} ${KERNEL})
+add_dependencies(run ${BINNAME})
 
 # This both links and includes the required libraries
 target_link_libraries(${BINNAME} PUBLIC ${BOOTLOADER} ${KERNEL})
