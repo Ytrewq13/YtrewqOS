@@ -9,6 +9,7 @@ enable_language(ASM-ATT)
 set(BINNAME kernel.bin)
 set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
+set(BOOT32LOADER boot32.o)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
@@ -20,8 +21,7 @@ find_package(PkgConfig REQUIRED)
 
 # pkg_check_modules(<PREFIX> [REQUIRED] [QUIET] <MODULE> [<MODULE>]*)
 # This call creates a special `PkgConfig::<PREFIX>` variable
-pkg_check_modules(MODS REQUIRED IMPORTED_TARGET
-    )
+#pkg_check_modules(MODS REQUIRED IMPORTED_TARGET)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -31,14 +31,15 @@ include_directories(include) # "<project root>/include/"
 
 set(SOURCES "src/kernel/kernel.c")
 set(BOOTSOURCE "src/boot/boot.s")
+set(BOOT32SOURCE "src/boot/boot32.s")
 set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
 set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld")
-set(RUNNER_SCRIPT "${TOOLS_DIR}/run")
 
 # Create the targets
 add_executable(${BINNAME})
 add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
+add_library(${BOOT32LOADER} OBJECT ${BOOT32SOURCE})
 add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
 # TODO: should check that binary_dir is safe to delete?
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
@@ -48,11 +49,11 @@ set_target_properties(${BINNAME} PROPERTIES
     RULE_LAUNCH_LINK "${CMAKE_SOURCE_DIR}/src/tools/link.sh <OBJECTS>")
 target_link_options(${BINNAME} PRIVATE -T${LINKER_SCRIPT})
 
-add_dependencies(${BINNAME} ${BOOTLOADER} ${KERNEL})
+add_dependencies(${BINNAME} ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
 add_dependencies(run ${BINNAME})
 
 # This both links and includes the required libraries
-target_link_libraries(${BINNAME} PUBLIC ${BOOTLOADER} ${KERNEL})
+target_link_libraries(${BINNAME} PUBLIC ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
 
 # This is so we get a compile commands JSON file (used by ALE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)

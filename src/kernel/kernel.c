@@ -9,4 +9,8 @@
  * - Bootloader jump into this kernel
  */
 
-void test() {}
+void test() {
+    extern void write_hello();
+    write_hello();
+    while (1) {}
+}

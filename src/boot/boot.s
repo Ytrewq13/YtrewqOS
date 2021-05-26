@@ -7,6 +7,11 @@
 # $ qemu-system-x86_64 boot.bin
 .code16
 
+.data
+# Data about sector reads (for bootstrapping to the C kernel)
+.equ KERN_LD_ADDR, 0x6000
+.equ DRIVE_ID, 0x80
+
 .text
 .global _start
 .type _start, @function
@@ -17,27 +22,58 @@ call write
 # This Works
 # TODO:
 # - Put some compiled C code in the second sector (and after)
-# - Switch into 32/64 bit mode
-# - Leave real mode
+# - Switch into protected mode (32-bit)
+#   - Disable interrupts, including NMI
+#   - Enable the A20 line
+#   - Load the GDT (Global Descriptor Table) with segment descriptors suitable
+#     for code, data, and stack
+#   - Change the lowest bit of the CR0/MSW register
+# - Switch into long mode (64-bit)
 # - Jump into the Kernel (which is in sector 2)
 #   - Where would the entry point be?
 load_sector:
 mov $0x02, %ah  # Select 'Drive read' function
-mov $0x6000, %bx  # Destination to write to   (TODO: choose an address with plenty of free space - 0x7c00 is where sector 1 is placed)
+mov $KERN_LD_ADDR, %bx  # Destination to write to   (TODO: choose an address with plenty of free space - 0x7c00 is where sector 1 is placed)
 mov $1, %al  # Number of sectors to read
-mov $0x80, %dl  # Drive ID
+mov $DRIVE_ID, %dl  # Drive ID
 mov $2, %cl  # Sector to start from
 mov $0, %dh  # Head to read from
 mov $0, %ch  # Cylinder to read from
 int $0x13
 jc failed  # Clear flag is set if we failed
-mov $0x6000, %eax  # At the moment, Sector 2 contains only a string for printing
-call write  # Once we put the kernel in sector 2+, we will jump into the code
+#mov KERN_LD_ADDR, %eax  # At the moment, Sector 2 contains only a string for printing
+#call write  # Once we put the kernel in sector 2+, we will jump into the code
+jmp KERN_LD_ADDR # TODO: does this work?
 jmp .
 failed:
-mov $'N', %al
-call putc
+mov $failed_message, %eax
+call write
 jmp .
+
+nop
+nop
+nop
+.global write_hello
+.type write_hello, @function
+write_hello:
+/* Subroutine Prologue */
+  push %ebp      /* Save the old base pointer value. */
+  mov %esp, %ebp /* Set the new base pointer value. */
+  push %edi      /* Save the values of registers that the function */
+  push %esi      /* will modify. This function uses EDI and ESI. */
+  /* (no need to save EBX, EBP, or ESP) */
+mov $hello, %eax
+call write
+ /* Subroutine Epilogue */
+  pop %esi       /* Recover register values. */
+  pop %edi
+  mov %ebp, %esp /* Deallocate the local variable. */
+  pop %ebp       /* Restore the caller's base pointer value. */
+ret
+nop
+nop
+nop
+
 
 # mov ah, 0x02             # Select 'Drive read' function
 # mov bx, <destination>    # Destination to write to, in ES:BX
@@ -77,10 +113,26 @@ int $0x10
 ret
 
 hello: .asciz "Hello World!\n"
+failed_message: .asciz "Failed reading from Hard disk!\n"
+
+# The Global Descriptor Table (For entering protected mode - this is discarded
+# when we switch to real mode)
+gdt:
+gdt_null:
+    .word 0x0000
+    .word gdt
+gdt_code:
+    .word 0x0000        # Base 0:15
+    .word 0xFFFF        # Limit 0:15
+    .byte 0x00          # Base 24:31
+    .byte 0b11001111    # Flags (Gr|Sz|XX|XX), Limit 16:19
+    .byte 0b10011000    # Access byte  (Pr|Priv|S|Ex|DC|RW|Ac)
+    .byte 0x00          # Base 16:23
+gdt_end:
 
 total:
-.org 0x1fe  # Fill with zeros so that the next byte is at 0x1fe (510)
+.org 0x1fe, 0x90  # Fill with zeros so that the next byte is at 0x1fe (510)
 .byte 0x55, 0xaa  # Finished filling the boot sector
 
-.asciz "AAAAAAAAAA\n"
-.org 0x400, 65 # A sector of all 'A'
+#.asciz "AAAAAAAAAA\n"
+#.org 0x400, 65 # A sector of all 'A'
