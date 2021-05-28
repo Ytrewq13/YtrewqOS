@@ -1,8 +1,9 @@
-# Some test bytes - can be removed after confirming this always ends up in the
-# second sector.
-.byte 0x69
-.byte 0x42
-.byte 0x69
+.text
+.asciz "This is a string.\n"
+
+
+.org 0x200
+
 # TODO:
 # - Call a function in the boot sector from here
 # - Call a function here from the boot sector

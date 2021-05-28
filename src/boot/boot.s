@@ -7,8 +7,9 @@
 # $ qemu-system-x86_64 boot.bin
 .code16
 
-.data
 # Data about sector reads (for bootstrapping to the C kernel)
+# TODO: choose an address with plenty of free space - 0x7c00 is where sector 1
+# is placed
 .equ KERN_LD_ADDR, 0x6000
 .equ DRIVE_ID, 0x80
 
@@ -19,21 +20,11 @@ _start:
 mov $hello, %eax
 call write
 
-# This Works
-# TODO:
-# - Put some compiled C code in the second sector (and after)
-# - Switch into protected mode (32-bit)
-#   - Disable interrupts, including NMI
-#   - Enable the A20 line
-#   - Load the GDT (Global Descriptor Table) with segment descriptors suitable
-#     for code, data, and stack
-#   - Change the lowest bit of the CR0/MSW register
-# - Switch into long mode (64-bit)
-# - Jump into the Kernel (which is in sector 2)
-#   - Where would the entry point be?
+# Load the second sector
+# TODO: turn this into a function using the stack
 load_sector:
 mov $0x02, %ah  # Select 'Drive read' function
-mov $KERN_LD_ADDR, %bx  # Destination to write to   (TODO: choose an address with plenty of free space - 0x7c00 is where sector 1 is placed)
+mov $KERN_LD_ADDR, %bx  # Destination to write to
 mov $1, %al  # Number of sectors to read
 mov $DRIVE_ID, %dl  # Drive ID
 mov $2, %cl  # Sector to start from
@@ -41,9 +32,10 @@ mov $0, %dh  # Head to read from
 mov $0, %ch  # Cylinder to read from
 int $0x13
 jc failed  # Clear flag is set if we failed
-#mov KERN_LD_ADDR, %eax  # At the moment, Sector 2 contains only a string for printing
-#call write  # Once we put the kernel in sector 2+, we will jump into the code
-jmp KERN_LD_ADDR # TODO: does this work?
+success:
+mov $KERN_LD_ADDR, %eax  # At the moment, Sector 2 contains only a string for printing
+call write  # Once we put the kernel in sector 2+, we will jump into the code
+#jmp KERN_LD_ADDR # TODO: does this work?
 jmp .
 failed:
 mov $failed_message, %eax
@@ -59,14 +51,14 @@ write_hello:
 /* Subroutine Prologue */
   push %ebp      /* Save the old base pointer value. */
   mov %esp, %ebp /* Set the new base pointer value. */
-  push %edi      /* Save the values of registers that the function */
-  push %esi      /* will modify. This function uses EDI and ESI. */
+  /* Save the values of registers that the function will modify. This function
+   * uses EAX. */
+  push %eax
   /* (no need to save EBX, EBP, or ESP) */
 mov $hello, %eax
 call write
  /* Subroutine Epilogue */
-  pop %esi       /* Recover register values. */
-  pop %edi
+  pop %eax       /* Recover register values. */
   mov %ebp, %esp /* Deallocate the local variable. */
   pop %ebp       /* Restore the caller's base pointer value. */
 ret
@@ -75,41 +67,56 @@ nop
 nop
 
 
-# mov ah, 0x02             # Select 'Drive read' function
-# mov bx, <destination>    # Destination to write to, in ES:BX
-# mov al, <num_sectors>    # Number of sectors to read at a time
-# mov dl, <drive_num>      # The external drive's ID
-# mov cl, <start_sector>   # The sector to start reading from
-# mov dh, <head>           # The head to read from
-# mov ch, <cylinder>       # The cylinder to read from
-# int 0x13                 # Drive services interrupt
-# jc <error_handler>       # Jump to error handler on CF set
-
+.global write
+.type write, @function
 write:
-cmpb $0, (%eax)  # Strings are null-terminated
-je endwrite
-cmpb $'\n', (%eax)  # Compare string character with '\n'
-je write_newline
+/* Subroutine Prologue */
+push %ebp      /* Save the old base pointer value. */
+mov %esp, %ebp /* Set the new base pointer value. */
+/* Save the values of registers that the function will modify. This function
+ * uses EAX and EBX. */
+push %eax
+push %ebx
+write_check:
+    /* Subroutine code. */
+    cmpb $0, (%eax)  # Strings are null-terminated
+    je endwrite
+    cmpb $'\n', (%eax)  # Compare string character with '\n'
+    je write_newline
 write_continue:
-movb (%eax), %bl
-push %eax
-movb %bl, %al
-call putc
-pop %eax
-inc %eax
-jmp write
-endwrite:
-ret
+    movb (%eax), %bl
+    push %eax
+    movb %bl, %al
+    call putc
+    pop %eax
+    inc %eax
+    jmp write_check
 write_newline:  # '\n' needs a '\r' before it
-push %eax
-movb $'\r', %al
-call putc
-pop %eax
-jmp write_continue
+    push %eax
+    movb $'\r', %al
+    call putc
+    pop %eax
+    jmp write_continue
+endwrite:
+ /* Subroutine Epilogue */
+  pop %ebx       /* Recover register values. */
+  pop %eax       /* Recover register values. */
+  mov %ebp, %esp /* Deallocate the local variable. */
+  pop %ebp       /* Restore the caller's base pointer value. */
+ret
 
+# A function to write a character to the screen using the BIOS interrupt system
+.global putc
+.type putc, @function
 putc:
+    push %ebp
+    mov %esp, %ebp
+    push %eax
 mov $0x0e, %ah
 int $0x10
+    pop %eax
+    mov %ebp, %esp
+    pop %ebp
 ret
 
 hello: .asciz "Hello World!\n"
