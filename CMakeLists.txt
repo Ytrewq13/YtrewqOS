@@ -53,8 +53,7 @@ add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 add_library(${BOOT32LOADER} OBJECT ${BOOT32SOURCE})
 add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
-add_custom_target(run-debug qemu-system-x86_64 -s -S -drive format=raw,file=${BINNAME})
-add_custom_target(gdb-remote gdb ${ELFNAME} -command=${GDB_COMMANDFILE})
+add_custom_target(debug qemu-system-x86_64 -s -S -drive format=raw,file=${BINNAME} & gdb ${ELFNAME} -command=${GDB_COMMANDFILE})
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
 add_custom_target(disassemble objdump -D -Mi8086,addr16,data16 -b binary -mi386 ${BINNAME} | less)
 
@@ -66,7 +65,7 @@ target_link_options(${ELFNAME} PRIVATE -T${LINKER_SCRIPT})
 add_dependencies(${ELFNAME} ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
 add_dependencies(${BINNAME} ${ELFNAME})
 add_dependencies(run ${BINNAME})
-add_dependencies(run-debug ${BINNAME})
+add_dependencies(debug ${BINNAME} ${ELFNAME})
 add_dependencies(disassemble ${BINNAME})
 
 # This both links and includes the required libraries
