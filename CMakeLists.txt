@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # Name of the project
 project(YtrewqOS C)
 
-enable_language(ASM-ATT)
+enable_language(ASM)
 
 # Set the name of the executable target
 set(BINNAME kernel.bin)
@@ -30,9 +30,9 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_ASM-ATT_FLAGS "${ASM-ATTFLAGS} -g")
+    set(CMAKE_ASM_FLAGS "${ASM-FLAGS} -g")
 else()
-    set(CMAKE_ASM_FLAGS "${ASM-ATTFLAGS}")
+    set(CMAKE_ASM_FLAGS "${ASM-FLAGS}")
 endif()
 
 # Include local directories

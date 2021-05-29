@@ -1,15 +1,10 @@
-# Simple boot sector
-# Run this by compiling it:
-# $ as -o boot.o boot.s
-# $ ld -Ttext 0 -e _start -o boot.elf boot.o
-# $ objcopy -O binary boot.elf boot.bin
-# Then run it on an x86 64 bit machine:
-# $ qemu-system-x86_64 boot.bin
 .code16
+.intel_syntax noprefix
 
 # Data about sector reads (for bootstrapping to the C kernel)
 # TODO: choose an address with plenty of free space - 0x7c00 is where sector 1
 # is placed
+# The stack begins at 0x6f00 (grows downwards)
 .equ KERN_LD_ADDR, 0x6000
 .equ DRIVE_ID, 0x80
 
@@ -17,30 +12,69 @@
 .global _start
 .type _start, @function
 _start:
-mov $hello, %eax
+lea eax, hello
 call write
-
 # Load the second sector
-# TODO: turn this into a function using the stack
+mov ah, 0x00
+mov al, 0x01  # Number of sectors to read
+mov bx, KERN_LD_ADDR  # Destination to write to
+mov ch, 0x00  # Cylinder to read from
+mov cl, 0x02  # Sector to start from
+mov dh, 0x00  # Head to read from
+mov dl, DRIVE_ID  # Drive ID
+push dx
+push cx
+push bx
+push ax
+call load_sector
+jmp .
+
+# A function that loads sectors from disk:
+# Takes 4 arguments, which are on the stack like so:
+# ax - High byte doesn't matter,
+#      low byte is the number of sectors to read
+# bx - The address to load the data at
+# cx - High byte is the cylinder number to read from,
+#      low byte is the start sector (1-indexed)
+# dx - High byte is the head to read from,
+#      low byte is the drive ID (usually $0x80)
 load_sector:
-mov $0x02, %ah  # Select 'Drive read' function
-mov $KERN_LD_ADDR, %bx  # Destination to write to
-mov $1, %al  # Number of sectors to read
-mov $DRIVE_ID, %dl  # Drive ID
-mov $2, %cl  # Sector to start from
-mov $0, %dh  # Head to read from
-mov $0, %ch  # Cylinder to read from
-int $0x13
+    push ebp      /* Save the old base pointer value. */
+    mov ebp, esp /* Set the new base pointer value. */
+    push ax
+    push bx
+    push cx
+    push dx
+    mov dx, [ebp + 2*6] # FIXME: This is not working as-is
+    mov cx, [ebp + 2*5] # - what should be in bx ends up here
+    mov bx, [ebp + 2*4] # - what should be in ax ends up here
+    mov ax, [ebp + 2*3] # - not sure what ends up here
+mov ah, 0x02  # Select 'Drive read' function
+#mov $KERN_LD_ADDR, bx  # Destination to write to
+#mov $1, al  # Number of sectors to read
+#mov $DRIVE_ID, dl  # Drive ID
+#mov $2, cl  # Sector to start from
+#mov $0, dh  # Head to read from
+#mov $0, ch  # Cylinder to read from
+int 0x13
 jc failed  # Clear flag is set if we failed
 success:
-mov $KERN_LD_ADDR, %eax  # At the moment, Sector 2 contains only a string for printing
-call write  # Once we put the kernel in sector 2+, we will jump into the code
-#jmp KERN_LD_ADDR # TODO: does this work?
+#mov $KERN_LD_ADDR, eax  # At the moment, Sector 2 contains only a string for printing
+#call write  # Once we put the kernel in sector 2+, we will jump into the code
+jmp KERN_LD_ADDR # TODO: does this work?
 jmp .
 failed:
-mov $failed_message, %eax
+lea eax, failed_message
 call write
 jmp .
+load_sector_end:
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    mov esp, ebp
+    pop ebp
+ret
 
 nop
 nop
@@ -49,18 +83,18 @@ nop
 .type write_hello, @function
 write_hello:
 /* Subroutine Prologue */
-  push %ebp      /* Save the old base pointer value. */
-  mov %esp, %ebp /* Set the new base pointer value. */
+  push ebp      /* Save the old base pointer value. */
+  mov ebp, esp /* Set the new base pointer value. */
   /* Save the values of registers that the function will modify. This function
    * uses EAX. */
-  push %eax
+  push eax
   /* (no need to save EBX, EBP, or ESP) */
-mov $hello, %eax
+lea eax, hello
 call write
  /* Subroutine Epilogue */
-  pop %eax       /* Recover register values. */
-  mov %ebp, %esp /* Deallocate the local variable. */
-  pop %ebp       /* Restore the caller's base pointer value. */
+  pop eax       /* Recover register values. */
+  mov esp, ebp /* Deallocate the local variable. */
+  pop ebp       /* Restore the caller's base pointer value. */
 ret
 nop
 nop
@@ -71,52 +105,52 @@ nop
 .type write, @function
 write:
 /* Subroutine Prologue */
-push %ebp      /* Save the old base pointer value. */
-mov %esp, %ebp /* Set the new base pointer value. */
+push ebp      /* Save the old base pointer value. */
+mov ebp, esp /* Set the new base pointer value. */
 /* Save the values of registers that the function will modify. This function
  * uses EAX and EBX. */
-push %eax
-push %ebx
+push eax
+push ebx
 write_check:
     /* Subroutine code. */
-    cmpb $0, (%eax)  # Strings are null-terminated
+    cmpb [eax], 0  # Strings are null-terminated
     je endwrite
-    cmpb $'\n', (%eax)  # Compare string character with '\n'
+    cmpb [eax], '\n'  # Compare string character with '\n'
     je write_newline
 write_continue:
-    movb (%eax), %bl
-    push %eax
-    movb %bl, %al
+    movb bl, [eax]
+    push eax
+    movb al, bl
     call putc
-    pop %eax
-    inc %eax
+    pop eax
+    inc eax
     jmp write_check
 write_newline:  # '\n' needs a '\r' before it
-    push %eax
-    movb $'\r', %al
+    push eax
+    movb al, '\r'
     call putc
-    pop %eax
+    pop eax
     jmp write_continue
 endwrite:
  /* Subroutine Epilogue */
-  pop %ebx       /* Recover register values. */
-  pop %eax       /* Recover register values. */
-  mov %ebp, %esp /* Deallocate the local variable. */
-  pop %ebp       /* Restore the caller's base pointer value. */
+  pop ebx       /* Recover register values. */
+  pop eax       /* Recover register values. */
+  mov esp, ebp /* Deallocate the local variable. */
+  pop ebp       /* Restore the caller's base pointer value. */
 ret
 
 # A function to write a character to the screen using the BIOS interrupt system
 .global putc
 .type putc, @function
 putc:
-    push %ebp
-    mov %esp, %ebp
-    push %eax
-mov $0x0e, %ah
-int $0x10
-    pop %eax
-    mov %ebp, %esp
-    pop %ebp
+    push ebp
+    mov ebp, esp
+    push eax
+mov ah, 0x0e
+int 0x10
+    pop eax
+    mov esp, ebp
+    pop ebp
 ret
 
 hello: .asciz "Hello World!\n"
@@ -140,6 +174,3 @@ gdt_end:
 total:
 .org 0x1fe, 0x90  # Fill with zeros so that the next byte is at 0x1fe (510)
 .byte 0x55, 0xaa  # Finished filling the boot sector
-
-#.asciz "AAAAAAAAAA\n"
-#.org 0x400, 65 # A sector of all 'A'
