@@ -5,8 +5,9 @@
 # TODO: choose an address with plenty of free space - 0x7c00 is where sector 1
 # is placed
 # The stack begins at 0x6f00 (grows downwards)
-.equ KERN_LD_ADDR, 0x6000
-.equ DRIVE_ID, 0x80
+.equ BOOT_LD_ADDR, 0x7c00
+.equ LD_ADDR, 0x4000
+.equ DRV_ID, 0x80
 
 .text
 .global _start
@@ -15,18 +16,18 @@ _start:
 lea eax, hello
 call write
 # Load the second sector
-mov ah, 0x00
 mov al, 0x01  # Number of sectors to read
-mov bx, KERN_LD_ADDR  # Destination to write to
+mov bx, LD_ADDR  # Destination to write to
 mov ch, 0x00  # Cylinder to read from
 mov cl, 0x02  # Sector to start from
 mov dh, 0x00  # Head to read from
-mov dl, DRIVE_ID  # Drive ID
+mov dl, DRV_ID  # Drive ID
 push dx
 push cx
 push bx
 push ax
 call load_sector
+jmp LD_ADDR
 jmp .
 
 # A function that loads sectors from disk:
@@ -38,6 +39,7 @@ jmp .
 #      low byte is the start sector (1-indexed)
 # dx - High byte is the head to read from,
 #      low byte is the drive ID (usually $0x80)
+# Push to the stack in reverse order
 load_sector:
     push ebp      /* Save the old base pointer value. */
     mov ebp, esp /* Set the new base pointer value. */
@@ -45,24 +47,13 @@ load_sector:
     push bx
     push cx
     push dx
-    mov dx, [ebp + 2*6] # FIXME: This is not working as-is
-    mov cx, [ebp + 2*5] # - what should be in bx ends up here
-    mov bx, [ebp + 2*4] # - what should be in ax ends up here
-    mov ax, [ebp + 2*3] # - not sure what ends up here
+    mov dx, [ebp + 2*6] # FIXME: Does this work consistently?
+    mov cx, [ebp + 2*5]
+    mov bx, [ebp + 2*4]
+    mov ax, [ebp + 2*3]
 mov ah, 0x02  # Select 'Drive read' function
-#mov $KERN_LD_ADDR, bx  # Destination to write to
-#mov $1, al  # Number of sectors to read
-#mov $DRIVE_ID, dl  # Drive ID
-#mov $2, cl  # Sector to start from
-#mov $0, dh  # Head to read from
-#mov $0, ch  # Cylinder to read from
-int 0x13
-jc failed  # Clear flag is set if we failed
-success:
-#mov $KERN_LD_ADDR, eax  # At the moment, Sector 2 contains only a string for printing
-#call write  # Once we put the kernel in sector 2+, we will jump into the code
-jmp KERN_LD_ADDR # TODO: does this work?
-jmp .
+int 0x13 # Execute the drive services interrupt
+jnc load_sector_end  # Carry flag is set if we failed
 failed:
 lea eax, failed_message
 call write

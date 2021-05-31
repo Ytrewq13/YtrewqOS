@@ -5,24 +5,21 @@ project(YtrewqOS C)
 
 enable_language(ASM)
 
-# Set the name of the executable target
+# TODO: pick a better name for the executable - it isn't a kernel
+set(DISKIMG kernel.img)
 set(BINNAME kernel.bin)
 set(ELFNAME kernel.elf)
 set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
 set(BOOT32LOADER boot32.o)
+set(BOCHSRC bochsrc)
+set(IMGSCRIPT createimg.sh)
+set(DEBUG_SYMBOLS_FILE debug.sym)
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
+#set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # The `pkg_check_modules` function is created with this call
 find_package(PkgConfig REQUIRED)
-
-#find_package(Threads REQUIRED) # pthread
-#find_package(GIF REQUIRED) # lib_gif
-
-# pkg_check_modules(<PREFIX> [REQUIRED] [QUIET] <MODULE> [<MODULE>]*)
-# This call creates a special `PkgConfig::<PREFIX>` variable
-#pkg_check_modules(MODS REQUIRED IMPORTED_TARGET)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -41,9 +38,19 @@ include_directories(include) # "<project root>/include/"
 set(SOURCES "src/kernel/kernel.c")
 set(BOOTSOURCE "src/boot/boot.s")
 set(BOOT32SOURCE "src/boot/boot32.s")
+set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")
 set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
-set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld")
-set(GDB_COMMANDFILE "${CMAKE_SOURCE_DIR}/src/debug/remote-debug.gdb")
+set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld") # The linker script
+set(LINK_SCRIPT "${TOOLS_DIR}/link.sh") # The script that runs the linker
+set(GDB_SCRIPTFILE "${DEBUG_DIR}/remote-debug.gdb")
+set(BOCHSRC_BLANK "${DEBUG_DIR}/bochsrc")
+set(GDB_DEBUG_SCRIPT "${TOOLS_DIR}/gdb-debug.sh")
+set(IMGSCRIPT_SRC "${TOOLS_DIR}/createimg.sh")
+
+set(IMG_CYLINDERS 203)
+set(IMG_HEADS 16)
+set(IMG_SECTORS 63)
+set(SECTOR_SIZE 512)
 
 # Create the targets
 add_custom_target(${BINNAME} objcopy -O binary ${ELFNAME} ${BINNAME}
@@ -53,20 +60,57 @@ add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 add_library(${BOOT32LOADER} OBJECT ${BOOT32SOURCE})
 add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
-add_custom_target(debug qemu-system-x86_64 -s -S -drive format=raw,file=${BINNAME} & gdb ${ELFNAME} -command=${GDB_COMMANDFILE})
+add_custom_target(debug
+    ${GDB_DEBUG_SCRIPT} ${BINNAME} ${ELFNAME} ${GDB_SCRIPTFILE}
+    SOURCES ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
+add_custom_target(debug-bochs bochs -q -f ${BOCHSRC})
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
-add_custom_target(disassemble objdump -D -Mi8086,addr16,data16 -b binary -mi386 ${BINNAME} | less)
+add_custom_target(disassemble
+    objdump -D -Mi8086,addr16,data16 -b binary -mi386 ${BINNAME} |
+    less)
+# FIXME: reorganise these targets
+add_custom_target(${DISKIMG}
+    ${CMAKE_BINARY_DIR}/${IMGSCRIPT} ${BINNAME} ${DISKIMG}
+    DEPENDS ${IMGSCRIPT}
+    BYPRODUCTS ${DISKIMG})
+add_custom_target(${BOCHSRC}
+    sed 's/@DISKIMG@/${DISKIMG}/g\;
+         s/@DEBUG_SYMBOLS_FILE@/${DEBUG_SYMBOLS_FILE}/g'
+         ${BOCHSRC_BLANK} > ${BOCHSRC}
+    SOURCES ${BOCHSRC_BLANK}
+    BYPRODUCTS ${BOCHSRC})
+add_custom_target(${DEBUG_SYMBOLS_FILE}
+    nm ${ELFNAME} | grep -i ' T ' |
+    cut -d' ' -f1,3 > ${DEBUG_SYMBOLS_FILE}
+    BYPRODUCTS ${DEBUG_SYMBOLS_FILE})
+add_custom_target(${IMGSCRIPT}
+    sed 's/@SECTOR_SIZE@/${SECTOR_SIZE}/g' ${IMGSCRIPT_SRC} > ${IMGSCRIPT} &&
+    chmod --reference=${IMGSCRIPT_SRC} ${IMGSCRIPT}
+    BYPRODUCTS ${IMGSCRIPT})
 
 set_target_properties(${ELFNAME} PROPERTIES
     LINK_DEPENDS "${LINKER_SCRIPT}"
-    RULE_LAUNCH_LINK "${CMAKE_SOURCE_DIR}/src/tools/link.sh <OBJECTS>")
+    RULE_LAUNCH_LINK "${LINK_SCRIPT} <OBJECTS>")
 target_link_options(${ELFNAME} PRIVATE -T${LINKER_SCRIPT})
 
+set_property(DIRECTORY ${CMAKE_BINARY_DIR}
+    APPEND
+    PROPERTY ADDITIONAL_CLEAN_FILES bx_enh_dbg.ini)
+
+# Compilation targets
 add_dependencies(${ELFNAME} ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
 add_dependencies(${BINNAME} ${ELFNAME})
+
+# Running & debugging targets
 add_dependencies(run ${BINNAME})
 add_dependencies(debug ${BINNAME} ${ELFNAME})
+add_dependencies(debug-bochs ${DISKIMG} ${DEBUG_SYMBOLS_FILE} ${BOCHSRC})
 add_dependencies(disassemble ${BINNAME})
+
+# Files
+add_dependencies(${BOCHSRC} ${DEBUG_SYMBOLS_FILE})
+add_dependencies(${DEBUG_SYMBOLS_FILE} ${ELFNAME})
+add_dependencies(${DISKIMG} ${BINNAME})
 
 # This both links and includes the required libraries
 target_link_libraries(${ELFNAME} PUBLIC ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
