@@ -12,6 +12,7 @@ set(ELFNAME kernel.elf)
 set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
 set(BOOT32LOADER boot32.o)
+set(BOOT64LOADER boot64.o)
 set(BOCHSRC bochsrc)
 set(IMGSCRIPT createimg.sh)
 set(DEBUG_SYMBOLS_FILE debug.sym)
@@ -38,6 +39,7 @@ include_directories(include) # "<project root>/include/"
 set(SOURCES "src/kernel/kernel.c")
 set(BOOTSOURCE "src/boot/boot.s")
 set(BOOT32SOURCE "src/boot/boot32.s")
+set(BOOT64SOURCE "src/boot/boot64.s")
 set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")
 set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
 set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld") # The linker script
@@ -63,30 +65,29 @@ add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
 add_custom_target(debug
     ${GDB_DEBUG_SCRIPT} ${BINNAME} ${ELFNAME} ${GDB_SCRIPTFILE}
     SOURCES ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
-add_custom_target(debug-bochs bochs -q -f ${BOCHSRC})
+add_custom_target(debug-bochs bochs -q -f ${BOCHSRC}
+    DEPENDS ${DEBUG_SYMBOLS_FILE} ${BOCHSRC} ${DISKIMG})
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
 add_custom_target(disassemble
     objdump -D -Mi8086,addr16,data16 -b binary -mi386 ${BINNAME} |
     less)
-# FIXME: reorganise these targets
-add_custom_target(${DISKIMG}
-    ${CMAKE_BINARY_DIR}/${IMGSCRIPT} ${BINNAME} ${DISKIMG}
-    DEPENDS ${IMGSCRIPT}
-    BYPRODUCTS ${DISKIMG})
-add_custom_target(${BOCHSRC}
-    sed 's/@DISKIMG@/${DISKIMG}/g\;
-         s/@DEBUG_SYMBOLS_FILE@/${DEBUG_SYMBOLS_FILE}/g'
-         ${BOCHSRC_BLANK} > ${BOCHSRC}
-    SOURCES ${BOCHSRC_BLANK}
-    BYPRODUCTS ${BOCHSRC})
-add_custom_target(${DEBUG_SYMBOLS_FILE}
-    nm ${ELFNAME} | grep -i ' T ' |
-    cut -d' ' -f1,3 > ${DEBUG_SYMBOLS_FILE}
-    BYPRODUCTS ${DEBUG_SYMBOLS_FILE})
-add_custom_target(${IMGSCRIPT}
-    sed 's/@SECTOR_SIZE@/${SECTOR_SIZE}/g' ${IMGSCRIPT_SRC} > ${IMGSCRIPT} &&
-    chmod --reference=${IMGSCRIPT_SRC} ${IMGSCRIPT}
-    BYPRODUCTS ${IMGSCRIPT})
+
+add_custom_command(OUTPUT ${DISKIMG}
+    COMMAND ${CMAKE_BINARY_DIR}/${IMGSCRIPT} ${BINNAME} ${DISKIMG}
+    DEPENDS ${IMGSCRIPT} ${BINNAME})
+
+add_custom_command(OUTPUT ${BOCHSRC}
+    COMMAND sed 's/@DISKIMG@/${DISKIMG}/g\;
+            s/@DEBUG_SYMBOLS_FILE@/${DEBUG_SYMBOLS_FILE}/g'
+            ${BOCHSRC_BLANK} > ${BOCHSRC})
+add_custom_command(OUTPUT ${DEBUG_SYMBOLS_FILE}
+    COMMAND nm ${ELFNAME} | grep -i ' T ' |
+            cut -d' ' -f1,3 > ${DEBUG_SYMBOLS_FILE}
+    DEPENDS ${ELFNAME})
+add_custom_command(OUTPUT ${IMGSCRIPT}
+    COMMAND sed 's/@SECTOR_SIZE@/${SECTOR_SIZE}/g' ${IMGSCRIPT_SRC} > ${IMGSCRIPT}
+    COMMAND chmod --reference=${IMGSCRIPT_SRC} ${IMGSCRIPT}
+    DEPENDS ${IMGSCRIPT_SRC})
 
 set_target_properties(${ELFNAME} PROPERTIES
     LINK_DEPENDS "${LINKER_SCRIPT}"
@@ -104,13 +105,7 @@ add_dependencies(${BINNAME} ${ELFNAME})
 # Running & debugging targets
 add_dependencies(run ${BINNAME})
 add_dependencies(debug ${BINNAME} ${ELFNAME})
-add_dependencies(debug-bochs ${DISKIMG} ${DEBUG_SYMBOLS_FILE} ${BOCHSRC})
 add_dependencies(disassemble ${BINNAME})
-
-# Files
-add_dependencies(${BOCHSRC} ${DEBUG_SYMBOLS_FILE})
-add_dependencies(${DEBUG_SYMBOLS_FILE} ${ELFNAME})
-add_dependencies(${DISKIMG} ${BINNAME})
 
 # This both links and includes the required libraries
 target_link_libraries(${ELFNAME} PUBLIC ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
