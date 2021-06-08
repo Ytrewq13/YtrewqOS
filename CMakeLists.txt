@@ -49,29 +49,37 @@ set(BOCHSRC_BLANK "${DEBUG_DIR}/bochsrc")
 set(GDB_DEBUG_SCRIPT "${TOOLS_DIR}/gdb-debug.sh")
 set(IMGSCRIPT_SRC "${TOOLS_DIR}/createimg.sh")
 
+# TODO: stop hardcoding this
 set(IMG_CYLINDERS 203)
 set(IMG_HEADS 16)
 set(IMG_SECTORS 63)
 set(SECTOR_SIZE 512)
 
 # Create the targets
-add_custom_target(${BINNAME} objcopy -O binary ${ELFNAME} ${BINNAME}
-    BYPRODUCTS ${BINNAME})
 add_executable(${ELFNAME})
 add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 add_library(${BOOT32LOADER} OBJECT ${BOOT32SOURCE})
-add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME})
+
+add_custom_target(bin DEPENDS ${BINNAME}) # For creating only the bin (manually)
+add_custom_target(run qemu-system-x86_64 -drive format=raw,file=${BINNAME}
+    DEPENDS ${BINNAME})
 add_custom_target(debug
     ${GDB_DEBUG_SCRIPT} ${BINNAME} ${ELFNAME} ${GDB_SCRIPTFILE}
-    SOURCES ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
+    SOURCES ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE}
+    DEPENDS ${BINNAME} ${ELFNAME})
 add_custom_target(debug-bochs bochs -q -f ${BOCHSRC}
     DEPENDS ${DEBUG_SYMBOLS_FILE} ${BOCHSRC} ${DISKIMG})
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
 add_custom_target(disassemble
     objdump -D -Mi8086,addr16,data16 -b binary -mi386 ${BINNAME} |
-    less)
+    less
+    DEPENDS ${BINNAME})
 
+# Commands which assist in creating the target
+add_custom_command(OUTPUT ${BINNAME}
+    COMMAND objcopy -O binary ${ELFNAME} ${BINNAME}
+    DEPENDS ${ELFNAME})
 add_custom_command(OUTPUT ${DISKIMG}
     COMMAND ${CMAKE_BINARY_DIR}/${IMGSCRIPT} ${BINNAME} ${DISKIMG}
     DEPENDS ${IMGSCRIPT} ${BINNAME})
@@ -100,12 +108,6 @@ set_property(DIRECTORY ${CMAKE_BINARY_DIR}
 
 # Compilation targets
 add_dependencies(${ELFNAME} ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
-add_dependencies(${BINNAME} ${ELFNAME})
-
-# Running & debugging targets
-add_dependencies(run ${BINNAME})
-add_dependencies(debug ${BINNAME} ${ELFNAME})
-add_dependencies(disassemble ${BINNAME})
 
 # This both links and includes the required libraries
 target_link_libraries(${ELFNAME} PUBLIC ${BOOTLOADER} ${BOOT32LOADER} ${KERNEL})
