@@ -49,7 +49,7 @@ load_sector:
     push bx
     push cx
     push dx
-    mov dx, [ebp + 2*6] # FIXME: Does this work consistently?
+    mov dx, [ebp + 2*6] # TODO: Does this work consistently?
     mov cx, [ebp + 2*5]
     mov bx, [ebp + 2*4]
     mov ax, [ebp + 2*3]
