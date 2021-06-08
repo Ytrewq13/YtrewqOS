@@ -6,7 +6,8 @@
 # is placed
 # The stack begins at 0x6f00 (grows downwards)
 .equ BOOT_LD_ADDR, 0x7c00
-.equ LD_ADDR, 0x4000
+.global LD_ADDR
+.equ LD_ADDR, 0x7e00
 .equ DRV_ID, 0x80
 
 .text
@@ -15,7 +16,7 @@
 _start:
 lea eax, hello
 call write
-# Load the second sector
+# Load the second sector (should load the rest of the bootloader)
 mov al, 0x01  # Number of sectors to read
 mov bx, LD_ADDR  # Destination to write to
 mov ch, 0x00  # Cylinder to read from
@@ -27,8 +28,9 @@ push cx
 push bx
 push ax
 call load_sector
-jmp LD_ADDR
+call sec2_func # Calling a function that is in the second sector
 jmp .
+
 
 # A function that loads sectors from disk:
 # Takes 4 arguments, which are on the stack like so:
