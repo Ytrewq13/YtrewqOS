@@ -1,8 +1,9 @@
 # YtrewqOS
 
-My custom homebrew operating system
+My custom homebrew operating system for ARM 64 bit targets (specifically
+Raspberry Pi 3 model B).
 
-Currently this is only a bootloader written in AT&T assembly.
+Currently this is only a bootloader written ARMv8 assembly.
 
 I Have plans to create the beginnings of a microkernel in C.
 
@@ -13,8 +14,8 @@ Name will likely change.
 ## Requirements
 
 - CMake >= v3.20
-- GNU assembler
-- QEMU (x86_64) - for running the OS only
+- GNU assembler (`aarch-none-elf-gcc-bin`)
+- QEMU (aarch64) - for running the OS only
 
 ## Compilation process
 
