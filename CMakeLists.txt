@@ -22,7 +22,7 @@ set(SECTOR_SIZE 4096)
 set(DISKIMG kernel.img)
 set(BINNAME kernel.bin)
 set(ELFNAME kernel.elf)
-#set(KERNEL kernel.o)
+set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
 #set(BOOT32LOADER boot32.o)
 #set(BOOT64LOADER boot64.o)
@@ -43,10 +43,8 @@ set(CMAKE_BUILD_TYPE Debug)
 # Include local directories
 include_directories(include) # "<project root>/include/"
 
-#set(SOURCES "src/kernel/kernel.c")
+set(SOURCES "src/kernel/kernel.c")
 set(BOOTSOURCE "src/boot/boot.S")
-#set(BOOT32SOURCE "src/boot/boot32.S")
-#set(BOOT64SOURCE "src/boot/boot64.S")
 set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")
 set(TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/tools")
 set(LINKER_SCRIPT "${TOOLS_DIR}/linker.ld") # The linker script
@@ -57,9 +55,8 @@ set(IMGSCRIPT_SRC "${TOOLS_DIR}/createimg.sh")
 
 # Create the targets
 add_executable(${ELFNAME})
-#add_library(${KERNEL} OBJECT ${SOURCES})
+add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
-#add_library(${BOOT32LOADER} OBJECT ${BOOT32SOURCE})
 
 add_custom_target(bin DEPENDS ${BINNAME}) # For creating only the bin (manually)
 add_custom_target(run ${QEMU_BIN} ${QEMU_ARGS} -drive format=raw,file=${DISKIMG}
@@ -96,10 +93,10 @@ set_target_properties(${ELFNAME} PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
 target_link_options(${ELFNAME} PRIVATE -nostartfiles -T${LINKER_SCRIPT})
 
 # Compilation targets
-add_dependencies(${ELFNAME} ${BOOTLOADER})
+add_dependencies(${ELFNAME} ${BOOTLOADER} ${KERNEL})
 
 # This both links and includes the required libraries
-target_link_libraries(${ELFNAME} PUBLIC ${BOOTLOADER})
+target_link_libraries(${ELFNAME} PUBLIC ${BOOTLOADER} ${KERNEL})
 
 # This is so we get a compile commands JSON file (used by ALE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)

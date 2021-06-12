@@ -27,8 +27,8 @@ _start:
     cbnz    w6, 3b
 
     // jump to C code, should not return
-// 4:  bl      kernel_main
+4:  bl      kernel_main
     // for failsafe, halt this core too
     // b 1b
-4:
+// 4:
     wfi
