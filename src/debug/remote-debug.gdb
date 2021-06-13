@@ -1,5 +1,5 @@
 target remote localhost:1234
-add-symbol-file kernel.elf 0x7c00
+add-symbol-file @ELFNAME@ @BOOT_ADDR@
 tui enable
 list
 focus cmd
