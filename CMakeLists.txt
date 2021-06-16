@@ -7,14 +7,21 @@ project(YtrewqOS C)
 
 enable_language(ASM)
 
-set(OBJCOPY_BIN aarch64-none-elf-objcopy)
-set(OBJDUMP_BIN aarch64-none-elf-objdump)
-set(NM_BIN aarch64-none-elf-nm)
+# TODO: pick a better name for the executable - it isn't a kernel
+set(BINNAME kernel8.img)
+set(ELFNAME kernel8.elf)
+set(KERNEL kernel.o)
+set(BOOTLOADER boot.o)
+#set(DEBUG_SYMBOLS_FILE debug.sym) # Used by bochs
+
+set(OBJCOPY_BIN llvm-objcopy)
+set(OBJDUMP_BIN llvm-objdump)
+set(NM_BIN llvm-nm)
 set(GDB_BIN aarch64-none-elf-gdb)
 
 set(QEMU_SERIAL_DBG_FILE "serial.log")
 set(QEMU_BIN qemu-system-aarch64)
-set(QEMU_ARGS -machine raspi3b -serial file:${QEMU_SERIAL_DBG_FILE})
+set(QEMU_ARGS -M raspi3b -serial null -serial stdio) # file:${QEMU_SERIAL_DBG_FILE})
 set(QEMU_ARGS_2 "${QEMU_ARGS}")
 
 set(DISASS_ARGS -b binary -m aarch64 -D)
@@ -22,26 +29,16 @@ set(DISASS_ARGS -b binary -m aarch64 -D)
 set(SECTOR_SIZE 4096)
 set(BOOT_ADDR 0x80000)
 
-# TODO: pick a better name for the executable - it isn't a kernel
-set(DISKIMG kernel.img)
-set(BINNAME kernel.bin)
-set(ELFNAME kernel.elf)
-set(KERNEL kernel.o)
-set(BOOTLOADER boot.o)
-#set(DEBUG_SYMBOLS_FILE debug.sym) # Used by bochs
-
 
 #set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/src/tools/toolchain.cmake")
-
-# The `pkg_check_modules` function is created with this call
-#find_package(PkgConfig REQUIRED)
 
 set(CMAKE_BUILD_TYPE Debug)
 
 # Include local directories
 include_directories(include) # "<project root>/include/"
 
-set(SOURCES "src/kernel/kernel.c")
+set(SOURCES "src/kernel/kernel.c"
+    "src/lib/uart.c")
 set(BOOTSOURCE "src/boot/boot.S")
 set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")
 set(TOOLS_OUT_DIR "${CMAKE_BINARY_DIR}/tools")
@@ -60,15 +57,14 @@ add_library(${KERNEL} OBJECT ${SOURCES})
 add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 
 add_custom_target(bin DEPENDS ${BINNAME}) # For creating only the bin (manually)
-add_custom_target(img DEPENDS ${DISKIMG})
-add_custom_target(run ${QEMU_BIN} ${QEMU_ARGS} -drive format=raw,file=${DISKIMG}
-    DEPENDS ${DISKIMG})
+add_custom_target(run ${QEMU_BIN} ${QEMU_ARGS} -kernel ${BINNAME}
+    DEPENDS ${BINNAME})
 add_custom_target(debug
     ${GDB_DEBUG_SCRIPT}
     DEPENDS ${BINNAME} ${ELFNAME} ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
 add_custom_target(distclean rm -rf ${CMAKE_BINARY_DIR}/*)
 add_custom_target(disassemble
-    ${OBJDUMP_BIN} ${DISASS_ARGS} ${BINNAME} |
+    ${OBJDUMP_BIN} ${DISASS_ARGS} ${ELFNAME} |
     less
     DEPENDS ${BINNAME})
 
@@ -76,9 +72,9 @@ add_custom_target(disassemble
 add_custom_command(OUTPUT ${BINNAME}
     COMMAND ${OBJCOPY_BIN} -O binary ${ELFNAME} ${BINNAME}
     DEPENDS ${ELFNAME})
-add_custom_command(OUTPUT ${DISKIMG}
-    COMMAND ${IMGSCRIPT} ${BINNAME} ${DISKIMG}
-    DEPENDS ${IMGSCRIPT} ${BINNAME})
+#add_custom_command(OUTPUT ${DISKIMG}
+#    COMMAND ${IMGSCRIPT} ${BINNAME} ${DISKIMG}
+#    DEPENDS ${IMGSCRIPT} ${BINNAME})
 
 # Put this back if we will want the symbol file.
 #add_custom_command(OUTPUT ${DEBUG_SYMBOLS_FILE}
@@ -94,7 +90,7 @@ configure_file(${GDB_DEBUG_SCRIPT_SRC} ${GDB_DEBUG_SCRIPT} @ONLY)
 configure_file(${GDB_SCRIPTFILE_SRC} ${GDB_SCRIPTFILE})
 
 set_target_properties(${ELFNAME} PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
-target_link_options(${ELFNAME} PRIVATE -nostartfiles -T${LINKER_SCRIPT})
+target_link_options(${ELFNAME} PRIVATE -T${LINKER_SCRIPT})
 
 # Compilation targets
 add_dependencies(${ELFNAME} ${BOOTLOADER} ${KERNEL})
