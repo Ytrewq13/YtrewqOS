@@ -11,7 +11,7 @@ set(CMAKE_CXX_COMPILER_TARGET ${CLANG_TARGET_TRIPLE})
 set(CMAKE_ASM_COMPILER clang)
 set(CMAKE_ASM_COMPILER_TARGET ${CLANG_TARGET_TRIPLE})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O2 -ffreestanding -nostdinc -nostdlib -mcpu=cortex-a53+nosimd")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O2 -ffreestanding -nostdlib -mcpu=cortex-a53+nosimd")
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-m,${CLANG_LINKER_TARGET}")
 
