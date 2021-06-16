@@ -22,7 +22,7 @@ Name will likely change.
 To compile the kernel, run the following commands inside the `build` directory.
 
 ```shell
-cmake ..
+cmake -DCMAKE_TOOLCHAIN_FILE="../src/tools/toolchain.cmake" ..
 make
 ```
 
