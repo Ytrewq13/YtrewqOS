@@ -12,3 +12,6 @@ build/*
 
 # Vim swapfiles
 *.swp
+
+# ctags file
+tags
