@@ -19,9 +19,12 @@ set(OBJDUMP_BIN llvm-objdump)
 set(NM_BIN llvm-nm)
 set(GDB_BIN aarch64-none-elf-gdb)
 
-set(QEMU_SERIAL_DBG_FILE "serial.log")
+set(QEMU_SERIAL1_DBG "serial1.log")
+set(QEMU_SERIAL1_DBG_FILE "file:${QEMU_SERIAL1_DBG}")
+set(QEMU_SERIAL2_DBG "serial2.log")
+set(QEMU_SERIAL2_DBG_FILE "file:${QEMU_SERIAL2_DBG}")
 set(QEMU_BIN qemu-system-aarch64)
-set(QEMU_ARGS -M raspi3b -serial null -serial stdio) # file:${QEMU_SERIAL_DBG_FILE})
+set(QEMU_ARGS -M raspi3b -serial "${QEMU_SERIAL1_DBG_FILE}" -serial stdio) #"${QEMU_SERIAL2_DBG_FILE}")
 set(QEMU_ARGS_2 "${QEMU_ARGS}")
 
 set(DISASS_ARGS -b binary -m aarch64 -D)
@@ -38,7 +41,8 @@ set(CMAKE_BUILD_TYPE Debug)
 include_directories(include) # "<project root>/include/"
 
 set(SOURCES "src/kernel/kernel.c"
-    "src/lib/uart.c")
+    "src/lib/uart.c"
+    "src/lib/mbox.c")
 set(BOOTSOURCE "src/boot/boot.S")
 set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")
 set(TOOLS_OUT_DIR "${CMAKE_BINARY_DIR}/tools")
@@ -58,7 +62,8 @@ add_library(${BOOTLOADER} OBJECT ${BOOTSOURCE})
 
 add_custom_target(bin DEPENDS ${BINNAME}) # For creating only the bin (manually)
 add_custom_target(run ${QEMU_BIN} ${QEMU_ARGS} -kernel ${BINNAME}
-    DEPENDS ${BINNAME})
+    DEPENDS ${BINNAME}
+    BYPRODUCTS ${QEMU_SERIAL1_DBG} ${QEMU_SERIAL2_DBG})
 add_custom_target(debug
     ${GDB_DEBUG_SCRIPT}
     DEPENDS ${BINNAME} ${ELFNAME} ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
