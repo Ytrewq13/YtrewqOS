@@ -3,15 +3,13 @@
  * Last updated 2021-06-16
  */
 
-// TODO: Get fixed width types working again - since moving to LLVM we don't
-// have access to <stdint.h>
-//#include <stdint.h>
+#include <stdint.h>
 
 #include "gpio.h"
 #include "uart.h"
 
-extern void PUT32(unsigned int addr, unsigned int x);
-extern unsigned int GET32(unsigned int addr);
+extern void PUT32(uint64_t addr, uint32_t x);
+extern uint32_t GET32(uint64_t addr);
 
 /* The following is taken from example code found at
  * https://github.com/bztsrc/raspi3-tutorial/blob/master/03_uart1/uart.c
@@ -20,7 +18,7 @@ extern unsigned int GET32(unsigned int addr);
  */
 
 void uart_init() {
-    register unsigned int r;
+    register uint32_t r;
 
     /* initialize UART */
     PUT32(AUX_ENABLE, GET32(AUX_ENABLE)|1); // Enable UART1, AUX mini uart
@@ -43,12 +41,11 @@ void uart_init() {
     PUT32(AUX_MU_CNTL, 3);      // eable Tx, Rx
 }
 
-void uart_send(unsigned int c) {
+void uart_send(uint32_t c) {
     // Wait until we can send
     while (!(GET32(AUX_MU_LSR) & 0x20)) __asm volatile("nop");
     // Write the character to the buffer
     PUT32(AUX_MU_IO, c);
-    // 0b00100000
 }
 
 char uart_getc() {
@@ -58,7 +55,7 @@ char uart_getc() {
     // Read it and return
     r = GET32(AUX_MU_IO);
     // Convert carriage return to newline
-    return (r=='\r'?'\n':r);
+    return (r == '\r' ? '\n' : r);
 }
 
 void uart_puts(char* s) {
@@ -68,4 +65,20 @@ void uart_puts(char* s) {
             uart_send('\r');
         uart_send(*s++);
     }
+}
+
+void uart_hex(uint32_t d) {
+    register uint32_t n;
+    register int8_t c; // This has to be signed for the for loop to exit.
+
+    for (c = 28; c >= 0; c -= 4) {
+        n = (d >> c) & 0xF;
+        n += (n > 9) ? ('A'-10) : '0';
+        uart_send(n);
+    }
+}
+
+void uart_hex64(uint64_t d) {
+    uart_hex(d >> 32);
+    uart_hex(d);
 }
