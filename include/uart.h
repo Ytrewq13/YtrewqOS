@@ -28,7 +28,18 @@ void uart_send(uint32_t c);
 char uart_getc();
 void uart_puts(char *s);
 
-void uart_hex(uint32_t d);
+void uart_dec(uint64_t d);
+void uart_hex4(uint8_t d);
+void uart_hex8(uint8_t d);
+void uart_hex16(uint16_t d);
+void uart_hex32(uint32_t d);
 void uart_hex64(uint64_t d);
+
+// Print n bytes in hex from starting address src, with a separator string between each byte printed
+void uart_nhex(void *src, size_t n, const char *sep);
+// Reverse (for little endian numbers without a dedicated uart_hex function.
+void uart_rnhex(void *src, size_t n, const char *sep);
+
+// TODO: uart_printf
 
 #endif

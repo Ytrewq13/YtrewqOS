@@ -67,18 +67,52 @@ void uart_puts(char* s) {
     }
 }
 
-void uart_hex(uint32_t d) {
-    register uint32_t n;
-    register int8_t c; // This has to be signed for the for loop to exit.
+// Print a number as decimal on the UART
+void uart_dec(uint64_t d) {
+    // Put previous digits
+    if (d > 9) uart_dec(d/10);
+    // Put the final digit
+    uart_send('0' + (d % 10));
+}
 
-    for (c = 28; c >= 0; c -= 4) {
-        n = (d >> c) & 0xF;
-        n += (n > 9) ? ('A'-10) : '0';
-        uart_send(n);
-    }
+void uart_hex4(uint8_t d) {
+    register uint32_t n = d & 0xF;
+    n += (n > 9) ? ('A' - 10) : '0';
+    uart_send(n);
+}
+
+void uart_hex8(uint8_t d) {
+    uart_hex4(d >> 4);
+    uart_hex4(d);
+}
+
+void uart_hex16(uint16_t d) {
+    uart_hex8(d >> 8);
+    uart_hex8(d);
+}
+
+void uart_hex32(uint32_t d) {
+    uart_hex16(d >> 16);
+    uart_hex16(d);
 }
 
 void uart_hex64(uint64_t d) {
-    uart_hex(d >> 32);
-    uart_hex(d);
+    uart_hex32(d >> 32);
+    uart_hex32(d);
+}
+
+void uart_nhex(void *src, size_t n, const char *sep) {
+    size_t i;
+    for (i = 0; i < n; i++) {
+        uart_hex8(*((uint8_t*)src+i));
+        if (i != n-1) uart_puts((char*)sep);
+    }
+}
+
+void uart_rnhex(void *src, size_t n, const char *sep) {
+    size_t i;
+    for (i = n; i > 0; i--) {
+        uart_hex8(*((uint8_t*)src+i-1));
+        if (i != 1) uart_puts((char*)sep);
+    }
 }
