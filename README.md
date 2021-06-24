@@ -3,9 +3,8 @@
 My custom homebrew operating system for ARM 64 bit targets (specifically
 Raspberry Pi 3 model B).
 
-Currently this is only a bootloader written ARMv8 assembly.
-
-I Have plans to create the beginnings of a microkernel in C.
+Currently contains a bootloader in ARMv8 assembly and the beginnings of a
+kernel in C (along with a small library for interacting with the hardware).
 
 Name will likely change.
 
@@ -14,7 +13,7 @@ Name will likely change.
 ## Requirements
 
 - CMake >= v3.20
-- GNU assembler (`aarch-none-elf-gcc-bin`)
+- LLVM (clang) >= 11.1.0
 - QEMU (aarch64) - for running the OS only
 
 ## Compilation process
