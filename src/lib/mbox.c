@@ -11,62 +11,114 @@
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 
-/* mailbox message buffer */
-// Why is the mailbox 36*32 bits? Is that pre-determined or just chosen by
-// the example code? TODO
-volatile uint32_t __attribute__((aligned(16))) mbox[36];
-
-uint32_t mbox_call(uint8_t channel) {
-    uint32_t r;
-    //    ?????????? the address of mbox is 64-bit. Why are we casting it to 32 bits?
-    r = (((uint32_t)((uint64_t)&mbox)&~0xF) | (channel&0xF)); // FIXME
-    /* wait until we can write to the mailbox */
-    while (GET32(MBOX_WRITE_STATUS) & MBOX_FULL) __asm volatile("nop");
-    /* write the address of our message to the mailbox with channel identifier */
-    PUT32(MBOX_WRITE, r);
-    /* now wait for the response */
-    while(1) {
-        /* is there a response? */
-        while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
-        /* is it a response to our message? */
-        if (r == GET32(MBOX_READ))
-            /* is it a valid successful response? */
-            return mbox[1]==MBOX_RESPONSE;
-    }
-    return 0;
-}
-
-/* Run a command on a channel in the mailbox
- * waits for a response if the second argument is true
- *
- * Returns 0 on success, non-zero if error (the non-zero values will be error
- * codes when I implement error-codes)
+/* Start a mailbox command.
  */
-uint32_t mbox_command(enum MBOX_CHANNELS channel, bool blocking, uint32_t* msg) {
-    // Sanity check arguments
-    if (!msg) return 1; // FIXME: MBOX_MSG_NULL_POINTER_ERROR
-    if (msg[0] > sizeof(mbox))
-        return 1; // FIXME: MBOX_MSG_TOO_LARGE_ERROR
-    // TODO: write this function
-    return 0;
+ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS channel, uint32_t* mbox) {
+    uint32_t r;
+
+    /* Sanity check arguments */
+    if (!mbox) return MBOX_ERR_NULLPTR;
+    if ((uint64_t)mbox & 0xF) return MBOX_ERR_PTR_ALIGN;
+
+    /* Pack the address and channel together */
+    r = (uint64_t)mbox | channel;
+    /* Wait until we can write to the mailbox */
+    while (GET32(MBOX_WRITE_STATUS) & MBOX_FULL) __asm volatile("nop");
+    /* Write the address of our message to the mailbox with channel identifier */
+    PUT32(MBOX_WRITE, r);
+
+    return MBOX_SUCCESS;
 }
 
-// Get the board's unique serial number with a mailbox call
-uint64_t get_serial_number(uint32_t* err) {
-    mbox[0] = 8*4;                  // Length of the message
-    mbox[1] = MBOX_REQUEST;         // This is a request message
+/* Wait for a mailbox command to finish.
+ */
+ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox) {
+    uint32_t r;
 
-    mbox[2] = MBOX_TAG_GET_SERIAL_NUMBER;   // Get serial number command
-    mbox[3] = 8;                    // Buffer size
-    mbox[4] = 8;
-    mbox[5] = 0;                    // Clear output buffer
-    mbox[6] = 0;
+    /* Sanity check arguments */
+    if (!mbox) return MBOX_ERR_NULLPTR;
+    if ((uint64_t)mbox & 0xF) return MBOX_ERR_PTR_ALIGN;
 
-    mbox[7] = MBOX_TAG_LAST; // TODO: why is this 0 named?
+    /* Pack the address and channel together */
+    r = (uint64_t)mbox | channel;
+
+    /* Wait for the response. */
+    while (1) {
+        /* Wait until we can read something */
+        while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
+        /* Check if the response is for the message we are waiting for */
+        if (r == GET32(MBOX_READ) && mbox[1] == MBOX_RESPONSE)
+            return MBOX_SUCCESS;
+        else
+            return MBOX_ERR_UNKNOWN; // TODO
+    }
+}
+
+/* Function to perform a mailbox call and put the value returned into *result
+ * result should point to a space at least buf_size bytes large.
+ * input should be either NULL (then we zero the buffer) or a multiple of 4
+ * bytes long (at least buf_size bytes).
+ */
+ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
+                               size_t buf_size, void* input, void* result) {
+    ERROR_TYPE err;
+    uint32_t i, buf_count, buf_min, buf_max, msg_size;
+    uint8_t* res = result;
+
+    buf_count = (buf_size+3)/4; // Number of 32-bit entries in the buffer
+    buf_min = 5;
+    buf_max = buf_min - 1 + buf_count;
+
+    msg_size = (buf_max + 2)*4; // Message size (in bytes)
+
+    if ((uint64_t)mbox & 0x1F) return MBOX_ERR_PTR_ALIGN;
+
+    // Fill the values in the mbox
+    ((uint32_t*)mbox)[0] = msg_size;
+    ((uint32_t*)mbox)[1] = MBOX_REQUEST;
+    // Tag start
+    ((uint32_t*)mbox)[2] = tag_id;
+    ((uint32_t*)mbox)[3] = buf_size;
+    ((uint32_t*)mbox)[4] = 0;
+
+    // Zero/prepare the value buffer.
+    for (i = buf_min; i < buf_max; i++) {
+        if (input)  // Copy the input
+            ((uint32_t*)mbox)[i] = ((uint32_t*)input)[i - buf_min];
+        else        // Zero the buffer
+            ((uint32_t*)mbox)[i] = 0;
+    }
+    ((uint32_t*)mbox)[buf_max + 1] = MBOX_TAG_LAST;
 
     // Send the message to the GPU and receive answer
-    if (mbox_call(MBOX_CH_PROP_W))
-        return ((uint64_t)mbox[6] << 32 | mbox[5]);
-    *err = 1; // TODO: create enum of mbox error codes.
-    return 0;
+    if ((err = mbox_command_start(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
+        return err;
+    // TODO: rework this so we can propagate the error value from wait
+    if ((err = mbox_command_wait(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
+        return err;
+    // Copy the result
+    for (i = 0; i < buf_size; i++)
+        res[i] = ((uint8_t*)mbox)[4*buf_min + i];
+    return MBOX_SUCCESS;
 }
+
+/* What to put in the mailbox for the property interface channel (from
+ * https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface):
+ *
+ * - u32: The size of the message in bytes (including the header values, end tag,
+ *   and padding - i.e. the size of the whole message)
+ * - u32: Request/Response code (from enum MBOX_REQUEST_RESPONSE)
+ * - u8+: Sequence of concatenated "tags" - This specifies what we want from
+ *   the GPU. Tags are processed in order unless an interface requires
+ *   multiple tags for a single operation.
+ *   The format of these "tags" is as follows:
+ *   - u32: Tag identifier (one of enum MBOX_TAG_IDENTIFIERS)
+ *   - u32: Value buffer size in bytes
+ *   - u32: Request/Response codes:
+ *          - bit 31 clear: Request, bits 30:0 reserved
+ *          - bit 31 set: Response, bits 30:0 value length in bytes
+ *   - u8+: Value buffer
+ *   - u8+: Padding to align the tag to 32 bits
+ * - u32: The end tag (MBOX_TAG_LAST) (0x00000000)
+ * - u8+: Padding TODO: is an amount of padding required?
+ */

@@ -1,5 +1,5 @@
 #ifndef MMIO_H
-#define MMIO_H
+#define MMIO_H 1
 
 enum {
     // Base of MMIO

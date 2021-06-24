@@ -1,5 +1,5 @@
 #ifndef GPIO_H
-#define GPIO_H
+#define GPIO_H 1
 
 #include "mmio.h"
 

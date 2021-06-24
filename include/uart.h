@@ -1,7 +1,8 @@
 #ifndef UART_H
-#define UART_H
+#define UART_H 1
 
 #include <stdint.h>
+#include <stddef.h>
 
 #include "mmio.h"
 
