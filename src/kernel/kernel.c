@@ -26,8 +26,22 @@ void kernel_main() {
     uint32_t board_model;
     uint32_t board_revision;
     uint64_t MAC_address;
+
     mem_info_t ARM_mem;
     mem_info_t GPU_mem;
+
+    // Structs for display dimensions
+    struct {
+        uint32_t width;
+        uint32_t height;
+    } display_info, virt_display_info;
+
+    // Frame Buffer info struct
+    mem_info_t fb_info;
+
+    // Bit depth info
+    uint32_t bit_depth, bit_depth_result;
+
 
     volatile uint32_t __attribute__((aligned(16))) mbox[36];
 
@@ -105,10 +119,6 @@ void kernel_main() {
     uart_puts("\n");
 
     // Query GPU for Frame Buffer details
-    struct {
-        uint32_t width;
-        uint32_t height;
-    } display_info, virt_display_info;
     // Physical display width/height
     if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL, &display_info) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (Physical display dimensions)!\n");
@@ -125,7 +135,7 @@ void kernel_main() {
         uart_dec(virt_display_info.width); uart_puts("x"); uart_dec(virt_display_info.height);
         uart_puts("\n");
     }
-    // TODO: Make error handling less verbose
+    // TODO: Make error handling less verbose (uart_panic?)
 
     uart_puts("\n");
 
@@ -138,8 +148,6 @@ void kernel_main() {
 
     if (fb_release() != FB_SUCCESS)
         uart_puts("Error releasing Frame Buffer!\n");
-
-    mem_info_t fb_info;
 
     if (fb_alloc(16, &fb_info) != FB_SUCCESS)
         uart_puts("Error allocating Frame Buffer!\n");
@@ -155,6 +163,24 @@ void kernel_main() {
         uart_puts("Unable to blank screen (off)!\n");
     if (fb_blank_screen(true) != FB_SUCCESS)
         uart_puts("Unable to blank screen (on)!\n");
+
+    uart_puts("Releasing the framebuffer again...\n");
+
+    if (fb_release() != FB_SUCCESS)
+        uart_puts("Error releasing Frame Buffer!\n");
+
+    ERROR_TYPE err;
+    if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) != FB_SUCCESS) {
+        uart_puts("Error - unable to get bit depth!\n");
+        uart_puts("Err code: 0x");
+        uart_hex64(err);
+        uart_puts("\n");
+    }
+    else {
+        uart_puts("Bit depth: ");
+        uart_dec(bit_depth_result);
+        uart_puts("\n");
+    }
 
     // echo everything back
     while (1)

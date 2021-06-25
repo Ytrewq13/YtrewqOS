@@ -12,11 +12,14 @@ extern volatile uint32_t mbox[36];
 
 typedef enum {
     // TODO: Add an offset to all of these values
-    MBOX_SUCCESS           = 0,
-    MBOX_ERR_UNKNOWN       = 1,
-    MBOX_ERR_NULLPTR       = 2, // One of the address args was passed as NULL
-    MBOX_ERR_MSG_TOO_LARGE = 3,
-    MBOX_ERR_PTR_ALIGN     = 4,
+    MBOX_ERRORS_BASE        = 0x40000000,
+
+    MBOX_SUCCESS            = MBOX_ERRORS_BASE | 0x00,
+
+    MBOX_ERR_UNKNOWN        = MBOX_ERRORS_BASE | 0x01,
+    MBOX_ERR_NULLPTR        = MBOX_ERRORS_BASE | 0x02,
+    MBOX_ERR_MSG_TOO_LARGE  = MBOX_ERRORS_BASE | 0x03,
+    MBOX_ERR_PTR_ALIGN      = MBOX_ERRORS_BASE | 0x04,
 } MBOX_ERROR_CODE;
 
 enum MBOX_REQUEST_RESPONSE {

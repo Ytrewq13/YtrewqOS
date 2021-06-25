@@ -71,7 +71,7 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
 
     msg_size = (buf_max + 2)*4; // Message size (in bytes)
 
-    if ((uint64_t)mbox & 0x1F) return MBOX_ERR_PTR_ALIGN;
+    if ((uint64_t)mbox & 0xF) return MBOX_ERR_PTR_ALIGN;
 
     // Fill the values in the mbox
     ((uint32_t*)mbox)[0] = msg_size;
