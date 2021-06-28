@@ -182,6 +182,13 @@ void kernel_main() {
         uart_puts("\n");
     }
 
+    const char* test_str = "Hi";
+
+    uart_puts("Testing uart_printf...\n");
+    // TODO: test uart_printf2 to make sure every specifier works
+    uart_printf("Hello, world! %d %s\n", 7, test_str);
+    uart_printf2("Hello, world! %d %s\n", 7, test_str);
+
     // echo everything back
     while (1)
         uart_send(uart_getc());

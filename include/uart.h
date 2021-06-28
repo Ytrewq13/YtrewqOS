@@ -25,11 +25,15 @@ enum UART1_REGS {
 };
 
 void uart_init();
+
 void uart_send(uint32_t c);
+void uart_putc(uint32_t c);
 char uart_getc();
-void uart_puts(char *s);
+void uart_puts(char* s);
+void uart_putls(wchar_t* s); // Wide character string
 
 void uart_dec(uint64_t d);
+void uart_oct(uintmax_t u);
 void uart_hex4(uint8_t d);
 void uart_hex8(uint8_t d);
 void uart_hex16(uint16_t d);
@@ -42,5 +46,7 @@ void uart_nhex(void *src, size_t n, const char *sep);
 void uart_rnhex(void *src, size_t n, const char *sep);
 
 // TODO: uart_printf
+void uart_printf(char *s, ...);
+int uart_printf2(const char* format, ...);
 
 #endif
