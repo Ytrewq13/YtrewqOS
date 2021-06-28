@@ -43,6 +43,7 @@ include_directories(include) # "<project root>/include/"
 set(SOURCES "src/kernel/kernel.c"
     "src/lib/uart.c"
     "src/lib/mbox.c"
+    "src/lib/io/printf.c"
     "src/lib/framebuf.c")
 set(BOOTSOURCE "src/boot/boot.S")
 set(DEBUG_DIR "${CMAKE_SOURCE_DIR}/src/debug")

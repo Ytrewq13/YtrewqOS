@@ -185,9 +185,12 @@ void kernel_main() {
     const char* test_str = "Hi";
 
     uart_puts("Testing uart_printf...\n");
-    // TODO: test uart_printf2 to make sure every specifier works
-    uart_printf("Hello, world! %d %s\n", 7, test_str);
-    uart_printf2("Hello, world! %d %s\n", 7, test_str);
+    // TODO: test uart_printf to make sure every specifier works
+    uart_printf("Hello, world!\n");
+    uart_printf("int string: %d %s\n", 7, test_str);
+    uart_printf("long-uint char short-octal: %lu %c %#ho\n", (long unsigned int)67, 'F', (short unsigned int)54);
+    uart_printf("pointer: %p\n", test_str);
+    uart_printf("hex-UPPER percent hex-lower: %#x %% %#X\n", 54687, 54687);
 
     // echo everything back
     while (1)

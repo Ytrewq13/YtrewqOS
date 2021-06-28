@@ -45,8 +45,6 @@ void uart_nhex(void *src, size_t n, const char *sep);
 // Reverse (for little endian numbers without a dedicated uart_hex function.
 void uart_rnhex(void *src, size_t n, const char *sep);
 
-// TODO: uart_printf
-void uart_printf(char *s, ...);
-int uart_printf2(const char* format, ...);
+int uart_printf(const char* format, ...);
 
 #endif
