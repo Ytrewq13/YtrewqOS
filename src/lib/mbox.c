@@ -3,17 +3,19 @@
  * Last updated 2021-06-17
  */
 
+#include "mbox.h"
+
 #include <stdint.h>
 
 #include "mmio.h"
-#include "mbox.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 
 /* Start a mailbox command.
  */
-ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS channel, uint32_t* mbox) {
+ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS channel, uint32_t* mbox)
+{
     uint32_t r;
 
     /* Sanity check arguments */
@@ -24,7 +26,8 @@ ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS channel, uint32_t* mbox) {
     r = (uint64_t)mbox | channel;
     /* Wait until we can write to the mailbox */
     while (GET32(MBOX_WRITE_STATUS) & MBOX_FULL) __asm volatile("nop");
-    /* Write the address of our message to the mailbox with channel identifier */
+    /* Write the address of our message to the mailbox with channel identifier
+     */
     PUT32(MBOX_WRITE, r);
 
     return MBOX_SUCCESS;
@@ -32,7 +35,8 @@ ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS channel, uint32_t* mbox) {
 
 /* Wait for a mailbox command to finish.
  */
-ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox) {
+ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox)
+{
     uint32_t r;
 
     /* Sanity check arguments */
@@ -50,7 +54,7 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox) {
         if (r == GET32(MBOX_READ) && mbox[1] == MBOX_RESPONSE)
             return MBOX_SUCCESS;
         else
-            return MBOX_ERR_UNKNOWN; // TODO
+            return MBOX_ERR_UNKNOWN;  // TODO
     }
 }
 
@@ -60,16 +64,17 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox) {
  * bytes long (at least buf_size bytes).
  */
 ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
-                               size_t buf_size, void* input, void* result) {
+                          size_t buf_size, void* input, void* result)
+{
     ERROR_TYPE err;
     uint32_t i, buf_count, buf_min, buf_max, msg_size;
     uint8_t* res = result;
 
-    buf_count = (buf_size+3)/4; // Number of 32-bit entries in the buffer
-    buf_min = 5;
-    buf_max = buf_min - 1 + buf_count;
+    buf_count = (buf_size + 3) / 4;  // Number of 32-bit entries in the buffer
+    buf_min   = 5;
+    buf_max   = buf_min - 1 + buf_count;
 
-    msg_size = (buf_max + 2)*4; // Message size (in bytes)
+    msg_size = (buf_max + 2) * 4;  // Message size (in bytes)
 
     if ((uint64_t)mbox & 0xF) return MBOX_ERR_PTR_ALIGN;
 
@@ -85,7 +90,7 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
     for (i = buf_min; i < buf_max; i++) {
         if (input)  // Copy the input
             ((uint32_t*)mbox)[i] = ((uint32_t*)input)[i - buf_min];
-        else        // Zero the buffer
+        else  // Zero the buffer
             ((uint32_t*)mbox)[i] = 0;
     }
     ((uint32_t*)mbox)[buf_max + 1] = MBOX_TAG_LAST;
@@ -97,16 +102,15 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
     if ((err = mbox_command_wait(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
         return err;
     // Copy the result
-    for (i = 0; i < buf_size; i++)
-        res[i] = ((uint8_t*)mbox)[4*buf_min + i];
+    for (i = 0; i < buf_size; i++) res[i] = ((uint8_t*)mbox)[4 * buf_min + i];
     return MBOX_SUCCESS;
 }
 
 /* What to put in the mailbox for the property interface channel (from
  * https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface):
  *
- * - u32: The size of the message in bytes (including the header values, end tag,
- *   and padding - i.e. the size of the whole message)
+ * - u32: The size of the message in bytes (including the header values, end
+ * tag, and padding - i.e. the size of the whole message)
  * - u32: Request/Response code (from enum MBOX_REQUEST_RESPONSE)
  * - u8+: Sequence of concatenated "tags" - This specifies what we want from
  *   the GPU. Tags are processed in order unless an interface requires
