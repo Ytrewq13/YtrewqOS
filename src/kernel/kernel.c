@@ -184,13 +184,31 @@ void kernel_main() {
 
     const char* test_str = "Hi";
 
-    uart_puts("Testing uart_printf...\n");
-    // TODO: test uart_printf to make sure every specifier works
+    int n;
+
+    uart_puts("\nTesting uart_printf...\n");
     uart_printf("Hello, world!\n");
     uart_printf("int string: %d %s\n", 7, test_str);
     uart_printf("long-uint char short-octal: %lu %c %#ho\n", (long unsigned int)67, 'F', (short unsigned int)54);
     uart_printf("pointer: %p\n", test_str);
     uart_printf("hex-UPPER percent hex-lower: %#x %% %#X\n", 54687, 54687);
+    // Does printf return the correct number every time? Yes
+    n = uart_printf(""); uart_printf(" %d\n", n);
+    n = uart_printf("abc\n"); uart_printf(" %d\n", n);
+    n = uart_printf("%d", -1); uart_printf(" %d\n", n);
+    n = uart_printf("%u", 3); uart_printf(" %d\n", n);
+    n = uart_printf("%#o", 3); uart_printf(" %d\n", n);
+    n = uart_printf("%x", 4); uart_printf(" %d\n", n);
+    n = uart_printf("%#X", 4); uart_printf(" %d\n", n);
+    n = uart_printf("%c", 'c'); uart_printf(" %d\n", n);
+    n = uart_printf("%s", "s"); uart_printf(" %d\n", n);
+    n = uart_printf("%p", test_str); uart_printf(" %d\n", n);
+    // Does the %n specifier work? Yes
+    n = 0;
+    uart_printf("four%n", &n); uart_printf(": %d\n", n);
+    uart_printf("\n");
+    // TODO: change all the uart_puts nonsense to use uart_printf earlier in
+    // this kernel_main function.
 
     // echo everything back
     while (1)
@@ -201,8 +219,10 @@ void kernel_main() {
  * DONE:
  * - Implement arbitrary mailbox calls.
  * TODO:
- * - Implement any needed Frame Buffer mailbox calls to get something onto the screen
- * - Load important values from the GPU using mailbox calls and store them in memory
+ * - Implement any needed Frame Buffer mailbox calls to get something onto the
+ *   screen
+ * - Load important values from the GPU using mailbox calls and store them in
+ *   memory
  * - Display something to the screen
  * - Memory management
  * - System calls?

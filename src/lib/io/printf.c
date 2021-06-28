@@ -158,52 +158,37 @@ int generic_printf(void putc_fun(uint32_t), const char* format, va_list ap) {
 
     while (*format) {
         if (*format != '%') {
-            putc_fun(*format);
+            putc_fun(*format); count++;
             format++;
-            count++;
             continue;
         }
         // Call the parse function on the next character.
         format = printf_parse_format(format+1, &f);
 
-//        uart_puts("\n");
-//        uart_puts("PRINTF FORMAT\n");
-//        uart_puts("=============\n");
-//        uart_puts("Length: "); uart_dec(f.length); uart_putc('\n');
-
         switch (f.specifier) {
             case PRINTF_SPECIFIER_PERCENT:
-//                uart_puts("Specifier: Percent\n");
                 putc_fun('%'); count++; break;
             case PRINTF_SPECIFIER_INT:
-//                uart_puts("Specifier: int\n");
                 count += generic_printf_decimal(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_UNSIGNED_INT:
-//                uart_puts("Specifier: uint\n");
                 count += generic_printf_unsigned(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_UNSIGNED_OCTAL:
-//                uart_puts("Specifier: octal\n");
                 count += generic_printf_octal(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_HEX_LOWER:
             case PRINTF_SPECIFIER_HEX_UPPER:
-//                uart_puts("Specifier: hex ("); uart_dec(f.specifier); uart_putc('\n');
                 count += generic_printf_hex(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_CHAR:
-//                uart_puts("Specifier: char\n");
                 count += generic_printf_char(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_STRING:
-//                uart_puts("Specifier: string\n");
                 count += generic_printf_string(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_POINTER:
-//                uart_puts("Specifier: pointer\n");
                 count += generic_printf_pointer(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_GET_NCHARS:
-//                uart_puts("Specifier: get number of characters\n");
                 generic_printf_getcount(putc_fun, &f, count, &ap); break;
         }
     }
 
-    return count; // FIXME: count every character sent
+    return count;
 }
 
 // Signed integers
@@ -253,8 +238,7 @@ int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f, va
         for (j = 0; j < i; j++) {
             n /= 10;
         }
-        putc_fun('0' + (n % 10));
-        count++;
+        putc_fun('0' + (n % 10)); count++;
     }
     return count;
 }
@@ -298,8 +282,7 @@ int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f, v
         for (j = 0; j < i; j++) {
             n /= 10;
         }
-        putc_fun('0' + (n % 10));
-        count++;
+        putc_fun('0' + (n % 10)); count++;
     }
     return count;
 }
@@ -339,8 +322,7 @@ int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f, va_l
     if (o == 0) { putc_fun('0'); count++; }
     while (i --> 0) {
         n = o >> 3*i;
-        putc_fun('0' + (n & 0b111));
-        count++;
+        putc_fun('0' + (n & 0b111)); count++;
     }
     return count;
 }
@@ -378,9 +360,8 @@ int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f, va_lis
     // TODO: if precision is 0 and the number is 0, print nothing
     if (f->flags & PRINTF_FLAGS_PRECEDING_ID) {
         putc_fun('0'); count++;
-        if (uppercase) putc_fun('X');
-        else putc_fun('x');
-        count++;
+        if (uppercase) { putc_fun('X'); count++; }
+        else { putc_fun('x'); count++; }
     }
 
     // TODO: Handle '-' and '0' flags and width attribute
@@ -390,11 +371,14 @@ int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f, va_lis
     while (i --> 0) {
         n = x >> 4*i;
         if ((n & 0xF) > 9) {
-            if (f->specifier == PRINTF_SPECIFIER_HEX_LOWER)
-                putc_fun('a' - 10 + (n & 0xF)); // HEX_LOWER
-            else putc_fun('A' - 10 + (n & 0xF)); // HEX_UPPER
-        } else putc_fun('0' + (n & 0xF));
-        count++;
+            if (f->specifier == PRINTF_SPECIFIER_HEX_LOWER) {
+                // HEX_LOWER
+                putc_fun('a' - 10 + (n & 0xF)); count++;
+            } else {
+                // HEX_UPPER
+                putc_fun('A' - 10 + (n & 0xF)); count++;
+            }
+        } else { putc_fun('0' + (n & 0xF)); count++; }
     }
     return count;
 }
@@ -438,13 +422,13 @@ int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f, va_
             ls = va_arg(*ap, wchar_t*);
 //            uart_puts("Address: 0x"); uart_hex64((ptrdiff_t)ls); uart_puts("\n");
             if (!ls) return -1; // NULL pointer
-            while (*ls) { putc_fun(*ls); ls++; count++; }
+            while (*ls) { putc_fun(*ls); count++; ls++; }
             break;
         default:
             s = va_arg(*ap, char*);
 //            uart_puts("Address: 0x"); uart_hex64((ptrdiff_t)s); uart_puts("\n");
             if (!s) return -1; // NULL pointer
-            while (*s) { putc_fun(*s); s++; count++; }
+            while (*s) { putc_fun(*s); count++; s++; }
             break;
     }
     return count;
@@ -479,12 +463,8 @@ int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f, va
     if (p == 0) { putc_fun('0'); count++; }
     while (i --> 0) {
         n = p >> 4*i;
-        if ((n & 0xF) > 9) {
-            if (f->specifier == PRINTF_SPECIFIER_HEX_LOWER)
-                putc_fun('a' - 10 + (n & 0xF)); // HEX_LOWER
-            else putc_fun('A' - 10 + (n & 0xF)); // HEX_UPPER
-        } else putc_fun('0' + (n & 0xF));
-        count++;
+        if ((n & 0xF) > 9) { putc_fun('a' - 10 + (n & 0xF)); count++; }
+        else { putc_fun('0' + (n & 0xF)); count++; }
     }
     return count;
 }
