@@ -33,7 +33,7 @@ set(SECTOR_SIZE 4096)
 set(BOOT_ADDR 0x80000)
 
 
-#set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/src/tools/toolchain.cmake")
+set(TOOLCHAIN_FILE toolchain.cmake)
 
 set(CMAKE_BUILD_TYPE Debug)
 
