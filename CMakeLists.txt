@@ -69,7 +69,7 @@ add_custom_target(run ${QEMU_BIN} ${QEMU_ARGS} -kernel ${BINNAME}
 add_custom_target(debug
     ${GDB_DEBUG_SCRIPT}
     DEPENDS ${BINNAME} ${ELFNAME} ${GDB_DEBUG_SCRIPT} ${GDB_SCRIPTFILE})
-add_custom_target(distclean find ${CMAKE_BINARY_DIR} ! -name '${TOOLCHAIN_FILE}' ! -name '.*' -delete)
+add_custom_target(distclean find ${CMAKE_BINARY_DIR} -mindepth 1 ! -name '${TOOLCHAIN_FILE}' ! -name '.*' -delete)
 add_custom_target(disassemble
     ${OBJDUMP_BIN} ${DISASS_ARGS} ${ELFNAME} |
     less
