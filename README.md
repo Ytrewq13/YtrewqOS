@@ -16,6 +16,10 @@ Name will likely change.
 - LLVM (clang) >= 11.1.0
 - QEMU (aarch64) - for running the OS only
 
+Make sure you *don't* have any of the following installed, as it can cause
+problems with linker path resolution:
+- ARM 64 GCC
+
 ## Compilation process
 
 To compile the kernel, run the following commands inside the `build` directory.
