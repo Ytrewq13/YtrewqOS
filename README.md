@@ -37,3 +37,32 @@ compilation as it will compile the binary before running).
 ```shell
 make run
 ```
+
+# Contributing
+
+Before working on a contribution:
+- Make sure what you want to contribute isn't already part of the project.
+- Check if any open pull requests have already addressed the issue/feature you
+  want.
+
+Before submitting a contribution:
+- Make sure your code works: test it, thoroughly.
+- Properly format your code according to the project's style guide (as
+  specified in the provided clang-format style file).
+
+## Applying clang-format to the project
+
+You should use clang-format to autoformat the project files using the format
+file for the project. This can be done from the top-level project directory
+like so:
+
+```shell
+find src/ include/ -name *.c -or -name *.h | xargs -n1 clang-format --style=file -i
+```
+
+You can also run clang-format against one or more specific files if you didn't
+change much:
+
+```shell
+clang-format --style=file -i FILE_PATH [ADDITIONAL_FILE_1 ...]
+```
