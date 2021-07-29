@@ -26,9 +26,8 @@ enum PRINTF_FLAGS {
     PRINTF_FLAGS_LEFT_JUSTIFY     = 1 << 0,  // -
     PRINTF_FLAGS_PLUS_OR_MINUS    = 1 << 1,  // +
     PRINTF_FLAGS_SPACE_IF_NO_SIGN = 1 << 2,  // ' '
-    PRINTF_FLAGS_PRECEDING_ID     = 1
-                             << 3,  // # ('0x' for hex, '0' for octal, etc.)
-    PRINTF_FLAGS_LEFTPAD_ZEROES = 1 << 4,  // 0
+    PRINTF_FLAGS_PRECEDING_ID     = 1 << 3,  // # ('0x' for hex, '0' for octal, etc.)
+    PRINTF_FLAGS_LEFTPAD_ZEROES   = 1 << 4,  // 0
 };
 
 enum PRINTF_LENGTHS {
@@ -67,32 +66,24 @@ typedef struct {
 int generic_printf(void putc_fun(uint32_t), const char* format, va_list ap);
 
 // Signed integers
-int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f,
-                           va_list* ap);
+int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Unsigned integers
-int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f,
-                            va_list* ap);
+int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Unsigned octal numbers
-int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f,
-                         va_list* ap);
+int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Hex numbers (check f->specifier for lower/UPPERcase)
-int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f,
-                       va_list* ap);
+int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Floats
-int generic_printf_float(void putc_fun(uint32_t), const printf_format_t* f,
-                         va_list* ap);
+int generic_printf_float(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Chars
-int generic_printf_char(void putc_fun(uint32_t), const printf_format_t* f,
-                        va_list* ap);
+int generic_printf_char(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // String
-int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f,
-                          va_list* ap);
+int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Pointer
-int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f,
-                           va_list* ap);
+int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap);
 // Get number of chars (pointer in arguments list)
-int generic_printf_getcount(void putc_fun(uint32_t), const printf_format_t* f,
-                            size_t c, va_list* ap);
+int generic_printf_getcount(void putc_fun(uint32_t), const printf_format_t* f, size_t c,
+                            va_list* ap);
 
 
 #endif /* io_printf_h */

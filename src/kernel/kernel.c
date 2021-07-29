@@ -49,8 +49,8 @@ void kernel_main()
     uart_init();
 
     // Firmware version
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_FIRMWARE_VER, 4, NULL,
-                       &firmware_version) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_FIRMWARE_VER, 4, NULL, &firmware_version) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (firmware version)!\n");
     else {
         uart_puts("Firmware version: ");
@@ -62,8 +62,8 @@ void kernel_main()
     // FIXME: this tag doesn't work for some reason - it always puts the same
     // value as the previous call. Is this also a problem on hardware or is the
     // MBOX_TAG_GET_BOARD_MODEL tag broken on QEMU's Pi?
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_MODEL, 4, NULL,
-                       &board_model) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_MODEL, 4, NULL, &board_model) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (board model)!\n");
     else {
         uart_puts("Board model: ");
@@ -74,8 +74,8 @@ void kernel_main()
         uart_puts("\n");
     }
     // Board revision number
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_REVISION, 4, NULL,
-                       &board_revision) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_REVISION, 4, NULL, &board_revision) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (board revision)!\n");
     else {
         uart_puts("Board revision: ");
@@ -83,8 +83,8 @@ void kernel_main()
         uart_puts("\n");
     }
     // MAC address
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_MAC_ADDRESS, 6, NULL,
-                       &MAC_address) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_MAC_ADDRESS, 6, NULL, &MAC_address) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (MAC address)!\n");
     else {
         uart_puts("MAC address: ");
@@ -92,8 +92,8 @@ void kernel_main()
         uart_puts("\n");
     }
     // Board serial number
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_SERIAL_NUMBER, 8, NULL,
-                       &serial_number) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_SERIAL_NUMBER, 8, NULL, &serial_number) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (serial number)!\n");
     else {
         uart_puts("Serial number: ");
@@ -102,8 +102,7 @@ void kernel_main()
     }
     uart_puts("\n");
     // CPU memory base address and size
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_ARM_MEMORY, 8, NULL,
-                       &ARM_mem) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_ARM_MEMORY, 8, NULL, &ARM_mem) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (ARM memory)!\n");
     else {
         uart_puts("ARM memory:\n");
@@ -115,8 +114,7 @@ void kernel_main()
     }
     uart_puts("\n");
     // GPU memory base address and size
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_GPU_MEMORY, 8, NULL,
-                       &GPU_mem) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_GPU_MEMORY, 8, NULL, &GPU_mem) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (GPU memory)!\n");
     else {
         uart_puts("GPU memory:\n");
@@ -130,8 +128,7 @@ void kernel_main()
 
     // Query GPU for Frame Buffer details
     // Physical display width/height
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL,
-                       &display_info) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL, &display_info) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (Physical display dimensions)!\n");
     else {
         uart_puts("Display (in memory): ");
@@ -141,8 +138,8 @@ void kernel_main()
         uart_puts("\n");
     }
     // Virtual display width/height
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_VIRT_DIMS, 8, NULL,
-                       &virt_display_info) != MBOX_SUCCESS)
+    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_VIRT_DIMS, 8, NULL, &virt_display_info) !=
+        MBOX_SUCCESS)
         uart_puts("Unable to query serial (Virtual display dimensions)!\n");
     else {
         uart_puts("Display (to monitor): ");
@@ -155,18 +152,14 @@ void kernel_main()
 
     uart_puts("\n");
 
-    if (fb_blank_screen(false) != FB_SUCCESS)
-        uart_puts("Unable to blank screen (off)!\n");
-    if (fb_blank_screen(true) != FB_SUCCESS)
-        uart_puts("Unable to blank screen (on)!\n");
+    if (fb_blank_screen(false) != FB_SUCCESS) uart_puts("Unable to blank screen (off)!\n");
+    if (fb_blank_screen(true) != FB_SUCCESS) uart_puts("Unable to blank screen (on)!\n");
 
     uart_puts("Attempting to free and then allocate the frame buffer...\n");
 
-    if (fb_release() != FB_SUCCESS)
-        uart_puts("Error releasing Frame Buffer!\n");
+    if (fb_release() != FB_SUCCESS) uart_puts("Error releasing Frame Buffer!\n");
 
-    if (fb_alloc(16, &fb_info) != FB_SUCCESS)
-        uart_puts("Error allocating Frame Buffer!\n");
+    if (fb_alloc(16, &fb_info) != FB_SUCCESS) uart_puts("Error allocating Frame Buffer!\n");
     else {
         uart_puts("Allocated Framebuffer at 0x");
         uart_hex32(fb_info.base_addr);
@@ -175,19 +168,15 @@ void kernel_main()
         uart_puts(" bytes.\n");
     }
 
-    if (fb_blank_screen(false) != FB_SUCCESS)
-        uart_puts("Unable to blank screen (off)!\n");
-    if (fb_blank_screen(true) != FB_SUCCESS)
-        uart_puts("Unable to blank screen (on)!\n");
+    if (fb_blank_screen(false) != FB_SUCCESS) uart_puts("Unable to blank screen (off)!\n");
+    if (fb_blank_screen(true) != FB_SUCCESS) uart_puts("Unable to blank screen (on)!\n");
 
     uart_puts("Releasing the framebuffer again...\n");
 
-    if (fb_release() != FB_SUCCESS)
-        uart_puts("Error releasing Frame Buffer!\n");
+    if (fb_release() != FB_SUCCESS) uart_puts("Error releasing Frame Buffer!\n");
 
     ERROR_TYPE err;
-    if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
-        FB_SUCCESS) {
+    if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) != FB_SUCCESS) {
         uart_puts("Error - unable to get bit depth!\n");
         uart_puts("Err code: 0x");
         uart_hex64(err);
@@ -205,8 +194,8 @@ void kernel_main()
     uart_puts("\nTesting uart_printf...\n");
     uart_printf("Hello, world!\n");
     uart_printf("int string: %d %s\n", 7, test_str);
-    uart_printf("long-uint char short-octal: %lu %c %#ho\n",
-                (long unsigned int)67, 'F', (short unsigned int)54);
+    uart_printf("long-uint char short-octal: %lu %c %#ho\n", (long unsigned int)67, 'F',
+                (short unsigned int)54);
     uart_printf("pointer: %p\n", test_str);
     uart_printf("hex-UPPER percent hex-lower: %#x %% %#X\n", 54687, 54687);
     // Does printf return the correct number every time? Yes

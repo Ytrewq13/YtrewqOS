@@ -7,8 +7,7 @@ ERROR_TYPE fb_alloc(uint32_t alignment, mem_info_t* result)
     uint32_t response[2];
     ERROR_TYPE err;
 
-    err =
-        mbox_prop_call((void*)mbox, MBOX_TAG_FB_ALLOC, 8, &alignment, response);
+    err = mbox_prop_call((void*)mbox, MBOX_TAG_FB_ALLOC, 8, &alignment, response);
     if (err != MBOX_SUCCESS) return err;
 
     result->base_addr = response[0];
@@ -30,8 +29,7 @@ ERROR_TYPE fb_release()
 }
 
 
-ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims,
-                   framebuf_dims_t* result)
+ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims, framebuf_dims_t* result)
 {
     size_t msize = 8;  // Buffer size is 8 bytes, mailbox is 4*8 bytes
     volatile uint32_t __attribute__((aligned(16))) mbox[msize];
@@ -50,8 +48,7 @@ ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims,
     return FB_SUCCESS;
 }
 
-ERROR_TYPE fb_vdims(framebuf_attr_action act, framebuf_dims_t* dims,
-                    framebuf_dims_t* result)
+ERROR_TYPE fb_vdims(framebuf_attr_action act, framebuf_dims_t* dims, framebuf_dims_t* result)
 {
     size_t msize = 8;  // Buffer size is 8 bytes, mailbox is 4*8 bytes
     volatile uint32_t __attribute__((aligned(16))) mbox[msize];
@@ -80,8 +77,7 @@ ERROR_TYPE fb_blank_screen(bool state)
     // true  -> state on
     input = state ? 1 : 0;
 
-    err = mbox_prop_call((void*)mbox, MBOX_TAG_FB_BLANK_SCREEN, 4, &input,
-                         &result);
+    err = mbox_prop_call((void*)mbox, MBOX_TAG_FB_BLANK_SCREEN, 4, &input, &result);
     if (err != MBOX_SUCCESS) return err;
     if (result != input)  // What causes the clear screen to fail?
         return FB_ERR_UNKNOWN;
@@ -92,8 +88,7 @@ ERROR_TYPE fb_blank_screen(bool state)
 /*
  * For GET, depth can be NULL
  */
-ERROR_TYPE fb_bit_depth(framebuf_attr_action act, uint32_t* depth,
-                        uint32_t* result)
+ERROR_TYPE fb_bit_depth(framebuf_attr_action act, uint32_t* depth, uint32_t* result)
 {
     volatile uint32_t __attribute__((aligned(16))) mbox[7];
     enum MBOX_TAG_IDENTIFIERS tag;

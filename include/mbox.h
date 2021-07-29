@@ -220,16 +220,14 @@ enum MBOX_TAG_IDENTIFIERS {
     MBOX_TAG_FB_SET_VOFFSET  = 0x00048009,
     // Same as TEST, but does modify the value.
 
-    MBOX_TAG_FB_GET_OVERSCAN =
-        0x0004000A,  // Top, bottom, left, right (all uint32)
+    MBOX_TAG_FB_GET_OVERSCAN  = 0x0004000A,  // Top, bottom, left, right (all uint32)
     MBOX_TAG_FB_TEST_OVERSCAN = 0x0004400A,
     MBOX_TAG_FB_SET_OVERSCAN  = 0x0004800A,
     // Same as TEST, but does modify the value.
 
-    MBOX_TAG_FB_GET_PALETTE = 0x0004000B,  // 256 uint32_t palette values
-    MBOX_TAG_FB_TEST_PALETTE =
-        0x0004400B,  // offset (first value to set), length(1-256), palette
-                     // values (all uint32)
+    MBOX_TAG_FB_GET_PALETTE  = 0x0004000B,  // 256 uint32_t palette values
+    MBOX_TAG_FB_TEST_PALETTE = 0x0004400B,  // offset (first value to set), length(1-256), palette
+                                            // values (all uint32)
     MBOX_TAG_FB_SET_PALETTE = 0x0004800B,
     // Same as TEST, but does modify the value.
 
@@ -268,11 +266,7 @@ enum MBOX_REGS {
     MBOX_WRITE_CONFIG = MBOX_WRITE_BASE + 0x1C,
 };
 
-enum MBOX_BITS {
-    MBOX_RESPONSE = 0x80000000,
-    MBOX_FULL     = 0x80000000,
-    MBOX_EMPTY    = 0x40000000
-};
+enum MBOX_BITS { MBOX_RESPONSE = 0x80000000, MBOX_FULL = 0x80000000, MBOX_EMPTY = 0x40000000 };
 
 // TODO: We are transitioning to these functions instead of mbox_call
 ERROR_TYPE mbox_command_start(enum MBOX_CHANNELS chnl, uint32_t* mbox);
@@ -281,7 +275,7 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS chnl, uint32_t* mbox);
 // Generic property call
 // Input value: should be copied into the value buffer instead of zeroing the
 // buffer. Should be a nullptr or a multiple of 4 bytes long.
-ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
-                          size_t buf_size, void* input, void* result);
+ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id, size_t buf_size,
+                          void* input, void* result);
 
 #endif

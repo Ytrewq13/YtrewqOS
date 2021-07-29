@@ -179,9 +179,7 @@ int generic_printf(void putc_fun(uint32_t), const char* format, va_list ap)
                 putc_fun('%');
                 count++;
                 break;
-            case PRINTF_SPECIFIER_INT:
-                count += generic_printf_decimal(putc_fun, &f, &ap);
-                break;
+            case PRINTF_SPECIFIER_INT: count += generic_printf_decimal(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_UNSIGNED_INT:
                 count += generic_printf_unsigned(putc_fun, &f, &ap);
                 break;
@@ -189,15 +187,9 @@ int generic_printf(void putc_fun(uint32_t), const char* format, va_list ap)
                 count += generic_printf_octal(putc_fun, &f, &ap);
                 break;
             case PRINTF_SPECIFIER_HEX_LOWER:
-            case PRINTF_SPECIFIER_HEX_UPPER:
-                count += generic_printf_hex(putc_fun, &f, &ap);
-                break;
-            case PRINTF_SPECIFIER_CHAR:
-                count += generic_printf_char(putc_fun, &f, &ap);
-                break;
-            case PRINTF_SPECIFIER_STRING:
-                count += generic_printf_string(putc_fun, &f, &ap);
-                break;
+            case PRINTF_SPECIFIER_HEX_UPPER: count += generic_printf_hex(putc_fun, &f, &ap); break;
+            case PRINTF_SPECIFIER_CHAR: count += generic_printf_char(putc_fun, &f, &ap); break;
+            case PRINTF_SPECIFIER_STRING: count += generic_printf_string(putc_fun, &f, &ap); break;
             case PRINTF_SPECIFIER_POINTER:
                 count += generic_printf_pointer(putc_fun, &f, &ap);
                 break;
@@ -211,8 +203,7 @@ int generic_printf(void putc_fun(uint32_t), const char* format, va_list ap)
 }
 
 // Signed integers
-int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f,
-                           va_list* ap)
+int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     size_t i, j, n;
@@ -270,8 +261,7 @@ int generic_printf_decimal(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Unsigned integers
-int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f,
-                            va_list* ap)
+int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     size_t i, j, n;
@@ -283,9 +273,7 @@ int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f,
         case PRINTF_LENGTH_SHORT2: u = va_arg(*ap, unsigned int) & 0xFF; break;
         case PRINTF_LENGTH_SHORT: u = va_arg(*ap, unsigned int) & 0xFFFF; break;
         case PRINTF_LENGTH_LONG: u = va_arg(*ap, unsigned long int); break;
-        case PRINTF_LENGTH_LONG2:
-            u = va_arg(*ap, unsigned long long int);
-            break;
+        case PRINTF_LENGTH_LONG2: u = va_arg(*ap, unsigned long long int); break;
         case PRINTF_LENGTH_LONGEST: u = va_arg(*ap, intmax_t); break;
         case PRINTF_LENGTH_SIZE: u = va_arg(*ap, size_t); break;
         case PRINTF_LENGTH_PTRDIFF: u = va_arg(*ap, ptrdiff_t); break;
@@ -320,8 +308,7 @@ int generic_printf_unsigned(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Unsigned octal numbers
-int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f,
-                         va_list* ap)
+int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     size_t i, n;
@@ -331,9 +318,7 @@ int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f,
         case PRINTF_LENGTH_SHORT2: o = va_arg(*ap, unsigned int) & 0xFF; break;
         case PRINTF_LENGTH_SHORT: o = va_arg(*ap, unsigned int) & 0xFFFF; break;
         case PRINTF_LENGTH_LONG: o = va_arg(*ap, unsigned long int); break;
-        case PRINTF_LENGTH_LONG2:
-            o = va_arg(*ap, unsigned long long int);
-            break;
+        case PRINTF_LENGTH_LONG2: o = va_arg(*ap, unsigned long long int); break;
         case PRINTF_LENGTH_LONGEST: o = va_arg(*ap, intmax_t); break;
         case PRINTF_LENGTH_SIZE: o = va_arg(*ap, size_t); break;
         case PRINTF_LENGTH_PTRDIFF: o = va_arg(*ap, ptrdiff_t); break;
@@ -371,8 +356,7 @@ int generic_printf_octal(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Hex numbers (check f->specifier for lower/UPPERcase)
-int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f,
-                       va_list* ap)
+int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     size_t i, n;
@@ -383,9 +367,7 @@ int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f,
         case PRINTF_LENGTH_SHORT2: x = va_arg(*ap, unsigned int) & 0xFF; break;
         case PRINTF_LENGTH_SHORT: x = va_arg(*ap, unsigned int) & 0xFFFF; break;
         case PRINTF_LENGTH_LONG: x = va_arg(*ap, unsigned long int); break;
-        case PRINTF_LENGTH_LONG2:
-            x = va_arg(*ap, unsigned long long int);
-            break;
+        case PRINTF_LENGTH_LONG2: x = va_arg(*ap, unsigned long long int); break;
         case PRINTF_LENGTH_LONGEST: x = va_arg(*ap, intmax_t); break;
         case PRINTF_LENGTH_SIZE: x = va_arg(*ap, size_t); break;
         case PRINTF_LENGTH_PTRDIFF: x = va_arg(*ap, ptrdiff_t); break;
@@ -446,8 +428,7 @@ int generic_printf_hex(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Floats (TODO)
-int generic_printf_float(void putc_fun(uint32_t), const printf_format_t* f,
-                         va_list* ap)
+int generic_printf_float(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     /* FLOATS are not supported yet.
      * IEEE 754 floating point numbers are stupidly complex, so printing them
@@ -464,8 +445,7 @@ int generic_printf_float(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Chars
-int generic_printf_char(void putc_fun(uint32_t), const printf_format_t* f,
-                        va_list* ap)
+int generic_printf_char(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     wchar_t c;
     switch (f->length) {
@@ -477,8 +457,7 @@ int generic_printf_char(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Strings
-int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f,
-                          va_list* ap)
+int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     const char* s;
@@ -513,8 +492,7 @@ int generic_printf_string(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Pointer
-int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f,
-                           va_list* ap)
+int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f, va_list* ap)
 {
     size_t count;
     size_t i, n;
@@ -560,8 +538,8 @@ int generic_printf_pointer(void putc_fun(uint32_t), const printf_format_t* f,
 }
 
 // Get number of chars (pointer in arguments list)
-int generic_printf_getcount(void putc_fun(uint32_t), const printf_format_t* f,
-                            size_t c, va_list* ap)
+int generic_printf_getcount(void putc_fun(uint32_t), const printf_format_t* f, size_t c,
+                            va_list* ap)
 {
     void* p;
     p = va_arg(*ap, void*);
