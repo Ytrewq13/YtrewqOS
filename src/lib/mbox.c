@@ -51,7 +51,8 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox)
         /* Wait until we can read something */
         while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
         /* Check if the response is for the message we are waiting for */
-        if (r == GET32(MBOX_READ) && mbox[1] == MBOX_RESPONSE) return MBOX_SUCCESS;
+        if (r == GET32(MBOX_READ) && mbox[1] == MBOX_RESPONSE)
+            return MBOX_SUCCESS;
         else
             return MBOX_ERR_UNKNOWN;  // TODO
     }
@@ -62,8 +63,8 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox)
  * input should be either NULL (then we zero the buffer) or a multiple of 4
  * bytes long (at least buf_size bytes).
  */
-ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id, size_t buf_size,
-                          void* input, void* result)
+ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
+                          size_t buf_size, void* input, void* result)
 {
     ERROR_TYPE err;
     uint32_t i, buf_count, buf_min, buf_max, msg_size;
@@ -95,9 +96,11 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id, size_t b
     ((uint32_t*)mbox)[buf_max + 1] = MBOX_TAG_LAST;
 
     // Send the message to the GPU and receive answer
-    if ((err = mbox_command_start(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS) return err;
+    if ((err = mbox_command_start(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
+        return err;
     // TODO: rework this so we can propagate the error value from wait
-    if ((err = mbox_command_wait(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS) return err;
+    if ((err = mbox_command_wait(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
+        return err;
     // Copy the result
     for (i = 0; i < buf_size; i++) res[i] = ((uint8_t*)mbox)[4 * buf_min + i];
     return MBOX_SUCCESS;

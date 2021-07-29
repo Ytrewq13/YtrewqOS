@@ -23,7 +23,11 @@ typedef struct {
     size_t height;
 } framebuf_dims_t;
 
-typedef enum { FB_ATTR_GET = 0, FB_ATTR_TEST = 1, FB_ATTR_SET = 2 } framebuf_attr_action;
+typedef enum {
+    FB_ATTR_GET  = 0,
+    FB_ATTR_TEST = 1,
+    FB_ATTR_SET  = 2
+} framebuf_attr_action;
 
 // Allocate the Frame Buffer
 ERROR_TYPE fb_alloc(uint32_t alignment, mem_info_t* result);
@@ -34,16 +38,19 @@ ERROR_TYPE fb_release();
 ERROR_TYPE fb_init(framebuf_dims_t dims, framebuf_dims_t virt_dims);
 
 // Get/Test/Set Dimensions (in memory)
-ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims, framebuf_dims_t* result);
+ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims,
+                   framebuf_dims_t* result);
 
 // Get/Test/Set Virtual Dimensions (to display)
-ERROR_TYPE fb_vdims(framebuf_attr_action act, framebuf_dims_t* dims, framebuf_dims_t* result);
+ERROR_TYPE fb_vdims(framebuf_attr_action act, framebuf_dims_t* dims,
+                    framebuf_dims_t* result);
 
 // Blank the screen to a given state (need to test what the state does)
 ERROR_TYPE fb_blank_screen(bool state);
 
 // Get/Set/Test bit depth
-ERROR_TYPE fb_bit_depth(framebuf_attr_action act, uint32_t* depth, uint32_t* result);
+ERROR_TYPE fb_bit_depth(framebuf_attr_action act, uint32_t* depth,
+                        uint32_t* result);
 
 // DONE:
 // - dims

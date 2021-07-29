@@ -17,7 +17,7 @@ AlwaysBreakTemplateDeclarations: No
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
-ColumnLimit: 100
+ColumnLimit: 80
 CompactNamespaces: true
 DerivePointerAlignment: false
 DisableFormat: false  # Disable formatting completely
