@@ -48,14 +48,17 @@ void kernel_main()
     // Set up serial console
     uart_init();
 
+    uart_puts("Hello world\n");
+
     // Firmware version
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_FIRMWARE_VER, 4, NULL,
                        &firmware_version) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (firmware version)!\n");
     else {
-        uart_puts("Firmware version: ");
-        uart_hex32(firmware_version);
-        uart_puts("\n");
+//        uart_puts("Firmware version: ");
+//        uart_hex32(firmware_version);
+//        uart_puts("\n");
+        uart_printf("Firmware version: %x\n", firmware_version);
     }
 
     // Board model number
@@ -66,21 +69,23 @@ void kernel_main()
                        &board_model) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (board model)!\n");
     else {
-        uart_puts("Board model: ");
-        uart_dec(board_model);
-        uart_puts(" (0x");
-        uart_hex32(board_model);
-        uart_puts(")");
-        uart_puts("\n");
+//        uart_puts("Board model: ");
+//        uart_dec(board_model);
+//        uart_puts(" (0x");
+//        uart_hex32(board_model);
+//        uart_puts(")");
+//        uart_puts("\n");
+        uart_printf("Board model: %d (%#x)\n", board_model, board_model);
     }
     // Board revision number
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_REVISION, 4, NULL,
                        &board_revision) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (board revision)!\n");
     else {
-        uart_puts("Board revision: ");
-        uart_dec(board_revision);
-        uart_puts("\n");
+//        uart_puts("Board revision: ");
+//        uart_dec(board_revision);
+//        uart_puts("\n");
+        uart_printf("Board revision: %d\n", board_revision);
     }
     // MAC address
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_MAC_ADDRESS, 6, NULL,
@@ -96,9 +101,10 @@ void kernel_main()
                        &serial_number) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (serial number)!\n");
     else {
-        uart_puts("Serial number: ");
-        uart_hex64(serial_number);
-        uart_puts("\n");
+//        uart_puts("Serial number: ");
+//        uart_hex64(serial_number);
+//        uart_puts("\n");
+        uart_printf("Serial number: %lx\n", serial_number);
     }
     uart_puts("\n");
     // CPU memory base address and size
@@ -106,12 +112,13 @@ void kernel_main()
                        &ARM_mem) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (ARM memory)!\n");
     else {
-        uart_puts("ARM memory:\n");
-        uart_puts("Base address: 0x");
-        uart_hex32(ARM_mem.base_addr);
-        uart_puts("\nSize: ");
-        uart_hex32(ARM_mem.size);
-        uart_puts("\n");
+//        uart_puts("ARM memory:\n");
+//        uart_puts("Base address: 0x");
+//        uart_hex32(ARM_mem.base_addr);
+//        uart_puts("\nSize: ");
+//        uart_hex32(ARM_mem.size);
+//        uart_puts("\n");
+        uart_printf("ARM memory:\nBase address: %p\nSize: %x\n", ARM_mem.base_addr, ARM_mem.size);
     }
     uart_puts("\n");
     // GPU memory base address and size
@@ -119,12 +126,13 @@ void kernel_main()
                        &GPU_mem) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (GPU memory)!\n");
     else {
-        uart_puts("GPU memory:\n");
-        uart_puts("Base address: 0x");
-        uart_hex32(GPU_mem.base_addr);
-        uart_puts("\nSize: ");
-        uart_hex32(GPU_mem.size);
-        uart_puts("\n");
+//        uart_puts("GPU memory:\n");
+//        uart_puts("Base address: 0x");
+//        uart_hex32(GPU_mem.base_addr);
+//        uart_puts("\nSize: ");
+//        uart_hex32(GPU_mem.size);
+//        uart_puts("\n");
+        uart_printf("GPU memory:\nBase address: %p\nSize: %x\n", GPU_mem.base_addr, GPU_mem.size);
     }
     uart_puts("\n");
 
@@ -134,22 +142,24 @@ void kernel_main()
                        &display_info) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (Physical display dimensions)!\n");
     else {
-        uart_puts("Display (in memory): ");
-        uart_dec(display_info.width);
-        uart_puts("x");
-        uart_dec(display_info.height);
-        uart_puts("\n");
+//        uart_puts("Display (in memory): ");
+//        uart_dec(display_info.width);
+//        uart_puts("x");
+//        uart_dec(display_info.height);
+//        uart_puts("\n");
+        uart_printf("Display (in memory): %dx%d\n", display_info.width, display_info.height);
     }
     // Virtual display width/height
     if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_VIRT_DIMS, 8, NULL,
                        &virt_display_info) != MBOX_SUCCESS)
         uart_puts("Unable to query serial (Virtual display dimensions)!\n");
     else {
-        uart_puts("Display (to monitor): ");
-        uart_dec(virt_display_info.width);
-        uart_puts("x");
-        uart_dec(virt_display_info.height);
-        uart_puts("\n");
+//        uart_puts("Display (to monitor): ");
+//        uart_dec(virt_display_info.width);
+//        uart_puts("x");
+//        uart_dec(virt_display_info.height);
+//        uart_puts("\n");
+        uart_printf("Display (to monitor): %dx%d\n", virt_display_info.width, virt_display_info.height);
     }
     // TODO: Make error handling less verbose (uart_panic?)
 
@@ -168,11 +178,12 @@ void kernel_main()
     if (fb_alloc(16, &fb_info) != FB_SUCCESS)
         uart_puts("Error allocating Frame Buffer!\n");
     else {
-        uart_puts("Allocated Framebuffer at 0x");
-        uart_hex32(fb_info.base_addr);
-        uart_puts(" with size ");
-        uart_dec(fb_info.size);
-        uart_puts(" bytes.\n");
+//        uart_puts("Allocated Framebuffer at 0x");
+//        uart_hex32(fb_info.base_addr);
+//        uart_puts(" with size ");
+//        uart_dec(fb_info.size);
+//        uart_puts(" bytes.\n");
+        uart_printf("Allocated Framebuffer at %p with size %d bytes.\n", fb_info.base_addr, fb_info.size);
     }
 
     if (fb_blank_screen(false) != FB_SUCCESS)
