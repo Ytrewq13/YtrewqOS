@@ -15,6 +15,7 @@ Name will likely change.
 - CMake >= v3.20
 - LLVM (clang) >= 11.1.0
 - QEMU (aarch64) - for running the OS only
+- `gdb-multiarch` - for debugging the boot process
 
 Make sure you *don't* have any of the following installed, as it can cause
 problems with linker path resolution:

@@ -10,6 +10,7 @@ enable_language(ASM)
 # TODO: pick a better name for the executable - it isn't a kernel
 set(BINNAME kernel8.img)
 set(ELFNAME kernel8.elf)
+#set(DISKIMG kernel8.iso)
 set(KERNEL kernel.o)
 set(BOOTLOADER boot.o)
 #set(DEBUG_SYMBOLS_FILE debug.sym) # Used by bochs
@@ -25,9 +26,9 @@ set(QEMU_SERIAL2_DBG "serial2.log")
 set(QEMU_SERIAL2_DBG_FILE "file:${QEMU_SERIAL2_DBG}")
 set(QEMU_BIN qemu-system-aarch64)
 set(QEMU_ARGS -M raspi3b -serial "${QEMU_SERIAL1_DBG_FILE}" -serial stdio) #"${QEMU_SERIAL2_DBG_FILE}")
-set(QEMU_ARGS_2 "${QEMU_ARGS}")
+set(QEMU_ARGS_2 "-M raspi3b -serial ${QEMU_SERIAL1_DBG_FILE} -serial stdio")
 
-set(DISASS_ARGS -b binary -m aarch64 -D)
+set(DISASS_ARGS --triple=aarch64-none-elf --mcpu=a53-cortex -D)
 
 set(SECTOR_SIZE 4096)
 set(BOOT_ADDR 0x80000)
@@ -88,13 +89,9 @@ add_custom_command(OUTPUT ${BINNAME}
 #    COMMAND ${NM_BIN} ${ELFNAME} | grep -i ' T ' |
 #            cut -d' ' -f1,3 > ${DEBUG_SYMBOLS_FILE}
 #    DEPENDS ${ELFNAME})
-#add_custom_command(OUTPUT ${IMGSCRIPT}
-#    COMMAND sed 's/@SECTOR_SIZE@/${SECTOR_SIZE}/g' ${IMGSCRIPT_SRC} > ${IMGSCRIPT}
-#    COMMAND chmod --reference=${IMGSCRIPT_SRC} ${IMGSCRIPT}
-#    DEPENDS ${IMGSCRIPT_SRC})
 configure_file(${IMGSCRIPT_SRC} ${IMGSCRIPT} @ONLY)
 configure_file(${GDB_DEBUG_SCRIPT_SRC} ${GDB_DEBUG_SCRIPT} @ONLY)
-configure_file(${GDB_SCRIPTFILE_SRC} ${GDB_SCRIPTFILE})
+configure_file(${GDB_SCRIPTFILE_SRC} ${GDB_SCRIPTFILE} @ONLY)
 
 set_target_properties(${ELFNAME} PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}")
 target_link_options(${ELFNAME} PRIVATE -T${LINKER_SCRIPT})
