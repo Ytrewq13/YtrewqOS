@@ -1,43 +1,37 @@
-/*ENTRY(_start)*/
-/*OUTPUT_FORMAT(binary)*/
-/*OUTPUT(kernel.bin)*/
-
 SECTIONS
 {
-    /DISCARD/ : {
-        *(.note.gnu.property)
-    }
     /* Starts at LOADER_ADDR. */
     . = 0x80000;
     __start = .;
     __text_start = .;
     .text : {
         KEEP(*(.text.boot))
-        *(.text)  /* Everything else. */
+        *(.text .text.* .gnu.linkonce.t*)  /* Everything else. */
     }
-    . = ALIGN(4096); /* align to page size */
     __text_end = .;
 
     __rodata_start = .;
     .rodata : {
-        *(.rodata)
+        *(.rodata .rodata.* .gnu.linkonce.r*)
     }
-    . = ALIGN(4096); /* align to page size */
     __rodata_end = .;
 
     __data_start = .;
+    PROVIDE(_data = .);
     .data : {
-        *(.data)
+        *(.data .data.* .gnu.linkonce.d*)
     }
-    . = ALIGN(4096); /* align to page size */
     __data_end = .;
 
     __bss_start = .;
-    .bss : {
-        *(.bss)
+    .bss (NOLOAD) : {
+        . = ALIGN(16);
+        *(.bss .bss.*)
+        *(COMMON)
     }
-    . = ALIGN(4096); /* align to page size */
     __bss_end = .;
     __bss_size = __bss_end - __bss_start;
     __end = .;
+
+    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }
 }

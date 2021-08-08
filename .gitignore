@@ -4,8 +4,8 @@
 *.img
 
 # The build directory should remain but its contents should not be tracked
-build/*
-!build/.gitkeep
+bin/*
+!bin/.gitkeep
 
 # We don't want to track any PDF files - docs will be generated from source
 *.pdf
