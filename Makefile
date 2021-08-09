@@ -70,11 +70,12 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 
 # Clean all intermediate files
 clean:
-	@rm -f $(KERNEL_ELF) $(OBJ)
+	@rm -f $(KERNEL_ELF)
+	@rm -rf $(OBJDIR)
 
 # Clean ALL files (including the kernel image)
 distclean: clean
-	@rm -rf $(OBJDIR) $(KERNEL_IMG)
+	@rm -f $(KERNEL_IMG)
 
 # Run the VM with the generated kernel
 run: $(KERNEL_IMG)
