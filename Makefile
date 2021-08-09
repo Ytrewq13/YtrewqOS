@@ -4,13 +4,14 @@ _OBJCOPY_BIN = llvm-objcopy
 _VM_BIN = qemu-system-aarch64
 
 SRCDIR = src
-OUTDIR = bin
+OUTDIR = build
+BINDIR = $(OUTDIR)/bin
 OBJDIR = $(OUTDIR)/obj
 INCDIR = include
 LDDIR = $(SRCDIR)/tools/
 
-KERNEL_ELF = $(OUTDIR)/kernel8.elf
-KERNEL_IMG = $(OUTDIR)/kernel8.img
+KERNEL_ELF = $(BINDIR)/kernel8.elf
+KERNEL_IMG = $(BINDIR)/kernel8.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
 
 CC = $(_CC_BIN) --target=aarch64-elf
@@ -34,7 +35,7 @@ DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS_H))
 
 
 # Where make searches for named files
-VPATH = $(SRCDIR) $(INCDIR) $(OBJDIR) $(OUTDIR)
+VPATH = $(SRCDIR) $(INCDIR) $(OBJDIR) $(BINDIR)
 
 
 
@@ -46,7 +47,9 @@ dbg:
 	@echo \$$\(DEPS\): $(DEPS)
 
 setup:
+	@mkdir -p $(OUTDIR)
 	@dirname $(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(SRCS)) | xargs mkdir -p
+	@mkdir -p $(BINDIR)
 
 # Rule for turning ASM source files into object files
 $(OBJ_ASM): $(OBJDIR)/%.o: $(SRCDIR)/%.S $(DEPS) setup
