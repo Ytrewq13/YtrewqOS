@@ -1,6 +1,7 @@
-/* uart.c
+
+/* miniUART.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2021-06-16
+ * Last updated 2021-08-10
  */
 
 #include "uart.h"
@@ -21,7 +22,7 @@ extern uint32_t GET32(uint64_t addr);
  * and PUT32() functions defined in our boot.S file.
  */
 
-void uart_init()
+void uart1_init()
 {
     register uint32_t r;
 
@@ -45,10 +46,10 @@ void uart_init()
     r = 150;
     while (r--) __asm volatile("nop");  // Delay 150
     PUT32(GPPUDCLK0, 0);                // flush GPIO setup
-    PUT32(AUX_MU_CNTL, 3);              // eable Tx, Rx
+    PUT32(AUX_MU_CNTL, 3);              // enable Tx, Rx
 }
 
-void uart_send(uint32_t c)
+void uart1_send(uint32_t c)
 {
     // Wait until we can send
     while (!(GET32(AUX_MU_LSR) & 0x20)) __asm volatile("nop");
@@ -56,14 +57,15 @@ void uart_send(uint32_t c)
     PUT32(AUX_MU_IO, c);
 }
 
-// TODO: uart_putc - a wrapper around uart_send that includes the check for '\n'
-void uart_putc(uint32_t c)
+// TODO: combine all general funcs (all we need are uartX_send and uartX_getc)
+// (e.g. void uart_putc(uint32_t c, void uart_send(uint32_t)))
+void uart1_putc(uint32_t c)
 {
-    if (c == '\n') uart_send('\r');
-    uart_send(c);
+    if (c == '\n') uart1_send('\r');
+    uart1_send(c);
 }
 
-char uart_getc()
+char uart1_getc()
 {
     char r;
     // Wait until something is in the buffer
@@ -74,81 +76,70 @@ char uart_getc()
     return (r == '\r' ? '\n' : r);
 }
 
-void uart_puts(char* s)
+void uart1_puts(char* s)
 {
     if (!s) return;
     while (*s) {
-        if (*s == '\n') uart_send('\r');
-        uart_send(*s++);
+        if (*s == '\n') uart1_send('\r');
+        uart1_send(*s++);
     }
-}
-
-// Put a wide character string
-void uart_putls(wchar_t* s)
-{
-    // TODO
 }
 
 // Print a number as decimal on the UART
-void uart_dec(uint64_t d)
+void uart1_dec(uint64_t d)
 {
     // Put previous digits
-    if (d > 9) uart_dec(d / 10);
+    if (d > 9) uart1_dec(d / 10);
     // Put the final digit
-    uart_send('0' + (d % 10));
+    uart1_send('0' + (d % 10));
 }
 
-void uart_oct(uintmax_t u)
-{
-    // TODO
-}
-
-void uart_hex4(uint8_t d)
+void uart1_hex4(uint8_t d)
 {
     register uint32_t n = d & 0xF;
     n += (n > 9) ? ('A' - 10) : '0';
-    uart_send(n);
+    uart1_send(n);
 }
 
-void uart_hex8(uint8_t d)
+void uart1_hex8(uint8_t d)
 {
-    uart_hex4(d >> 4);
-    uart_hex4(d);
+    uart1_hex4(d >> 4);
+    uart1_hex4(d);
 }
 
-void uart_hex16(uint16_t d)
+void uart1_hex16(uint16_t d)
 {
-    uart_hex8(d >> 8);
-    uart_hex8(d);
+    uart1_hex8(d >> 8);
+    uart1_hex8(d);
 }
 
-void uart_hex32(uint32_t d)
+void uart1_hex32(uint32_t d)
 {
-    uart_hex16(d >> 16);
-    uart_hex16(d);
+    uart1_hex16(d >> 16);
+    uart1_hex16(d);
 }
 
-void uart_hex64(uint64_t d)
+void uart1_hex64(uint64_t d)
 {
-    uart_hex32(d >> 32);
-    uart_hex32(d);
+    uart1_hex32(d >> 32);
+    uart1_hex32(d);
 }
 
-void uart_nhex(void* src, size_t n, const char* sep)
+void uart1_nhex(void* src, size_t n, const char* sep)
 {
     size_t i;
     for (i = 0; i < n; i++) {
-        uart_hex8(*((uint8_t*)src + i));
-        if (i != n - 1) uart_puts((char*)sep);
+        uart1_hex8(*((uint8_t*)src + i));
+        if (i != n - 1) uart1_puts((char*)sep);
     }
 }
 
-void uart_rnhex(void* src, size_t n, const char* sep)
+void uart1_rnhex(void* src, size_t n, const char* sep)
 {
     size_t i;
     for (i = n; i > 0; i--) {
-        uart_hex8(*((uint8_t*)src + i - 1));
-        if (i != 1) uart_puts((char*)sep);
+        uart1_hex8(*((uint8_t*)src + i - 1));
+        if (i != 1) uart1_puts((char*)sep);
     }
 }
 
@@ -162,7 +153,7 @@ void uart_rnhex(void* src, size_t n, const char* sep)
  *   - is the number returned accurate?
  *   - %n specifier
  */
-int uart_printf(const char* format, ...)
+int uart1_printf(const char* format, ...)
 {
     int count;
     va_list ap;
@@ -170,7 +161,7 @@ int uart_printf(const char* format, ...)
     va_start(ap, format);
     // Call the generic printf function, passing it the argument list and the
     // UART putc function
-    count = generic_printf(uart_putc, format, ap);
+    count = generic_printf(uart1_putc, format, ap);
     va_end(ap);  // Tidy up the argument list
     return count;
 }

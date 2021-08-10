@@ -11,7 +11,6 @@
 extern volatile uint32_t mbox[36];
 
 typedef enum {
-    // TODO: Add an offset to all of these values
     MBOX_ERRORS_BASE = 0x40000000,
 
     MBOX_SUCCESS = MBOX_ERRORS_BASE | 0x00,
@@ -283,5 +282,11 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS chnl, uint32_t* mbox);
 // buffer. Should be a nullptr or a multiple of 4 bytes long.
 ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
                           size_t buf_size, void* input, void* result);
+
+ERROR_TYPE mbox_prop_call_internal(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
+                                   size_t buf_size, uint32_t req, void* input,
+                                   void* result);
+
+ERROR_TYPE mbox_call_raw(void* mbox);
 
 #endif

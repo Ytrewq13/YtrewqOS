@@ -58,13 +58,9 @@ ERROR_TYPE mbox_command_wait(enum MBOX_CHANNELS channel, uint32_t* mbox)
     }
 }
 
-/* Function to perform a mailbox call and put the value returned into *result
- * result should point to a space at least buf_size bytes large.
- * input should be either NULL (then we zero the buffer) or a multiple of 4
- * bytes long (at least buf_size bytes).
- */
-ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
-                          size_t buf_size, void* input, void* result)
+ERROR_TYPE mbox_prop_call_internal(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
+                                   size_t buf_size, uint32_t req, void* input,
+                                   void* result)
 {
     ERROR_TYPE err;
     uint32_t i, buf_count, buf_min, buf_max, msg_size;
@@ -84,7 +80,7 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
     // Tag start
     ((uint32_t*)mbox)[2] = tag_id;
     ((uint32_t*)mbox)[3] = buf_size;
-    ((uint32_t*)mbox)[4] = 0;
+    ((uint32_t*)mbox)[4] = req;
 
     // Zero/prepare the value buffer.
     for (i = buf_min; i < buf_max; i++) {
@@ -98,12 +94,56 @@ ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
     // Send the message to the GPU and receive answer
     if ((err = mbox_command_start(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
         return err;
-    // TODO: rework this so we can propagate the error value from wait
     if ((err = mbox_command_wait(MBOX_CH_PROP_W, mbox)) != MBOX_SUCCESS)
         return err;
     // Copy the result
-    for (i = 0; i < buf_size; i++) res[i] = ((uint8_t*)mbox)[4 * buf_min + i];
+    if (result != NULL)
+        for (i = 0; i < buf_size; i++) res[i] = ((uint8_t*)mbox)[4 * buf_min + i];
     return MBOX_SUCCESS;
+}
+
+/* Function to perform a mailbox call and put the value returned into *result
+ * result should point to a space at least buf_size bytes large.
+ * input should be either NULL (then we zero the buffer) or a multiple of 4
+ * bytes long (at least buf_size bytes).
+ */
+ERROR_TYPE mbox_prop_call(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
+                          size_t buf_size, void* input, void* result)
+{
+    return mbox_prop_call_internal(mbox, tag_id, buf_size, 0, input, result);
+}
+
+ERROR_TYPE mbox_call_raw(void* mbox)
+{
+    uint32_t r;
+
+    /* Sanity check arguments */
+    if (!mbox) return MBOX_ERR_NULLPTR;
+    if ((uint64_t)mbox & 0xF) return MBOX_ERR_PTR_ALIGN;
+
+    /* Pack the address and channel together */
+    r = (uint64_t)mbox | MBOX_CH_PROP_W;
+    /* Wait until we can write to the mailbox */
+    while (GET32(MBOX_WRITE_STATUS) & MBOX_FULL) __asm volatile("nop");
+    /* Write the address of our message to the mailbox with channel identifier
+     */
+    PUT32(MBOX_WRITE, r);
+
+    /* Wait for the response. */
+    while (true) {
+        /* Wait until we can read something */
+        while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
+        /* Check if the response is for the message we are waiting for */
+        if (GET32(MBOX_READ) == r)
+            return ((uint32_t*)mbox)[1] == MBOX_RESPONSE_SUCCESS;
+    }
+
+//    while (true) {
+//        while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
+//        if (GET32(MBOX_READ) == r)
+//            return ((uint32_t*)mbox)[1] == MBOX_RESPONSE_SUCCESS;
+//    }
+//    return MBOX_ERR_UNKNOWN;
 }
 
 /* What to put in the mailbox for the property interface channel (from
