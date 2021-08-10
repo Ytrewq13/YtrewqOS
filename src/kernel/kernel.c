@@ -226,7 +226,7 @@ void kernel_main()
     uart0_printf("long-uint char short-octal: %lu %c %#ho\n",
                 (long unsigned int)67, 'F', (short unsigned int)54);
     uart0_printf("pointer: %p\n", test_str);
-    uart0_printf("hex-UPPER percent hex-lower: %#x %% %#X\n", 54687, 54687);
+    uart0_printf("hex-UPPER percent hex-lower: %#X %% %#x\n", 54687, 54687);
     // Does printf return the correct number every time? Yes
     n = uart0_printf("");
     uart0_printf(" %d\n", n);
