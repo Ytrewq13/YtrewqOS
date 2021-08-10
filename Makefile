@@ -17,13 +17,13 @@ LINK_SCRIPT = $(LDDIR)/linker.ld
 CC = $(_CC_BIN) --target=aarch64-elf
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
-VM = $(_VM_BIN) -M raspi3 -serial null -serial stdio
+VM = $(_VM_BIN) -M raspi3 -serial stdio
 
 CFLAGS = -I$(INCDIR) -Wall -O2 -ffreestanding -nostdlib -mcpu=cortex-a53+nosimd
 
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S
-_SRCS_C = kernel/kernel.c lib/framebuf.c lib/io/printf.c lib/mbox.c lib/uart.c
+_SRCS_C = kernel/kernel.c lib/framebuf.c lib/io/printf.c lib/mbox.c lib/peripherals/GPIO/miniUART.c lib/peripherals/GPIO/uart_PL011.c
 # Header files (relative to ./include/)
 _DEPS_H = error_types.h framebuf.h gpio.h io/printf.h mbox.h mem.h mmio.h uart.h
 
@@ -45,6 +45,9 @@ dbg:
 	@echo \$$\(SRCS\): $(SRCS)
 	@echo \$$\(OBJ\):  $(OBJ)
 	@echo \$$\(DEPS\): $(DEPS)
+
+compiledb:
+	bear -- make
 
 setup:
 	@mkdir -p $(OUTDIR)
