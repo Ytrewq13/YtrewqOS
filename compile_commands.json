@@ -1,0 +1,128 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/boot/boot.o",
+      "src/boot/boot.S"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/boot/boot.S",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/boot/boot.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/kernel/kernel.o",
+      "src/kernel/kernel.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/kernel/kernel.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/kernel/kernel.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/lib/framebuf.o",
+      "src/lib/framebuf.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/lib/framebuf.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/lib/framebuf.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/lib/io/printf.o",
+      "src/lib/io/printf.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/lib/io/printf.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/lib/io/printf.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/lib/mbox.o",
+      "src/lib/mbox.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/lib/mbox.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/lib/mbox.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/lib/peripherals/GPIO/miniUART.o",
+      "src/lib/peripherals/GPIO/miniUART.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/lib/peripherals/GPIO/miniUART.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/lib/peripherals/GPIO/miniUART.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/clang",
+      "--target=aarch64-elf",
+      "-Iinclude",
+      "-Wall",
+      "-O2",
+      "-ffreestanding",
+      "-mcpu=cortex-a53+nosimd",
+      "-c",
+      "-o",
+      "build/obj/lib/peripherals/GPIO/uart_PL011.o",
+      "src/lib/peripherals/GPIO/uart_PL011.c"
+    ],
+    "directory": "/home/sam/Documents/programming/OS/YtrewqOS",
+    "file": "/home/sam/Documents/programming/OS/YtrewqOS/src/lib/peripherals/GPIO/uart_PL011.c",
+    "output": "/home/sam/Documents/programming/OS/YtrewqOS/build/obj/lib/peripherals/GPIO/uart_PL011.o"
+  }
+]
