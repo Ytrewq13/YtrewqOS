@@ -10,6 +10,9 @@ OBJDIR = $(OUTDIR)/obj
 INCDIR = include
 LDDIR = $(SRCDIR)/tools/
 
+CCDB = compile_commands.json
+TAGS = tags
+
 KERNEL_ELF = $(BINDIR)/kernel8.elf
 KERNEL_IMG = $(BINDIR)/kernel8.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
@@ -54,8 +57,15 @@ dbg:
 	@echo \$$\(OBJDIRS\): $(OBJDIRS)
 	@echo \$$\(DEPS\): $(DEPS)
 
-compiledb:
-	@bear -- make
+
+# Rule for the tags file
+tags:
+	@ctags -o $(TAGS) -R $(SRCDIR) $(INCDIR)
+
+# Rule to make compile_commands.json (note: runs make)
+$(CCDB): fullclean
+	bear --output $@ -- make
+	$(MAKE) distclean
 
 # Rule to make build directories if they don't exist
 $(OUTDIR) $(OBJDIRS) $(BINDIR):
@@ -94,8 +104,13 @@ distclean: clean
 	@rm -df $(BINDIR)
 	@rm -df $(OUTDIR)
 
+# Reset dir tree to git repo state
+reset: fullclean
+	@rm -f $(CCDB)
+	@rm -f $(TAGS)
+
 # Run the VM with the generated kernel
 run: $(KERNEL_IMG)
 	$(VM) -kernel $(KERNEL_IMG)
 
-.PHONY: clean run kernel setup
+.PHONY: clean distclean fullclean run kernel setup tags
