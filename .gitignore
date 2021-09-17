@@ -11,3 +11,6 @@
 
 # ctags file
 tags
+
+# JSON Compilation Database
+compile_commands.json
