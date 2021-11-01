@@ -1,6 +1,6 @@
 /* mbox.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2021-06-17
+ * Last updated 2021-08-10
  */
 
 #include "mbox.h"
@@ -136,14 +136,8 @@ ERROR_TYPE mbox_call_raw(void* mbox)
         /* Check if the response is for the message we are waiting for */
         if (GET32(MBOX_READ) == r)
             return ((uint32_t*)mbox)[1] == MBOX_RESPONSE_SUCCESS;
+        // TODO: Why doesn't this work if we return MBOX_SUCCESS/MBOX_ERR_UNKNOWN?
     }
-
-//    while (true) {
-//        while (GET32(MBOX_READ_STATUS) & MBOX_EMPTY) __asm volatile("nop");
-//        if (GET32(MBOX_READ) == r)
-//            return ((uint32_t*)mbox)[1] == MBOX_RESPONSE_SUCCESS;
-//    }
-//    return MBOX_ERR_UNKNOWN;
 }
 
 /* What to put in the mailbox for the property interface channel (from
@@ -164,5 +158,5 @@ ERROR_TYPE mbox_call_raw(void* mbox)
  *   - u8+: Value buffer
  *   - u8+: Padding to align the tag to 32 bits
  * - u32: The end tag (MBOX_TAG_LAST) (0x00000000)
- * - u8+: Padding TODO: is an amount of padding required?
+ * - u8+: Padding TODO: is an amount of padding ever required?
  */

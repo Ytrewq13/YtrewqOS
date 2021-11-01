@@ -1,6 +1,6 @@
 /* kernel.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2021-06-18
+ * Last updated 2021-08-10
  */
 #include <stdint.h>
 
@@ -8,6 +8,9 @@
 #include "mbox.h"
 #include "mem.h"
 #include "uart.h"
+#include "graphics/fb_pixels.h"
+#include "graphics/console.h"
+#include "fonts/bizcat_font.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
@@ -36,9 +39,6 @@ void kernel_main()
         uint32_t height;
     } display_info, virt_display_info;
 
-    // Frame Buffer info struct
-    mem_info_t fb_info;
-
     // Bit depth info
     uint32_t bit_depth, bit_depth_result;
 
@@ -50,14 +50,13 @@ void kernel_main()
 
     uart0_puts("Hello world\n");
 
+//    while (1) uart0_putc(uart0_getc());
+
     // Firmware version
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_FIRMWARE_VER, 4, NULL,
                        &firmware_version) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (firmware version)!\n");
     else {
-        //        uart0_puts("Firmware version: ");
-        //        uart0_hex32(firmware_version);
-        //        uart0_puts("\n");
         uart0_printf("Firmware version: %x\n", firmware_version);
     }
 
@@ -69,12 +68,6 @@ void kernel_main()
                        &board_model) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (board model)!\n");
     else {
-        //        uart0_puts("Board model: ");
-        //        uart0_dec(board_model);
-        //        uart0_puts(" (0x");
-        //        uart0_hex32(board_model);
-        //        uart0_puts(")");
-        //        uart0_puts("\n");
         uart0_printf("Board model: %d (%#x)\n", board_model, board_model);
     }
     // Board revision number
@@ -82,9 +75,6 @@ void kernel_main()
                        &board_revision) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (board revision)!\n");
     else {
-        //        uart0_puts("Board revision: ");
-        //        uart0_dec(board_revision);
-        //        uart0_puts("\n");
         uart0_printf("Board revision: %d\n", board_revision);
     }
     // MAC address
@@ -101,9 +91,6 @@ void kernel_main()
                        &serial_number) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (serial number)!\n");
     else {
-        //        uart0_puts("Serial number: ");
-        //        uart0_hex64(serial_number);
-        //        uart0_puts("\n");
         uart0_printf("Serial number: %lx\n", serial_number);
     }
     uart0_puts("\n");
@@ -112,12 +99,6 @@ void kernel_main()
                        &ARM_mem) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (ARM memory)!\n");
     else {
-        //        uart0_puts("ARM memory:\n");
-        //        uart0_puts("Base address: 0x");
-        //        uart0_hex32(ARM_mem.base_addr);
-        //        uart0_puts("\nSize: ");
-        //        uart0_hex32(ARM_mem.size);
-        //        uart0_puts("\n");
         uart0_printf("ARM memory:\nBase address: %p\nSize: %x\n",
                     ARM_mem.base_addr, ARM_mem.size);
     }
@@ -127,12 +108,6 @@ void kernel_main()
                        &GPU_mem) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (GPU memory)!\n");
     else {
-        //        uart0_puts("GPU memory:\n");
-        //        uart0_puts("Base address: 0x");
-        //        uart0_hex32(GPU_mem.base_addr);
-        //        uart0_puts("\nSize: ");
-        //        uart0_hex32(GPU_mem.size);
-        //        uart0_puts("\n");
         uart0_printf("GPU memory:\nBase address: %p\nSize: %x\n",
                     GPU_mem.base_addr, GPU_mem.size);
     }
@@ -144,11 +119,6 @@ void kernel_main()
                        &display_info) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (Physical display dimensions)!\n");
     else {
-        //        uart0_puts("Display (in memory): ");
-        //        uart0_dec(display_info.width);
-        //        uart0_puts("x");
-        //        uart0_dec(display_info.height);
-        //        uart0_puts("\n");
         uart0_printf("Display (in memory): %dx%d\n", display_info.width,
                     display_info.height);
     }
@@ -157,11 +127,6 @@ void kernel_main()
                        &virt_display_info) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (Virtual display dimensions)!\n");
     else {
-        //        uart0_puts("Display (to monitor): ");
-        //        uart0_dec(virt_display_info.width);
-        //        uart0_puts("x");
-        //        uart0_dec(virt_display_info.height);
-        //        uart0_puts("\n");
         uart0_printf("Display (to monitor): %dx%d\n", virt_display_info.width,
                     virt_display_info.height);
     }
@@ -179,16 +144,11 @@ void kernel_main()
     if (fb_release() != FB_SUCCESS)
         uart0_puts("Error releasing Frame Buffer!\n");
 
-    if (fb_alloc(16, &fb_info) != FB_SUCCESS)
+    if (fb_alloc(16) != FB_SUCCESS)
         uart0_puts("Error allocating Frame Buffer!\n");
     else {
-        //        uart0_puts("Allocated Framebuffer at 0x");
-        //        uart0_hex32(fb_info.base_addr);
-        //        uart0_puts(" with size ");
-        //        uart0_dec(fb_info.size);
-        //        uart0_puts(" bytes.\n");
         uart0_printf("Allocated Framebuffer at %p with size %d bytes.\n",
-                    fb_info.base_addr, fb_info.size);
+                    framebuf.mem.base_addr, framebuf.mem.size);
     }
 
     if (fb_blank_screen(false) != FB_SUCCESS)
@@ -204,71 +164,75 @@ void kernel_main()
     ERROR_TYPE err;
     if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
         FB_SUCCESS) {
-//        uart0_puts("Error - unable to get bit depth!\n");
-//        uart0_puts("Err code: 0x");
-//        uart0_hex64(err);
-//        uart0_puts("\n");
         uart0_printf("Error - unable to get bit depth!\nErr code: %#lx\n", err);
     } else {
-//        uart0_puts("Bit depth: ");
-//        uart0_dec(bit_depth_result);
-//        uart0_puts("\n");
         uart0_printf("Bit depth: %d\n", bit_depth_result);
     }
 
-    const char* test_str = "Hi";
+    uint32_t depth = 24;
+    uint32_t pitch;
 
-    int n;
+    fb_release();
+    // TODO: implement a function to run multiple mailbox calls at once on the framebuffer.
+    uart0_printf("Setting physical/virtual display size to 640x480, and bit depth to %d...\n", depth);
+    mbox[0]  = 80;
+    mbox[1]  = MBOX_REQUEST;
+    mbox[2]  = MBOX_TAG_FB_SET_DIMS;      mbox[3]  = 8; mbox[4]  = 0; mbox[5]  = 640; mbox[6]  = 480;
+    mbox[7]  = MBOX_TAG_FB_SET_VIRT_DIMS; mbox[8]  = 8; mbox[9]  = 0; mbox[10] = 640; mbox[11] = 480;
+    mbox[12] = MBOX_TAG_FB_SET_DEPTH;     mbox[13] = 4; mbox[14] = 0; mbox[15] = depth; // (depth) bit pixel depth
+    mbox[16] = MBOX_TAG_LAST;
+    mbox[17] = 0; mbox[18] = 0; mbox[19] = 0;
+    if (!mbox_call_raw((void*)mbox)) {
+        uart0_printf("Error running combined VC mailbox call.\n");
+        while (1) uart0_putc(uart0_getc());
+    }
+    if (mbox[15] != depth) {
+        uart0_printf("Error setting pixel depth to %d, it is instead set to %d\n", depth, mbox[15]);
+    }
+    // TODO: implement a better way to determine when the framebuffer dimensions change
+    framebuf.dims.width = 640;
+    framebuf.dims.height = 480;
+    uart0_printf("Requesting a framebuffer...\n");
+    if (fb_alloc(16) != FB_SUCCESS) {
+        uart0_printf("Error requesting a framebuffer.\n");
+        while (1) uart0_putc(uart0_getc());
+    }
+    uart0_printf("Got framebuffer at %p of size %d.\n", framebuf.mem.base_addr, framebuf.mem.size);
+    mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL, &display_info);
+    uart0_printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
+    mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_PITCH, 4, NULL, &pitch);
+    uart0_printf("Pitch: %d\n", pitch);
 
-    uart0_puts("\nTesting uart0_printf...\n");
-    uart0_printf("Hello, world!\n");
-    uart0_printf("int string: %d %s\n", 7, test_str);
-    uart0_printf("long-uint char short-octal: %lu %c %#ho\n",
-                (long unsigned int)67, 'F', (short unsigned int)54);
-    uart0_printf("pointer: %p\n", test_str);
-    uart0_printf("hex-UPPER percent hex-lower: %#X %% %#x\n", 54687, 54687);
-    // Does printf return the correct number every time? Yes
-    n = uart0_printf("");
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("abc\n");
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%d", -1);
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%u", 3);
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%#o", 3);
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%x", 4);
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%#X", 4);
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%c", 'c');
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%s", "s");
-    uart0_printf(" %d\n", n);
-    n = uart0_printf("%p", test_str);
-    uart0_printf(" %d\n", n);
-    // Does the %n specifier work? Yes
-    n = 0;
-    uart0_printf("four%n", &n);
-    uart0_printf(": %d\n", n);
-    uart0_printf("\n");
-    // TODO: change all the uart0_puts nonsense to use uart0_printf earlier in
-    // this kernel_main function.
+    uart0_printf("\n\n");
+    uint32_t color = 0xff00ff;
+    console_init();
+    console_set_color(color);
+    uint8_t c;
+    for (c = 'A'; c <= 'Z'; c++)
+        console_write_character(c);
+    for (c = 'a'; c <= 'z'; c++)
+        console_write_character(c);
 
     // echo everything back
-    while (1) uart0_send(uart0_getc());
+    while (1) uart0_putc(uart0_getc());
+    // TODO: echo everything back to console (reading from keyboard)
 }
 
 /*
  * DONE:
  * - Implement arbitrary mailbox calls.
- * TODO:
+ * - Switch to UART0
+ * - Display something to the screen
+ *   TODO:
+ * - Display a bitmap to the screen
+ * - memset
+ * - Graphics driver
+ * - Get a basic shell
+ *   - First function: print memory contents?
  * - Implement any needed Frame Buffer mailbox calls to get something onto the
  *   screen
  * - Load important values from the GPU using mailbox calls and store them in
  *   memory
- * - Display something to the screen
  * - Memory management
  * - System calls?
  * - USB drivers?

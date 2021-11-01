@@ -29,8 +29,22 @@ typedef enum {
     FB_ATTR_SET  = 2
 } framebuf_attr_action;
 
+enum pix_order {
+    PIX_ORDER_RGBA = 0,
+    PIX_ORDER_BGRA = 1,
+};
+
+typedef struct {
+    mem_info_t mem;
+    framebuf_dims_t dims;
+} framebuf_definition_t;
+
+
+/* This is the framebuffer. */
+extern framebuf_definition_t framebuf;
+
 // Allocate the Frame Buffer
-ERROR_TYPE fb_alloc(uint32_t alignment, mem_info_t* result);
+ERROR_TYPE fb_alloc(uint32_t alignment);
 // Release and free the Frame Buffer
 ERROR_TYPE fb_release();
 // Initialise the Frame Buffer (set dimensions and then allocate)
@@ -51,6 +65,13 @@ ERROR_TYPE fb_blank_screen(bool state);
 // Get/Set/Test bit depth
 ERROR_TYPE fb_bit_depth(framebuf_attr_action act, uint32_t* depth,
                         uint32_t* result);
+
+// Get byte pitch (bytes per row of framebuf)
+ERROR_TYPE fb_get_pitch(uint32_t* result);
+
+// Get/Set/Test the pixel order
+ERROR_TYPE fb_pix_order(framebuf_attr_action act, enum pix_order* pix_ord,
+                        enum pix_order* result);
 
 // DONE:
 // - dims

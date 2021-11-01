@@ -289,4 +289,4 @@ ERROR_TYPE mbox_prop_call_internal(void* mbox, enum MBOX_TAG_IDENTIFIERS tag_id,
 
 ERROR_TYPE mbox_call_raw(void* mbox);
 
-#endif
+#endif /* mbox_h */

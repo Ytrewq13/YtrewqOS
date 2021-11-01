@@ -104,8 +104,14 @@ void uart0_puts(char* s)
 {
     if (!s) return;
     while (*s) {
-        if (*s == '\n') uart0_send('\r');
-        uart0_send(*s++);
+        if (*s == '\n') {
+            while ((GET32(UART0_FR) & 0x20)) __asm volatile("nop");
+            PUT32(UART0_DR, '\r');
+        }
+//        if (*s == '\n') uart0_send('\r');
+        while ((GET32(UART0_FR) & 0x20)) __asm volatile("nop");
+        PUT32(UART0_DR, *s++);
+//        uart0_send(*s++);
     }
 }
 
