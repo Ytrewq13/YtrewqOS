@@ -33,11 +33,7 @@ void kernel_main()
     mem_info_t ARM_mem;
     mem_info_t GPU_mem;
 
-    // Structs for display dimensions
-    struct {
-        uint32_t width;
-        uint32_t height;
-    } display_info, virt_display_info;
+    framebuf_dims_t display_info, virt_display_info;
 
     // Bit depth info
     uint32_t bit_depth, bit_depth_result;
@@ -115,16 +111,14 @@ void kernel_main()
 
     // Query GPU for Frame Buffer details
     // Physical display width/height
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL,
-                       &display_info) != MBOX_SUCCESS)
+    if (fb_dims(FB_ATTR_GET, NULL, &display_info) != FB_SUCCESS)
         uart0_puts("Unable to query serial (Physical display dimensions)!\n");
     else {
         uart0_printf("Display (in memory): %dx%d\n", display_info.width,
                     display_info.height);
     }
     // Virtual display width/height
-    if (mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_VIRT_DIMS, 8, NULL,
-                       &virt_display_info) != MBOX_SUCCESS)
+    if (fb_vdims(FB_ATTR_GET, NULL, &virt_display_info) != FB_SUCCESS)
         uart0_puts("Unable to query serial (Virtual display dimensions)!\n");
     else {
         uart0_printf("Display (to monitor): %dx%d\n", virt_display_info.width,
@@ -148,7 +142,7 @@ void kernel_main()
         uart0_puts("Error allocating Frame Buffer!\n");
     else {
         uart0_printf("Allocated Framebuffer at %p with size %d bytes.\n",
-                    framebuf.mem.base_addr, framebuf.mem.size);
+                    framebuf.base_addr, framebuf.size);
     }
 
     if (fb_blank_screen(false) != FB_SUCCESS)
@@ -189,32 +183,54 @@ void kernel_main()
     if (mbox[15] != depth) {
         uart0_printf("Error setting pixel depth to %d, it is instead set to %d\n", depth, mbox[15]);
     }
-    // TODO: implement a better way to determine when the framebuffer dimensions change
-    framebuf.dims.width = 640;
-    framebuf.dims.height = 480;
     uart0_printf("Requesting a framebuffer...\n");
     if (fb_alloc(16) != FB_SUCCESS) {
         uart0_printf("Error requesting a framebuffer.\n");
         while (1) uart0_putc(uart0_getc());
     }
-    uart0_printf("Got framebuffer at %p of size %d.\n", framebuf.mem.base_addr, framebuf.mem.size);
-    mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_DIMS, 8, NULL, &display_info);
+    uart0_printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
+    fb_dims(FB_ATTR_GET, NULL, &display_info);
     uart0_printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
-    mbox_prop_call((void*)mbox, MBOX_TAG_FB_GET_PITCH, 4, NULL, &pitch);
+    fb_get_pitch(&pitch);
     uart0_printf("Pitch: %d\n", pitch);
 
     uart0_printf("\n\n");
     uint32_t color = 0xff00ff;
     console_init();
-    console_set_color(color);
+    console_set_fg_color(color);
     uint8_t c;
     for (c = 'A'; c <= 'Z'; c++)
         console_write_character(c);
     for (c = 'a'; c <= 'z'; c++)
         console_write_character(c);
 
+    console_printf("\n\n");
+    console_set_fg_color(0);
+    console_set_bg_color(~0);
+    console_printf("Hello there!\n");
+
+    for (int i = 0; i < console_descriptor.rows*console_descriptor.cols; i++)
+        console_putc(' ');
+    console_descriptor.row = 0;
+    console_descriptor.col = 0;
+    console_printf("Hello there!\n");
+
+    console_descriptor.bg_color = 0x0000ff;
+    while (1) {
+        console_descriptor.row = 0;
+        console_descriptor.col = 0;
+        console_descriptor.bg_color <<= 8;
+        if ((console_descriptor.bg_color & 0xffffff) == 0) console_set_bg_color(0xff);
+        for (int i = 0; i < console_descriptor.rows*console_descriptor.cols; i++)
+            console_putc(' '); // TODO: console_putc() is very slow (implement some kind of bit blit!)
+    }
+
     // echo everything back
-    while (1) uart0_putc(uart0_getc());
+    while (1) {
+        c = uart0_getc();
+        uart0_putc(c);
+        console_putc(c);
+    }
     // TODO: echo everything back to console (reading from keyboard)
 }
 

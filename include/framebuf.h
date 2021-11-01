@@ -19,8 +19,8 @@ typedef enum {
 } FRAMEBUF_ERROR;
 
 typedef struct {
-    size_t width;
-    size_t height;
+    uint32_t width;
+    uint32_t height;
 } framebuf_dims_t;
 
 typedef enum {
@@ -34,14 +34,9 @@ enum pix_order {
     PIX_ORDER_BGRA = 1,
 };
 
-typedef struct {
-    mem_info_t mem;
-    framebuf_dims_t dims;
-} framebuf_definition_t;
-
 
 /* This is the framebuffer. */
-extern framebuf_definition_t framebuf;
+extern mem_info_t framebuf;
 
 // Allocate the Frame Buffer
 ERROR_TYPE fb_alloc(uint32_t alignment);

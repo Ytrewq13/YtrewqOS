@@ -1,6 +1,6 @@
 #include "framebuf.h"
 
-framebuf_definition_t framebuf;
+mem_info_t framebuf;
 
 // Allocate the Frame Buffer
 ERROR_TYPE fb_alloc(uint32_t alignment)
@@ -13,8 +13,8 @@ ERROR_TYPE fb_alloc(uint32_t alignment)
         mbox_prop_call((void*)mbox, MBOX_TAG_FB_ALLOC, 8, &alignment, response);
     if (err != MBOX_SUCCESS) return err;
 
-    framebuf.mem.base_addr = (void*)(uint64_t)response[0];
-    framebuf.mem.size      = response[1];
+    framebuf.base_addr = response[0];
+    framebuf.size      = response[1];
 
     return FB_SUCCESS;
 }
@@ -28,8 +28,8 @@ ERROR_TYPE fb_release()
     err = mbox_prop_call((void*)mbox, MBOX_TAG_FB_RELEASE, 0, NULL, NULL);
     if (err != MBOX_SUCCESS) return err;
 
-    framebuf.mem.base_addr = 0;
-    framebuf.mem.size = 0;
+    framebuf.base_addr = 0;
+    framebuf.size = 0;
 
     return FB_SUCCESS;
 }
@@ -54,10 +54,6 @@ ERROR_TYPE fb_dims(framebuf_attr_action act, framebuf_dims_t* dims,
 
     err = mbox_prop_call((void*)mbox, tag, (msize - 6) * 4, dims, result);
     if (err != MBOX_SUCCESS) return err;
-    if (act == FB_ATTR_SET) {
-        framebuf.dims.width = result->width;
-        framebuf.dims.height = result->height;
-    }
     return FB_SUCCESS;
 }
 

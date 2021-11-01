@@ -10,14 +10,14 @@
 
 ERROR_TYPE set_pixel(uint32_t x, uint32_t y, const uint8_t* color)
 {
-    uint8_t* fb = framebuf.mem.base_addr;
+    uint8_t* fb = (uint8_t*)(uint64_t)framebuf.base_addr;
     uint32_t depth, pitch, byte_depth;
     size_t i, offset;
-    framebuf_dims_t display_info = framebuf.dims;
+    framebuf_dims_t display_info;
 
     if (color == NULL) return FB_PIX_ERR_NULLPTR;
 
-//    fb_dims(FB_ATTR_GET, NULL, &display_info);
+    fb_dims(FB_ATTR_GET, NULL, &display_info);
     fb_bit_depth(FB_ATTR_GET, NULL, &depth);
     byte_depth = depth >> 3; /* depth/8 */
     fb_get_pitch(&pitch);

@@ -6,7 +6,8 @@
 #include "fb_pixels.h"
 
 typedef struct {
-    uint32_t color;
+    uint32_t fg_color;
+    uint32_t bg_color;
     uint32_t col;
     uint32_t row;
     uint32_t cols;
@@ -23,14 +24,19 @@ typedef enum {
 
 ERROR_TYPE console_init();
 
-ERROR_TYPE console_write_from_bitmap_with_color(const uint8_t* bitmap,
-                                                uint32_t bmp_w, uint32_t bmp_h,
-                                                uint32_t x, uint32_t y,
-                                                const uint8_t* color);
+ERROR_TYPE console_write_from_bitmap_with_colors(const uint8_t* bitmap,
+                                                 uint32_t bmp_w, uint32_t bmp_h,
+                                                 uint32_t x, uint32_t y,
+                                                 const uint8_t* fg,
+                                                 const uint8_t* bg);
+
+void console_set_fg_color(const uint32_t color);
+void console_set_bg_color(const uint32_t color);
 
 ERROR_TYPE console_write_character_at_pos(uint8_t c, uint32_t x, uint32_t y);
 ERROR_TYPE console_write_character(uint8_t c);
 
-void console_set_color(const uint32_t color);
+void console_putc(uint32_t c);
+int console_printf(const char* format, ...);
 
 #endif /* console_h */

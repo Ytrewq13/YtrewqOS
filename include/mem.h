@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef struct {
-    void* base_addr;
+    uint32_t base_addr;
     uint32_t size;
 } mem_info_t;
 
