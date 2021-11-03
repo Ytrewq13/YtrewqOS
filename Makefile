@@ -30,10 +30,10 @@ _SRCS_C = kernel/main.c \
 	kernel/framebuf.c \
 	lib/io/printf.c \
 	kernel/mbox.c \
-	lib/peripherals/GPIO/miniUART.c \
-	lib/peripherals/GPIO/uart_PL011.c \
-	lib/graphics/console.c \
-	lib/graphics/fb_pixels.c \
+	drivers/peripherals/GPIO/miniUART.c \
+	drivers/peripherals/GPIO/uart_PL011.c \
+	drivers/graphics/console.c \
+	drivers/graphics/fb_pixels.c \
 	fonts/bizcat_font.c
 # Header files (relative to ./include/)
 _DEPS_H = error_types.h \
