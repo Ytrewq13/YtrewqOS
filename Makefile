@@ -26,10 +26,10 @@ CFLAGS = -I$(INCDIR) -Wall -O2 -ffreestanding -nostdlib -mcpu=cortex-a53+nosimd
 
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S
-_SRCS_C = kernel/kernel.c \
-	lib/framebuf.c \
+_SRCS_C = kernel/main.c \
+	kernel/framebuf.c \
 	lib/io/printf.c \
-	lib/mbox.c \
+	kernel/mbox.c \
 	lib/peripherals/GPIO/miniUART.c \
 	lib/peripherals/GPIO/uart_PL011.c \
 	lib/graphics/console.c \
