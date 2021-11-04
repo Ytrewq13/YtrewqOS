@@ -8,7 +8,7 @@ OUTDIR = build
 BINDIR = $(OUTDIR)/bin
 OBJDIR = $(OUTDIR)/obj
 INCDIR = include
-LDDIR = $(SRCDIR)/tools/
+LDDIR = $(SRCDIR)/link
 
 CCDB = compile_commands.json
 TAGS = tags
