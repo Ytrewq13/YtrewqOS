@@ -34,7 +34,8 @@ _SRCS_C = kernel/main.c \
 	drivers/peripherals/GPIO/uart_PL011.c \
 	drivers/graphics/console.c \
 	drivers/graphics/fb_pixels.c \
-	fonts/bizcat_font.c
+	fonts/bizcat_font.c \
+	libc/string.c
 # Header files (relative to ./include/)
 _DEPS_H = error_types.h \
 	framebuf.h \
@@ -46,7 +47,8 @@ _DEPS_H = error_types.h \
 	uart.h \
 	graphics/console.h \
 	graphics/fb_pixels.h \
-	fonts/bizcat_font.h
+	fonts/bizcat_font.h \
+	string.h
 
 SRCS = $(addprefix $(SRCDIR)/,$(_SRCS_ASM) $(_SRCS_C))
 OBJ_ASM = $(patsubst %.S,$(OBJDIR)/%.o,$(_SRCS_ASM))
