@@ -73,10 +73,6 @@ OBJ = $(OBJ_ASM) $(OBJ_C)
 DEPS = $(addprefix $(INCDIR)/,$(_DEPS_H))
 export DEPS_ABS = $(addprefix $(CURDIR)/,$(DEPS))
 
-# All the directories that the object files will be placed into
-#OBJDIRS = $(sort $(dir $(OBJ)))
-
-
 # Where make searches for named files
 VPATH = $(SRCDIR) $(INCDIR) $(OBJDIR) $(BINDIR)
 vpath %.c $(SRCDIR)
@@ -104,24 +100,8 @@ $(CCDB): fullclean
 	bear --output $@ -- make
 	$(MAKE) distclean
 
-# Rule to make build directories if they don't exist
-#$(OUTDIR) $(OBJDIRS) $(BINDIR):
-#	@mkdir -p $@
-
-#setup: $(OUTDIR) $(OBJDIRS) $(BINDIR)
-
 $(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/% $(DEPS)
 	@$(MAKE) --no-print-directory -C $(shell echo $< | grep -o '$(SRCDIR)/[^/]*/') $(abspath $@)
-
-# Rule for turning ASM source files into object files
-#$(OBJ_ASM): $(OBJDIR)/%.o: $(SRCDIR)/%.S $(DEPS) | setup
-#	@echo "CC [ASM] $@"
-#	@$(CC) $(CFLAGS) -c $< -o $@
-
-# Rule for compiling C source files into object files
-#$(OBJ_C): $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS) | setup
-#	@echo "CC [ C ] $@"
-#	@$(CC) $(CFLAGS) -c $< -o $@
 
 # Rule for creating the .elf of the kernel
 $(KERNEL_ELF): $(OBJ) | $(BINDIR)
