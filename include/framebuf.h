@@ -6,8 +6,8 @@
 
 // TODO: figure out build settings to use angle brackets for includes
 #include "error_types.h"
-#include "mbox.h"
-#include "mem.h"
+#include "hw/mbox.h"
+#include "hw/mem.h"
 
 typedef enum {
     FB_ERRORS_BASE = 0x80000000,  // TODO: Centralise and DOCUMENT these

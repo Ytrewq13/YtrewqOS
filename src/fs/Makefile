@@ -1,13 +1,13 @@
 
 # The current directory relative to the project root
-CURDIR_REL = $(subst $(TOPDIR)/, ,$(CURDIR))
+CURDIR_REL = $(subst $(TOPDIR)/,,$(CURDIR))
 
 # Get the objdir this submake will use
 OBJDIR_ABS = $(addprefix $(TOPDIR)/,$(addsuffix $(subst $(SRCDIR),,$(CURDIR_REL)),$(OBJDIR)))
 
 # Source files
 SRCS_ASM =
-SRCS_C =
+SRCS_C = fat.c
 SRCS = $(SRCS_ASM) $(SRCS_C)
 # TODO: which header files do we actually depend on?
 

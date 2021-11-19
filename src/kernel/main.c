@@ -5,12 +5,13 @@
 #include <stdint.h>
 
 #include "framebuf.h"
-#include "mbox.h"
-#include "mem.h"
-#include "uart.h"
+#include "hw/mbox.h"
+#include "hw/mem.h"
+#include "hw/uart.h"
 #include "graphics/fb_pixels.h"
 #include "graphics/console.h"
 #include "fonts/bizcat_font.h"
+#include "hw/eMMC.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
@@ -204,25 +205,28 @@ void kernel_main()
     for (c = 'a'; c <= 'z'; c++)
         console_write_character(c);
 
-    console_printf("\n\n");
+    console_printf("\n");
     console_set_fg_color(0);
+    console_set_bg_color(0x00ff00);
+    console_putc('A');
     console_set_bg_color(~0);
     console_printf("Hello there!\n");
 
-    for (int i = 0; i < console_descriptor.rows*console_descriptor.cols; i++)
-        console_putc(' ');
-    console_descriptor.row = 0;
-    console_descriptor.col = 0;
-    console_printf("Hello there!\n");
+    console_erase_row(0);
 
     console_descriptor.bg_color = 0x0000ff;
+    // With the new (faster) console_erase_xxxx() impementation, this loop is
+    // way too fast and WILL induce photosensitive epilepsy attacks. Uncomment
+    // at your own risk.
     while (1) {
         console_descriptor.row = 0;
         console_descriptor.col = 0;
         console_descriptor.bg_color <<= 8;
         if ((console_descriptor.bg_color & 0xffffff) == 0) console_set_bg_color(0xff);
-        for (int i = 0; i < console_descriptor.rows*console_descriptor.cols; i++)
-            console_putc(' '); // TODO: console_putc() is very slow (implement some kind of bit blit!)
+//        uart0_printf("Changed bg color to: %#x\n", console_descriptor.bg_color);
+        for (int i = 0; i < console_descriptor.rows; i++) {
+            console_erase_row(i);
+        }
     }
 
     // echo everything back
@@ -232,6 +236,8 @@ void kernel_main()
         console_putc(c);
     }
     // TODO: echo everything back to console (reading from keyboard)
+
+    sd_card_init(NULL);
 }
 
 /*
@@ -239,14 +245,14 @@ void kernel_main()
  * - Implement arbitrary mailbox calls.
  * - Switch to UART0
  * - Display something to the screen
- *   TODO:
  * - Display a bitmap to the screen
  * - memset
  * - Graphics driver
- * - Get a basic shell
- *   - First function: print memory contents?
  * - Implement any needed Frame Buffer mailbox calls to get something onto the
  *   screen
+ *   TODO:
+ * - Get a basic shell
+ *   - First function: print memory contents?
  * - Load important values from the GPU using mailbox calls and store them in
  *   memory
  * - Memory management

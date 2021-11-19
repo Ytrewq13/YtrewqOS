@@ -79,7 +79,7 @@ void *memcpy(void *restrict dest, const void *restrict src, size_t n)
     size_t i = 0;
     uint8_t *dest_ptr = dest;
     const uint8_t *src_ptr = src;
-    while (*dest_ptr != 0 && i++ < n)
+    while (i++ < n)
         *dest_ptr++ = *src_ptr++;
     return dest;
 }

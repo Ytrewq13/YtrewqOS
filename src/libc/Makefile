@@ -7,7 +7,8 @@ OBJDIR_ABS = $(addprefix $(TOPDIR)/,$(addsuffix $(subst $(SRCDIR),,$(CURDIR_REL)
 
 # Source files
 SRCS_ASM =
-SRCS_C = string.c
+SRCS_C = stdlib.c \
+		 string.c
 SRCS = $(SRCS_ASM) $(SRCS_C)
 # TODO: which header files do we actually depend on?
 

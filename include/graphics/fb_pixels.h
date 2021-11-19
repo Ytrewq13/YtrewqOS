@@ -5,7 +5,6 @@
 
 #include "error_types.h"
 #include "framebuf.h"
-#include "graphics/console_font.h"
 
 typedef enum {
     FB_PIX_ERRORS_BASE = 0x81000000,
@@ -58,6 +57,9 @@ typedef struct {
     size_t y; // The y position of the top left corner of the destination.
 } blit_descriptor_t;
 
-ERROR_TYPE set_pixel(uint32_t x, uint32_t y, const uint8_t* color);
+ERROR_TYPE set_pixel(const uint32_t x, const uint32_t y, const uint8_t* color);
+ERROR_TYPE set_rectangle(const uint32_t x, const uint32_t y,
+                         const uint32_t width, const uint32_t height,
+                         const uint32_t color);
 
 #endif /* graphics_fb_pixels_h */

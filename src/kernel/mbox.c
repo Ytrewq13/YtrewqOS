@@ -3,11 +3,10 @@
  * Last updated 2021-08-10
  */
 
-#include "mbox.h"
+#include "hw/mbox.h"
+#include "hw/mmio.h"
 
 #include <stdint.h>
-
-#include "mmio.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);

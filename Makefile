@@ -36,32 +36,48 @@ export CFLAGS = -I$(INCDIR_ABS) -Wall -O2 -ffreestanding -nostdlib -mcpu=cortex-
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S \
 			kernel/calls/calls.S
-_SRCS_C = kernel/main.c \
-		  kernel/framebuf.c \
-		  lib/io/printf.c \
-		  kernel/mbox.c \
-		  kernel/calls/calls.c \
-		  drivers/peripherals/GPIO/miniUART.c \
-		  drivers/peripherals/GPIO/uart_PL011.c \
+_SRCS_C = drivers/GPIO/miniUART.c \
+		  drivers/GPIO/uart_PL011.c \
+		  drivers/SD/emmc.c \
 		  drivers/graphics/console.c \
 		  drivers/graphics/fb_pixels.c \
 		  fonts/bizcat_font.c \
+		  fs/fat.c \
+		  kernel/calls/calls.c \
+		  kernel/framebuf.c \
+		  kernel/heap.c \
+		  kernel/main.c \
+		  kernel/malloc.c \
+		  kernel/mbox.c \
+		  kernel/timer.c \
+		  lib/io/printf.c \
+		  libc/stdlib.c \
 		  libc/string.c
 # Header files (relative to ./include/)
-# TODO: reorganise the directory structure of the header files
-_DEPS_H = asm/unistd.h \
+_DEPS_H = errno.h \
 		  error_types.h \
+		  fonts/bizcat_font.h \
 		  framebuf.h \
-		  gpio.h \
-		  io/printf.h \
-		  mbox.h \
-		  mem.h \
-		  mmio.h \
-		  uart.h \
+		  fs/block.h \
+		  fs/dirent.h \
+		  fs/fat.h \
+		  fs/file.h \
+		  fs/fs.h \
+		  fs/vfs.h \
 		  graphics/console.h \
 		  graphics/fb_pixels.h \
-		  fonts/bizcat_font.h \
-		  string.h
+		  hw/eMMC.h \
+		  hw/gpio.h \
+		  hw/mbox.h \
+		  hw/mem.h \
+		  hw/mmio.h \
+		  hw/uart.h \
+		  io/printf.h \
+		  kernel/timer.h \
+		  kernel/util.h \
+		  stdlib.h \
+		  string.h \
+		  unistd.h
 
 # Variables used by sub-make
 export TOPDIR = $(CURDIR)

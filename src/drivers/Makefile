@@ -9,8 +9,9 @@ OBJDIR_ABS = $(addprefix $(TOPDIR)/,$(addsuffix $(subst $(SRCDIR),,$(CURDIR_REL)
 SRCS_ASM =
 SRCS_C = graphics/console.c \
 		 graphics/fb_pixels.c \
-		 peripherals/GPIO/miniUART.c \
-		 peripherals/GPIO/uart_PL011.c
+		 GPIO/miniUART.c \
+		 GPIO/uart_PL011.c \
+		 SD/emmc.c
 SRCS = $(SRCS_ASM) $(SRCS_C)
 # TODO: which header files do we actually depend on?
 

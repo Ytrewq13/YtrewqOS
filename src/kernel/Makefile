@@ -7,10 +7,13 @@ OBJDIR_ABS = $(addprefix $(TOPDIR)/,$(addsuffix $(subst $(SRCDIR),,$(CURDIR_REL)
 
 # Source files
 SRCS_ASM = calls/calls.S
-SRCS_C = main.c \
+SRCS_C = calls/calls.c \
 		 framebuf.c \
+		 heap.c \
+		 main.c \
+		 malloc.c \
 		 mbox.c \
-		 calls/calls.c
+		 timer.c
 SRCS = $(SRCS_ASM) $(SRCS_C)
 # TODO: which header files do we actually depend on?
 

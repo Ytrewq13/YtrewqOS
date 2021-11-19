@@ -3,15 +3,14 @@
  * Last updated 2021-08-10
  */
 
-#include "uart.h"
+#include "hw/uart.h"
+#include "hw/gpio.h"
+#include "hw/mbox.h"
+#include "io/printf.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "gpio.h"
-#include "io/printf.h"
-#include "mbox.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
