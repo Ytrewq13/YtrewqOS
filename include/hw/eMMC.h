@@ -1,12 +1,5 @@
 
-
-
-
-
-
-
-
-
+#include "hw/mmio.h"
 #include "hw/mbox.h"
 #include "fs/block.h"
 #include "kernel/timer.h"
@@ -87,6 +80,10 @@ enum EMMC_REGS {
     /* This register is used to enable interrupts in the INTERRUPT register to
      * generate interrupts on the int_to_arm output. */
     EMMC_REGS_CONTROL2          = EMMC_BASE | 0x3C,
+
+    /* Unsupported(?) but used by the implementation in emmc.c */
+    EMMC_REGS_CAPABILITIES_0    = EMMC_BASE | 0x40,
+    EMMC_REGS_CAPABILITIES_1    = EMMC_BASE | 0x44,
 
     /* Used to fake an interrupt for debugging. Set a bit to 1 to generate an
      * interrupt on that bit in the INTERRUPT register. */

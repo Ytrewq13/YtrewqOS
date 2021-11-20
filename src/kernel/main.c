@@ -216,18 +216,19 @@ void kernel_main()
 
     console_descriptor.bg_color = 0x0000ff;
     // With the new (faster) console_erase_xxxx() impementation, this loop is
-    // way too fast and WILL induce photosensitive epilepsy attacks. Uncomment
-    // at your own risk.
-    while (1) {
-        console_descriptor.row = 0;
-        console_descriptor.col = 0;
-        console_descriptor.bg_color <<= 8;
-        if ((console_descriptor.bg_color & 0xffffff) == 0) console_set_bg_color(0xff);
-//        uart0_printf("Changed bg color to: %#x\n", console_descriptor.bg_color);
-        for (int i = 0; i < console_descriptor.rows; i++) {
-            console_erase_row(i);
-        }
-    }
+    // way too fast and is DANGEROUS. Uncomment at your own risk.
+//    while (1) {
+//        console_descriptor.row = 0;
+//        console_descriptor.col = 0;
+//        console_descriptor.bg_color <<= 8;
+//        if ((console_descriptor.bg_color & 0xffffff) == 0)
+//            console_set_bg_color(0xff);
+//        for (int i = 0; i < console_descriptor.rows; i++) {
+//            console_erase_row(i);
+//        }
+//    }
+
+    sd_card_init(NULL);
 
     // echo everything back
     while (1) {
@@ -236,8 +237,6 @@ void kernel_main()
         console_putc(c);
     }
     // TODO: echo everything back to console (reading from keyboard)
-
-    sd_card_init(NULL);
 }
 
 /*
