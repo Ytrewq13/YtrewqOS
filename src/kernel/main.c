@@ -13,9 +13,12 @@
 #include "fonts/bizcat_font.h"
 #include "hw/eMMC.h"
 
+#define printf(...); \
+    uart0_printf (__VA_ARGS__); \
+    console_printf (__VA_ARGS__);
+
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
-
 
 void delay(size_t time)
 {
@@ -49,12 +52,16 @@ void kernel_main()
 
 //    while (1) uart0_putc(uart0_getc());
 
+    uint32_t color = 0xff00ff;
+    console_init();
+    console_set_fg_color(color);
+
     // Firmware version
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_FIRMWARE_VER, 4, NULL,
                        &firmware_version) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (firmware version)!\n");
     else {
-        uart0_printf("Firmware version: %x\n", firmware_version);
+        printf("Firmware version: %x\n", firmware_version);
     }
 
     // Board model number
@@ -65,14 +72,14 @@ void kernel_main()
                        &board_model) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (board model)!\n");
     else {
-        uart0_printf("Board model: %d (%#x)\n", board_model, board_model);
+        printf("Board model: %d (%#x)\n", board_model, board_model);
     }
     // Board revision number
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_REVISION, 4, NULL,
                        &board_revision) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (board revision)!\n");
     else {
-        uart0_printf("Board revision: %d\n", board_revision);
+        printf("Board revision: %d\n", board_revision);
     }
     // MAC address
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_MAC_ADDRESS, 6, NULL,
@@ -88,7 +95,7 @@ void kernel_main()
                        &serial_number) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (serial number)!\n");
     else {
-        uart0_printf("Serial number: %lx\n", serial_number);
+        printf("Serial number: %lx\n", serial_number);
     }
     uart0_puts("\n");
     // CPU memory base address and size
@@ -96,7 +103,7 @@ void kernel_main()
                        &ARM_mem) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (ARM memory)!\n");
     else {
-        uart0_printf("ARM memory:\nBase address: %p\nSize: %x\n",
+        printf("ARM memory:\nBase address: %p\nSize: %x\n",
                     ARM_mem.base_addr, ARM_mem.size);
     }
     uart0_puts("\n");
@@ -105,7 +112,7 @@ void kernel_main()
                        &GPU_mem) != MBOX_SUCCESS)
         uart0_puts("Unable to query serial (GPU memory)!\n");
     else {
-        uart0_printf("GPU memory:\nBase address: %p\nSize: %x\n",
+        printf("GPU memory:\nBase address: %p\nSize: %x\n",
                     GPU_mem.base_addr, GPU_mem.size);
     }
     uart0_puts("\n");
@@ -115,14 +122,14 @@ void kernel_main()
     if (fb_dims(FB_ATTR_GET, NULL, &display_info) != FB_SUCCESS)
         uart0_puts("Unable to query serial (Physical display dimensions)!\n");
     else {
-        uart0_printf("Display (in memory): %dx%d\n", display_info.width,
+        printf("Display (in memory): %dx%d\n", display_info.width,
                     display_info.height);
     }
     // Virtual display width/height
     if (fb_vdims(FB_ATTR_GET, NULL, &virt_display_info) != FB_SUCCESS)
         uart0_puts("Unable to query serial (Virtual display dimensions)!\n");
     else {
-        uart0_printf("Display (to monitor): %dx%d\n", virt_display_info.width,
+        printf("Display (to monitor): %dx%d\n", virt_display_info.width,
                     virt_display_info.height);
     }
     // TODO: Make error handling less verbose (uart0_panic?)
@@ -142,7 +149,7 @@ void kernel_main()
     if (fb_alloc(16) != FB_SUCCESS)
         uart0_puts("Error allocating Frame Buffer!\n");
     else {
-        uart0_printf("Allocated Framebuffer at %p with size %d bytes.\n",
+        printf("Allocated Framebuffer at %p with size %d bytes.\n",
                     framebuf.base_addr, framebuf.size);
     }
 
@@ -159,9 +166,9 @@ void kernel_main()
     ERROR_TYPE err;
     if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
         FB_SUCCESS) {
-        uart0_printf("Error - unable to get bit depth!\nErr code: %#lx\n", err);
+        printf("Error - unable to get bit depth!\nErr code: %#lx\n", err);
     } else {
-        uart0_printf("Bit depth: %d\n", bit_depth_result);
+        printf("Bit depth: %d\n", bit_depth_result);
     }
 
     uint32_t depth = 24;
@@ -178,27 +185,24 @@ void kernel_main()
     mbox[16] = MBOX_TAG_LAST;
     mbox[17] = 0; mbox[18] = 0; mbox[19] = 0;
     if (!mbox_call_raw((void*)mbox)) {
-        uart0_printf("Error running combined VC mailbox call.\n");
+        printf("Error running combined VC mailbox call.\n");
         while (1) uart0_putc(uart0_getc());
     }
     if (mbox[15] != depth) {
-        uart0_printf("Error setting pixel depth to %d, it is instead set to %d\n", depth, mbox[15]);
+        printf("Error setting pixel depth to %d, it is instead set to %d\n", depth, mbox[15]);
     }
-    uart0_printf("Requesting a framebuffer...\n");
+    printf("Requesting a framebuffer...\n");
     if (fb_alloc(16) != FB_SUCCESS) {
-        uart0_printf("Error requesting a framebuffer.\n");
+        printf("Error requesting a framebuffer.\n");
         while (1) uart0_putc(uart0_getc());
     }
-    uart0_printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
+    printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
     fb_dims(FB_ATTR_GET, NULL, &display_info);
-    uart0_printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
+    printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
     fb_get_pitch(&pitch);
-    uart0_printf("Pitch: %d\n", pitch);
+    printf("Pitch: %d\n", pitch);
 
-    uart0_printf("\n\n");
-    uint32_t color = 0xff00ff;
-    console_init();
-    console_set_fg_color(color);
+    printf("\n\n");
     uint8_t c;
     for (c = 'A'; c <= 'Z'; c++)
         console_write_character(c);
@@ -228,7 +232,14 @@ void kernel_main()
 //        }
 //    }
 
-    sd_card_init(NULL);
+    // TODO: sd_card_init(NULL) doesn't return.
+    struct block_device dev;
+    struct block_device *foo = &dev;
+    int ret = sd_card_init(&foo);
+    printf("sd_card_init() returned %d\n", ret);
+    if (ret) {
+        printf("Failed to initialise SD card!\n");
+    }
 
     // echo everything back
     while (1) {
@@ -257,4 +268,6 @@ void kernel_main()
  * - Memory management
  * - System calls?
  * - USB drivers?
+ * - Filesystem
+ *   - SD card
  */

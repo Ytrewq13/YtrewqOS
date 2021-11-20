@@ -511,8 +511,10 @@ static uint32_t sd_get_base_clock_hz()
 #if SDHCI_IMPLEMENTATION == SDHCI_IMPLEMENTATION_BCM_2708
 static int bcm_2708_power_off()
 {
-    uintptr_t mb_addr = 0x40007000;     // 0x7000 in L2 cache coherent mode
-    volatile uint32_t *mailbuffer = (uint32_t *)mb_addr;
+    // TODO: use mailbox functions for this (and implement them).
+//    uintptr_t mb_addr = 0x40007000;     // 0x7000 in L2 cache coherent mode
+//    volatile uint32_t *mailbuffer = (uint32_t *)mb_addr;
+    volatile uint32_t __attribute__((aligned(16))) mailbuffer[8];
 
     /* Power off the SD card */
     // set up the buffer
@@ -560,8 +562,9 @@ static int bcm_2708_power_off()
 
 static int bcm_2708_power_on()
 {
-    uintptr_t mb_addr = 0x40007000;     // 0x7000 in L2 cache coherent mode
-    volatile uint32_t *mailbuffer = (uint32_t *)mb_addr;
+//    uintptr_t mb_addr = 0x40007000;     // 0x7000 in L2 cache coherent mode
+//    volatile uint32_t *mailbuffer = (uint32_t *)mb_addr;
+    volatile uint32_t __attribute__((aligned(16))) mailbuffer[8];
 
     /* Power on the SD card */
     // set up the buffer
@@ -609,8 +612,10 @@ static int bcm_2708_power_on()
 
 static int bcm_2708_power_cycle()
 {
-    if(bcm_2708_power_off() < 0)
+    if(bcm_2708_power_off() < 0) {
+        printf("SD card failed to turn off!\n");
         return -1;
+    }
 
     usleep(5000);
 

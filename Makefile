@@ -15,6 +15,7 @@ TAGS = tags
 
 KERNEL_ELF = $(BINDIR)/kernel8.elf
 KERNEL_IMG = $(BINDIR)/kernel8.img
+SD_IMG = $(BINDIR)/sd.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
 
 export CC = $(_CC_BIN) --target=aarch64-elf
@@ -129,6 +130,9 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 	@echo "Objcopy  $@"
 	@$(OBJCOPY) $(KERNEL_ELF) $(KERNEL_IMG)
 
+$(SD_IMG): $(BINDIR)
+	dd if=/dev/zero of=$@ bs=1M count=1024
+
 # Clean all intermediate files
 clean:
 	@rm -f $(KERNEL_ELF)
@@ -147,6 +151,6 @@ reset: fullclean
 
 # Run the VM with the generated kernel
 run: $(KERNEL_IMG)
-	$(VM) -kernel $(KERNEL_IMG)
+	$(VM) -kernel $(KERNEL_IMG) -sd $(SD_IMG)
 
 .PHONY: clean distclean fullclean run kernel setup tags
