@@ -141,6 +141,7 @@ clean:
 # Clean ALL files (including the kernel image)
 distclean: clean
 	@rm -f $(KERNEL_IMG)
+	@rm -f $(SD_IMG)
 	@rm -df $(BINDIR)
 	@rm -df $(OUTDIR)
 
