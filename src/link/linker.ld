@@ -1,5 +1,11 @@
 SECTIONS
 {
+    __exceptions_start = .;
+    .exceptions : {
+        KEEP(*(.text.exceptions))
+        *(.text.exceptions) /* The table of exception function pointers */
+    }
+    __exceptions_end = .;
     /* Starts at LOADER_ADDR. */
     . = 0x80000;
     __start = .;

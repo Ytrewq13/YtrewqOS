@@ -152,8 +152,6 @@ void uart0_rnhex(void* src, size_t n, const char* sep)
  * - precision sub-specifier
  * - flags related to width & precision (left-justify, left-pad with zeroes)
  * - testing
- *   - is the number returned accurate?
- *   - %n specifier
  */
 int uart0_printf(const char* format, ...)
 {

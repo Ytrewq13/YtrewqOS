@@ -2,12 +2,16 @@ _CC_BIN = clang
 _LD_BIN = ld.lld
 _OBJCOPY_BIN = llvm-objcopy
 _VM_BIN = qemu-system-aarch64
+_GDB_BIN = gdb-multiarch
+
+DEBUG = 1
 
 export SRCDIR = src
 export OUTDIR = build
 export BINDIR = $(OUTDIR)/bin
 export OBJDIR = $(OUTDIR)/obj
 export INCDIR = include
+export TOOLSDIR = $(SRCDIR)/tools
 LDDIR = $(SRCDIR)/link
 
 CCDB = compile_commands.json
@@ -17,11 +21,14 @@ KERNEL_ELF = $(BINDIR)/kernel8.elf
 KERNEL_IMG = $(BINDIR)/kernel8.img
 SD_IMG = $(BINDIR)/sd.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
+GDB_CMDFILE = $(TOOLSDIR)/commands.gdb
 
-export CC = $(_CC_BIN) --target=aarch64-elf
+export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53+nosimd
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
 VM = $(_VM_BIN) -M raspi3 -serial stdio
+VM_DBG = $(VM) -s -S
+GDB = $(_GDB_BIN) -command='$()'
 
 # Absolute versions of directories
 export SRCDIR_ABS = $(CURDIR)/$(SRCDIR)
@@ -30,8 +37,21 @@ export BINDIR_ABS = $(CURDIR)/$(BINDIR)
 export OBJDIR_ABS = $(CURDIR)/$(OBJDIR)
 export INCDIR_ABS = $(CURDIR)/$(INCDIR)
 
-
-export CFLAGS = -I$(INCDIR_ABS) -Wall -O2 -ffreestanding -nostdlib -mcpu=cortex-a53+nosimd
+# Construct the value for CFLAGS
+CF_INCLUDE = -I$(INCDIR_ABS)
+CF_RESTRICT = -std=c99 -ffreestanding -nostdlib
+ifeq ($(DEBUG), 1)
+	CF_DBG = -g
+	CF_OPTIM = -O0
+#	CF_WARN = -Wpedantic -Werror  # TODO: enum is int, not long
+	CF_WARN = -Wall
+else
+	CF_DBG =
+	CF_OPTIM = -O2
+	CF_WARN = -Wall
+endif
+CFLAGS += $(CF_DBG) $(CF_INCLUDE) $(CF_WARN) $(CF_OPTIM) $(CF_RESTRICT)
+export CFLAGS
 
 # TODO: Only define the source files once (in the sub-makefiles - or an included file?)
 # The source files (relative to ./src/)
@@ -151,7 +171,7 @@ reset: fullclean
 	@rm -f $(TAGS)
 
 # Run the VM with the generated kernel
-run: $(KERNEL_IMG)
-	$(VM) -kernel $(KERNEL_IMG) -sd $(SD_IMG)
+run: $(KERNEL_IMG) $(SD_IMG)
+	$(VM) -kernel "$(KERNEL_IMG)" -drive file="$(SD_IMG)",if=sd,format=raw
 
 .PHONY: clean distclean fullclean run kernel setup tags

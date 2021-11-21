@@ -1,35 +1,30 @@
-// TODO: move this exceptions table to a file "exceptions.S"
-// The linker puts this section in the correct position
-// (the correct position should be 0x0)
-// We only get 32 bits for each entry in the exception table
-.section ".text.exceptions"
-interrupt_reset:
-    bl interrupt_reset // TODO: Reset
-interrupt_undefined_instruction:
-    bl interrupt_undefined_instruction // TODO: Undefined instructions
-interrupt_sw: // TODO: This may not be a syscall - could be SVC n, syscall is only SVC #0
-    bl syscall // Branch to the syscall function
-interrupt_prefetch_abort:
-    bl interrupt_prefetch_abort // TODO: Prefetch abort
-interrupt_data_abort:
-    bl interrupt_data_abort // TODO: Data abort
-interrupt_6:
-    nop // Reserved
-interrupt_irq:
-    bl interrupt_irq // TODO: IRQ - Interrupt
-interrupt_fiq:
-    bl interrupt_fiq // TODO: FIQ - Fast Interrupt
-
 .section ".text"
 .globl syscall
-// int syscall(long nr, ...);
 // up to 6 args in x0 to x5, syscall nr in x8
 syscall:
     // Syscall NR in x8
     // TODO: Lookup the sys_### function defined in include/sys/unistd.h
     //          - how to do this?
+    //          - Need an area of memory to store a table of system call NR and
+    //            function pointers
     // TODO: Call the function
-    bl syscall
+    bl syscall_hello
+
+.globl system_call
+// int system_call(long nr, ...);
+// up to 6 args in x1 to x6, syscall nr in x0
+system_call:
+    // Move nr to x8
+//     mov x8, x0
+    // Move x1..x6 to x0..x5 (same convention as Linux)
+//     mov x0, x1
+//     mov x1, x2
+//     mov x2, x3
+//     mov x3, x4
+//     mov x4, x5
+//     mov x5, x6
+    // Generate an interrupt
+    svc #0
 
 // RiscOS - first OS for ARM - easier to follow than Linux
 // NetBSD - cleaner code than Linux

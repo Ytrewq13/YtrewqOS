@@ -33,16 +33,16 @@ enum MBOX_REQUEST_RESPONSE {
 
 /* channels */
 enum MBOX_CHANNELS {
-    MBOX_CH_POWER  = 0b0000,  // Power management
-    MBOX_CH_FB     = 0b0001,  // Framebuffer (DEPRECATED)
-    MBOX_CH_VUART  = 0b0010,  // Virtual UART
-    MBOX_CH_VCHIQ  = 0b0011,  // VCHIQ
-    MBOX_CH_LEDS   = 0b0100,  // LEDs
-    MBOX_CH_BTNS   = 0b0101,  // Buttons
-    MBOX_CH_TOUCH  = 0b0110,  // Touch screen
-    MBOX_CH_COUNT  = 0b0111,  // ?
-    MBOX_CH_PROP_W = 0b1000,  // Property tags (ARM -> GPU)
-    MBOX_CH_PROP_R = 0b1001   // Property tags (ARM <- GPU) (NOT CURRENTLY USED)
+    MBOX_CH_POWER  = 0x0,  // Power management
+    MBOX_CH_FB     = 0x1,  // Framebuffer (DEPRECATED)
+    MBOX_CH_VUART  = 0x2,  // Virtual UART
+    MBOX_CH_VCHIQ  = 0x3,  // VCHIQ
+    MBOX_CH_LEDS   = 0x4,  // LEDs
+    MBOX_CH_BTNS   = 0x5,  // Buttons
+    MBOX_CH_TOUCH  = 0x6,  // Touch screen
+    MBOX_CH_COUNT  = 0x7,  // ?
+    MBOX_CH_PROP_W = 0x8,  // Property tags (ARM -> GPU)
+    MBOX_CH_PROP_R = 0x9   // Property tags (ARM <- GPU) (NOT CURRENTLY USED)
 };
 
 /* tags */

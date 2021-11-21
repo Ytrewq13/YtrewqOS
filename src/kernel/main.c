@@ -14,11 +14,12 @@
 #include "hw/eMMC.h"
 
 #define printf(...); \
-    uart0_printf (__VA_ARGS__); \
-    console_printf (__VA_ARGS__);
+    uart0_printf (__VA_ARGS__);
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
+extern uint64_t GET_EL();
+extern int system_call(long nr, ...);
 
 void delay(size_t time)
 {
@@ -50,9 +51,12 @@ void kernel_main()
 
     uart0_puts("Hello world\n");
 
+    uint64_t el = GET_EL();
+    printf("Current Exception Level: %ld\n", el);
+
 //    while (1) uart0_putc(uart0_getc());
 
-    uint32_t color = 0xff00ff;
+    uint32_t color = 0xffffff;
     console_init();
     console_set_fg_color(color);
 
@@ -136,32 +140,32 @@ void kernel_main()
 
     uart0_puts("\n");
 
-    if (fb_blank_screen(false) != FB_SUCCESS)
-        uart0_puts("Unable to blank screen (off)!\n");
-    if (fb_blank_screen(true) != FB_SUCCESS)
-        uart0_puts("Unable to blank screen (on)!\n");
-
-    uart0_puts("Attempting to free and then allocate the frame buffer...\n");
-
-    if (fb_release() != FB_SUCCESS)
-        uart0_puts("Error releasing Frame Buffer!\n");
-
-    if (fb_alloc(16) != FB_SUCCESS)
-        uart0_puts("Error allocating Frame Buffer!\n");
-    else {
-        printf("Allocated Framebuffer at %p with size %d bytes.\n",
-                    framebuf.base_addr, framebuf.size);
-    }
-
-    if (fb_blank_screen(false) != FB_SUCCESS)
-        uart0_puts("Unable to blank screen (off)!\n");
-    if (fb_blank_screen(true) != FB_SUCCESS)
-        uart0_puts("Unable to blank screen (on)!\n");
-
-    uart0_puts("Releasing the framebuffer again...\n");
-
-    if (fb_release() != FB_SUCCESS)
-        uart0_puts("Error releasing Frame Buffer!\n");
+//    if (fb_blank_screen(false) != FB_SUCCESS)
+//        uart0_puts("Unable to blank screen (off)!\n");
+//    if (fb_blank_screen(true) != FB_SUCCESS)
+//        uart0_puts("Unable to blank screen (on)!\n");
+//
+//    uart0_puts("Attempting to free and then allocate the frame buffer...\n");
+//
+//    if (fb_release() != FB_SUCCESS)
+//        uart0_puts("Error releasing Frame Buffer!\n");
+//
+//    if (fb_alloc(16) != FB_SUCCESS)
+//        uart0_puts("Error allocating Frame Buffer!\n");
+//    else {
+//        printf("Allocated Framebuffer at %p with size %d bytes.\n",
+//                    framebuf.base_addr, framebuf.size);
+//    }
+//
+//    if (fb_blank_screen(false) != FB_SUCCESS)
+//        uart0_puts("Unable to blank screen (off)!\n");
+//    if (fb_blank_screen(true) != FB_SUCCESS)
+//        uart0_puts("Unable to blank screen (on)!\n");
+//
+//    uart0_puts("Releasing the framebuffer again...\n");
+//
+//    if (fb_release() != FB_SUCCESS)
+//        uart0_puts("Error releasing Frame Buffer!\n");
 
     ERROR_TYPE err;
     if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
@@ -196,6 +200,14 @@ void kernel_main()
         printf("Error requesting a framebuffer.\n");
         while (1) uart0_putc(uart0_getc());
     }
+// Redefine printf to also print to console now that we have a framebuffer
+#ifdef printf
+#undef printf
+#endif
+#define printf(...); \
+    uart0_printf (__VA_ARGS__); \
+    console_printf (__VA_ARGS__);
+
     printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
     fb_dims(FB_ATTR_GET, NULL, &display_info);
     printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
@@ -204,35 +216,9 @@ void kernel_main()
 
     printf("\n\n");
     uint8_t c;
-    for (c = 'A'; c <= 'Z'; c++)
-        console_write_character(c);
-    for (c = 'a'; c <= 'z'; c++)
-        console_write_character(c);
-
-    console_printf("\n");
-    console_set_fg_color(0);
-    console_set_bg_color(0x00ff00);
-    console_putc('A');
-    console_set_bg_color(~0);
-    console_printf("Hello there!\n");
-
-    console_erase_row(0);
-
-    console_descriptor.bg_color = 0x0000ff;
-    // With the new (faster) console_erase_xxxx() impementation, this loop is
-    // way too fast and is DANGEROUS. Uncomment at your own risk.
-//    while (1) {
-//        console_descriptor.row = 0;
-//        console_descriptor.col = 0;
-//        console_descriptor.bg_color <<= 8;
-//        if ((console_descriptor.bg_color & 0xffffff) == 0)
-//            console_set_bg_color(0xff);
-//        for (int i = 0; i < console_descriptor.rows; i++) {
-//            console_erase_row(i);
-//        }
-//    }
 
     // TODO: sd_card_init(NULL) doesn't return.
+    // (caused by malloc'd memory is inaccessible)
     struct block_device dev;
     struct block_device *foo = &dev;
     int ret = sd_card_init(&foo);
@@ -240,6 +226,20 @@ void kernel_main()
     if (ret) {
         printf("Failed to initialise SD card!\n");
     }
+
+    printf("Current Exception Level: %ld\n", el);
+    printf("Reading memory at 0x0...\n");
+    printf("%#x: %#x\n", 0x00, GET32(0x00));
+    printf("%#x: %#x\n", 0x04, GET32(0x04));
+    printf("%#x: %#x\n", 0x08, GET32(0x08));
+    printf("%#x: %#x\n", 0x0C, GET32(0x0C));
+    printf("%#x: %#x\n", 0x10, GET32(0x10));
+    printf("%#x: %#x\n", 0x14, GET32(0x14));
+    printf("%#x: %#x\n", 0x18, GET32(0x18));
+    printf("%#x: %#x\n", 0x1C, GET32(0x1C));
+    printf("Trying to run a software interrupt...\n");
+    int syscall_ret = system_call(0);
+    printf("System call returned %d\n", syscall_ret);
 
     // echo everything back
     while (1) {
