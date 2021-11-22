@@ -1,5 +1,6 @@
 SECTIONS
 {
+    . = ALIGN(2048);
     __exceptions_start = .;
     .exceptions : {
         KEEP(*(.text.exceptions))

@@ -32,47 +32,53 @@ cpu_init_check_el:
     cmp     x0, #1
     beq     el1_entry
     // If we are in EL0, something is wrong, so we panic/abort
+    // GET_EL() shouldn't work in EL0, so an exception would have been
+    // generated rather than returning 0 (or does it just give garbage?)
     beq     proc_hang
 
 el3_entry:
     // Setup system registers for entry to Exception level 2
-    mov     x2, #0x05b1 // 0b0000 0101 1011 0001 // FIXME: document magic numbers in cpu/sysregs.h
+    ldr     x2, =SCR_VALUE
     msr     scr_el3, x2
-    mov     x2, #0x03c9 // 0b0000 0011 1100 1001 // FIXME: document magic numbers in cpu/sysregs.h
+    ldr     x2, =SPSR_EL3_VALUE
     msr     spsr_el3, x2 // Saved Program Status Register
+    // Setup the Vector Base Address Register for EL3 (used for exceptions)
+    ldr     x2, =__exceptions_start
+    msr     vbar_el3, x2
     // Setup the jump into EL2
     adr     x2, el2_entry
-    msr     elr_el3, x2
+    msr     elr_el3, x2 // Exception return address (Exception Link Register)
     eret // "Return from exception" - jumps to el2_entry and puts CPU into EL2
 
 el2_entry:
     // Setup system registers for entry to Exception level 1
     msr     sp_el1, x1
-    mov     x2, #0x05b1 // FIXME: document magic numbers in cpu/sysregs.h
+    // Setup the Vector Base Address Register for EL2 (used for exceptions)
+    ldr     x2, =__exceptions_start
+    msr     vbar_el2, x2
     // enable CNTP for EL1
-    mrs     x0, cnthctl_el2
-    orr     x0, x0, #3
+    ldr     x0, =CNTHCTL_EL2_VALUE
     msr     cnthctl_el2, x0
-    msr     cntvoff_el2, xzr
+    ldr     x0, =CNTVOFF_EL2_VALUE
+    msr     cntvoff_el2, x0
     // enable AArch64 in EL1
-    // FIXME: document magic numbers in cpu/sysregs.h
-    mov     x0, #(1 << 31)      // AArch64
-    orr     x0, x0, #(1 << 1)   // SWIO hardwired on Pi3
+    ldr     x0, =HCR_VALUE
     msr     hcr_el2, x0
     mrs     x0, hcr_el2
     // change execution level to EL1
-    mov     x2, #0x3c4 // FIXME: document magic numbers in cpu/sysregs.h
+    ldr     x2, =SPSR_EL2_VALUE
     msr     spsr_el2, x2
-    adr     x2, el1_entry
+    adr     x2, el1_entry // Exception Link Register
     msr     elr_el2, x2
     eret
 
 
 el1_entry:
+    // Setup the Vector Base Address Register for EL1 (used for exceptions)
+    ldr     x2, =__exceptions_start
+    msr     vbar_el1, x2
     // enable Floating point registers (this allows variadic functions to work)
-    // FIXME: document magic numbers in cpu/sysregs.h
-    mrs     x0, cpacr_el1
-    orr     x0, x0, #(0b11 << 20) // set bits 21 and 20 (FPEN)
+    ldr     x0, =CPACR_EL1_VALUE
     msr     cpacr_el1, x0
     // clear bss
     ldr     x1, =__bss_start // Start of BSS section
