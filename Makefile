@@ -56,7 +56,6 @@ endif
 CFLAGS += $(CF_DBG) $(CF_INCLUDE) $(CF_WARN) $(CF_OPTIM) $(CF_RESTRICT)
 export CFLAGS
 
-# TODO: Only define the source files once (in the sub-makefiles - or an included file?)
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S \
 			kernel/calls/calls.S
@@ -80,6 +79,7 @@ _SRCS_C = drivers/GPIO/miniUART.c \
 export _SRCS_ASM
 export _SRCS_C
 # Header files (relative to ./include/)
+# TODO: automatically track each object file's dependencies
 _DEPS_H = errno.h \
 		  error_types.h \
 		  fonts/bizcat_font.h \
