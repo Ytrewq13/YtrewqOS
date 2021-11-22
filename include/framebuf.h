@@ -37,6 +37,7 @@ enum pix_order {
 
 /* This is the framebuffer. */
 extern mem_info_t framebuf;
+extern uint8_t framebuf_enabled;
 
 // Allocate the Frame Buffer
 ERROR_TYPE fb_alloc(uint32_t alignment);

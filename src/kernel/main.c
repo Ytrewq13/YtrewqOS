@@ -13,13 +13,27 @@
 #include "fonts/bizcat_font.h"
 #include "hw/eMMC.h"
 
-#define printf(...); \
-    uart0_printf (__VA_ARGS__);
+#include "printf.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int system_call(long nr, ...);
+
+// TODO: put this somewhere else
+int printf(const char *fmt, ...)
+{
+    int count, c1, c2;
+    va_list ap1, ap2;
+    va_start(ap1, fmt);
+    c1 = generic_printf(uart0_putc, fmt, ap1);
+    va_end(ap1);
+    va_start(ap2, fmt);
+    c2 = generic_printf(console_putc, fmt, ap2);
+    va_end(ap2);
+    count = (c1 == c2) ? c1 : -1;
+    return count;
+}
 
 void delay(size_t time)
 {
@@ -54,8 +68,6 @@ void kernel_main()
     uint64_t el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
 
-//    while (1) uart0_putc(uart0_getc());
-
     uint32_t color = 0xffffff;
     console_init();
     console_set_fg_color(color);
@@ -69,7 +81,7 @@ void kernel_main()
     }
 
     // Board model number
-    // FIXME: this tag doesn't work for some reason - it always puts the same
+    // TODO: this tag doesn't work for some reason - it always puts the same
     // value as the previous call. Is this also a problem on hardware or is the
     // MBOX_TAG_GET_BOARD_MODEL tag broken on QEMU's Pi?
     if (mbox_prop_call((void*)mbox, MBOX_TAG_GET_BOARD_MODEL, 4, NULL,
@@ -140,33 +152,6 @@ void kernel_main()
 
     uart0_puts("\n");
 
-//    if (fb_blank_screen(false) != FB_SUCCESS)
-//        uart0_puts("Unable to blank screen (off)!\n");
-//    if (fb_blank_screen(true) != FB_SUCCESS)
-//        uart0_puts("Unable to blank screen (on)!\n");
-//
-//    uart0_puts("Attempting to free and then allocate the frame buffer...\n");
-//
-//    if (fb_release() != FB_SUCCESS)
-//        uart0_puts("Error releasing Frame Buffer!\n");
-//
-//    if (fb_alloc(16) != FB_SUCCESS)
-//        uart0_puts("Error allocating Frame Buffer!\n");
-//    else {
-//        printf("Allocated Framebuffer at %p with size %d bytes.\n",
-//                    framebuf.base_addr, framebuf.size);
-//    }
-//
-//    if (fb_blank_screen(false) != FB_SUCCESS)
-//        uart0_puts("Unable to blank screen (off)!\n");
-//    if (fb_blank_screen(true) != FB_SUCCESS)
-//        uart0_puts("Unable to blank screen (on)!\n");
-//
-//    uart0_puts("Releasing the framebuffer again...\n");
-//
-//    if (fb_release() != FB_SUCCESS)
-//        uart0_puts("Error releasing Frame Buffer!\n");
-
     ERROR_TYPE err;
     if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
         FB_SUCCESS) {
@@ -200,13 +185,6 @@ void kernel_main()
         printf("Error requesting a framebuffer.\n");
         while (1) uart0_putc(uart0_getc());
     }
-// Redefine printf to also print to console now that we have a framebuffer
-#ifdef printf
-#undef printf
-#endif
-#define printf(...); \
-    uart0_printf (__VA_ARGS__); \
-    console_printf (__VA_ARGS__);
 
     printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
     fb_dims(FB_ATTR_GET, NULL, &display_info);
@@ -227,6 +205,7 @@ void kernel_main()
         printf("Failed to initialise SD card!\n");
     }
 
+    el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
     printf("Reading memory at 0x0...\n");
     printf("%#x: %#x\n", 0x00, GET32(0x00));

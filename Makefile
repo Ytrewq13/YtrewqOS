@@ -26,7 +26,7 @@ DEBUG_PIDFILE = $(BINDIR)/vm.PID
 
 SUB_MAKE_MAKEFILE = $(CURDIR)/submake.mk
 
-export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53+nosimd
+export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
 VM = $(_VM_BIN) -M raspi3 -serial stdio
@@ -103,6 +103,7 @@ _DEPS_H = errno.h \
 		  kernel/util.h \
 		  stdlib.h \
 		  string.h \
+		  printf.h \
 		  unistd.h
 
 # Variables used by sub-make

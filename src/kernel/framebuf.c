@@ -1,6 +1,7 @@
 #include "framebuf.h"
 
 mem_info_t framebuf;
+uint8_t framebuf_enabled = 0;
 
 // Allocate the Frame Buffer
 ERROR_TYPE fb_alloc(uint32_t alignment)
@@ -16,6 +17,8 @@ ERROR_TYPE fb_alloc(uint32_t alignment)
     framebuf.base_addr = response[0];
     framebuf.size      = response[1];
 
+    framebuf_enabled = 1;
+
     return FB_SUCCESS;
 }
 
@@ -30,6 +33,8 @@ ERROR_TYPE fb_release()
 
     framebuf.base_addr = 0;
     framebuf.size = 0;
+
+    framebuf_enabled = 0;
 
     return FB_SUCCESS;
 }

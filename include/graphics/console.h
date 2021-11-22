@@ -12,6 +12,7 @@ typedef struct {
     uint32_t row;
     uint32_t cols;
     uint32_t rows;
+    uint8_t enabled;
 } console_info_t;
 
 extern console_info_t console_descriptor;

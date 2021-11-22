@@ -36,30 +36,32 @@ cpu_init_check_el:
 
 el3_entry:
     // Setup system registers for entry to Exception level 2
-    mov     x2, #0x05b1 // 0b0000 0101 1011 0001
+    mov     x2, #0x05b1 // 0b0000 0101 1011 0001 // FIXME: document magic numbers in cpu/sysregs.h
     msr     scr_el3, x2
-    mov     x2, #0x03c9 // 0b0000 0011 1100 1001
+    mov     x2, #0x03c9 // 0b0000 0011 1100 1001 // FIXME: document magic numbers in cpu/sysregs.h
     msr     spsr_el3, x2 // Saved Program Status Register
+    // Setup the jump into EL2
     adr     x2, el2_entry
     msr     elr_el3, x2
-    eret
+    eret // "Return from exception" - jumps to el2_entry and puts CPU into EL2
 
 el2_entry:
     // Setup system registers for entry to Exception level 1
     msr     sp_el1, x1
-    mov     x2, #0x05b1
+    mov     x2, #0x05b1 // FIXME: document magic numbers in cpu/sysregs.h
     // enable CNTP for EL1
     mrs     x0, cnthctl_el2
     orr     x0, x0, #3
     msr     cnthctl_el2, x0
     msr     cntvoff_el2, xzr
     // enable AArch64 in EL1
+    // FIXME: document magic numbers in cpu/sysregs.h
     mov     x0, #(1 << 31)      // AArch64
     orr     x0, x0, #(1 << 1)   // SWIO hardwired on Pi3
     msr     hcr_el2, x0
     mrs     x0, hcr_el2
     // change execution level to EL1
-    mov     x2, #0x3c4
+    mov     x2, #0x3c4 // FIXME: document magic numbers in cpu/sysregs.h
     msr     spsr_el2, x2
     adr     x2, el1_entry
     msr     elr_el2, x2
@@ -67,6 +69,11 @@ el2_entry:
 
 
 el1_entry:
+    // enable Floating point registers (this allows variadic functions to work)
+    // FIXME: document magic numbers in cpu/sysregs.h
+    mrs     x0, cpacr_el1
+    orr     x0, x0, #(0b11 << 20) // set bits 21 and 20 (FPEN)
+    msr     cpacr_el1, x0
     // clear bss
     ldr     x1, =__bss_start // Start of BSS section
     ldr     w2, =__bss_size // Size of BSS section

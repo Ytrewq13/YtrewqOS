@@ -26,7 +26,6 @@ void uart0_init()
     register uint32_t r;
 
     uint32_t __attribute__((aligned(16))) mbox[9];
-//    uint32_t mbox_input[3];
 
     // Disable the UART
     PUT32(UART0_CR, 0);
@@ -45,14 +44,6 @@ void uart0_init()
     mbox_call_raw(mbox);
 //    mbox_command_start(MBOX_CH_PROP_W, mbox);
 //    mbox_command_wait(MBOX_CH_PROP_W, mbox);
-
-    // Setup the mbox input
-//    mbox_input[0] = 2; // UART clock id (TODO: put this in a #define in uart.h or mbox.h)
-//    mbox_input[1] = 4000000; // 4MHz
-//    mbox_input[2] = 0; // Clear turbo
-
-    // Mailbox call to set the clock rate
-//    mbox_prop_call_internal(mbox, MBOX_TAG_SET_CLK_RATE, 12, ~0, mbox_input, NULL);
 
     // Map UART to GPIO pins
     r = GET32(GPFSEL1);
@@ -107,10 +98,8 @@ void uart0_puts(char* s)
             while ((GET32(UART0_FR) & 0x20)) __asm volatile("nop");
             PUT32(UART0_DR, '\r');
         }
-//        if (*s == '\n') uart0_send('\r');
         while ((GET32(UART0_FR) & 0x20)) __asm volatile("nop");
         PUT32(UART0_DR, *s++);
-//        uart0_send(*s++);
     }
 }
 

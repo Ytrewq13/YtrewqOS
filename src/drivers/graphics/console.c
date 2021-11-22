@@ -28,6 +28,8 @@ ERROR_TYPE console_init()
     console_descriptor.cols = fb_dimensions.width / char_width;
     console_descriptor.rows = fb_dimensions.height / char_height;
 
+    console_descriptor.enabled = 1;
+
     // TODO: store the text written so we can implement scrolling (and scrollback?)
 
     return CONSOLE_SUCCESS;
@@ -139,6 +141,8 @@ void console_prev_pos()
 
 void console_putc(const uint32_t c)
 {
+    if (!(console_descriptor.enabled && framebuf_enabled))
+        return;
     if (c == '\n') {
         console_descriptor.col = 0;
         console_descriptor.row++;

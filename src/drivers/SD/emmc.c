@@ -39,12 +39,10 @@
 #include "hw/mbox.h"
 #include "kernel/timer.h"
 #include "kernel/util.h"
-#include "hw/uart.h"
 #include "stdlib.h"
+#include "printf.h"
 
 #include "hw/eMMC.h"
-
-#define printf uart0_printf
 
 uint32_t GET32(uint32_t);
 void PUT32(uint32_t, uint32_t);
