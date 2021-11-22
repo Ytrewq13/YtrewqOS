@@ -1,13 +1,13 @@
-
 # The current directory relative to the project root
 CURDIR_REL = $(subst $(TOPDIR)/,,$(CURDIR))
+CURDIR_SRC_REL = $(subst $(SRCDIR)/,,$(CURDIR_REL))
 
 # Get the objdir this submake will use
 OBJDIR_ABS = $(addprefix $(TOPDIR)/,$(addsuffix $(subst $(SRCDIR),,$(CURDIR_REL)),$(OBJDIR)))
 
 # Source files
-SRCS_ASM =
-SRCS_C = io/printf.c
+SRCS_ASM = $(subst $(CURDIR_SRC_REL)/,,$(filter $(CURDIR_SRC_REL)/%,$(_SRCS_ASM)))
+SRCS_C = $(subst $(CURDIR_SRC_REL)/,,$(filter $(CURDIR_SRC_REL)/%,$(_SRCS_C)))
 SRCS = $(SRCS_ASM) $(SRCS_C)
 # TODO: which header files do we actually depend on?
 
@@ -35,3 +35,5 @@ $(OBJ_ASM): $(OBJDIR_ABS)/%.o: ./% $(DEPS_ABS) | setup
 $(OBJ_C): $(OBJDIR_ABS)/%.o: ./% $(DEPS_ABS) | setup
 	@echo "CC [ C ] $(subst $(TOPDIR)/$(OBJDIR)/,,$@)"
 	@$(CC) $(CFLAGS) -c $< -o $@
+
+.PHONY: all setup

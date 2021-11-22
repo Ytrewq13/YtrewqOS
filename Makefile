@@ -24,6 +24,8 @@ LINK_SCRIPT = $(LDDIR)/linker.ld
 GDB_CMDFILE = $(TOOLSDIR)/commands.gdb
 DEBUG_PIDFILE = $(BINDIR)/vm.PID
 
+SUB_MAKE_MAKEFILE = $(CURDIR)/submake.mk
+
 export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53+nosimd
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
@@ -75,6 +77,8 @@ _SRCS_C = drivers/GPIO/miniUART.c \
 		  lib/io/printf.c \
 		  libc/stdlib.c \
 		  libc/string.c
+export _SRCS_ASM
+export _SRCS_C
 # Header files (relative to ./include/)
 _DEPS_H = errno.h \
 		  error_types.h \
@@ -140,7 +144,11 @@ $(CCDB): distclean
 	$(MAKE) distclean
 
 $(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/% $(DEPS)
-	@$(MAKE) --no-print-directory -C $(shell echo $< | grep -o '$(SRCDIR)/[^/]*/') $(abspath $@)
+	@$(MAKE) \
+		--makefile='$(SUB_MAKE_MAKEFILE)' \
+		--no-print-directory \
+		-C $(shell echo $< | grep -o '$(SRCDIR)/[^/]*/') \
+		$(abspath $@)
 
 # Rule for creating the .elf of the kernel
 $(KERNEL_ELF): $(OBJ) | $(BINDIR)
