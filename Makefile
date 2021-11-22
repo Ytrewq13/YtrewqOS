@@ -22,13 +22,14 @@ KERNEL_IMG = $(BINDIR)/kernel8.img
 SD_IMG = $(BINDIR)/sd.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
 GDB_CMDFILE = $(TOOLSDIR)/commands.gdb
+DEBUG_PIDFILE = $(BINDIR)/vm.PID
 
 export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53+nosimd
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
 VM = $(_VM_BIN) -M raspi3 -serial stdio
 VM_DBG = $(VM) -s -S
-GDB = $(_GDB_BIN) -command='$()'
+GDB = $(_GDB_BIN)
 
 # Absolute versions of directories
 export SRCDIR_ABS = $(CURDIR)/$(SRCDIR)
@@ -121,20 +122,21 @@ vpath %.o $(OBJDIR)
 
 all: $(KERNEL_IMG)
 
-dbg:
-	@echo \$$\(SRCS\): $(SRCS)
-	@echo \$$\(OBJ\):  $(OBJ)
-	@echo \$$\(OBJDIRS\): $(OBJDIRS)
-	@echo \$$\(DEPS\): $(DEPS)
+#dbg:
+#	@echo \$$\(SRCS\): $(SRCS)
+#	@echo \$$\(OBJ\):  $(OBJ)
+#	@echo \$$\(OBJDIRS\): $(OBJDIRS)
+#	@echo \$$\(DEPS\): $(DEPS)
 
 
 # Rule for the tags file
 tags:
+	@echo "[TAGS]"
 	@ctags -o $(TAGS) -R $(SRCDIR) $(INCDIR)
 
 # Rule to make compile_commands.json (note: runs make)
-$(CCDB): fullclean
-	bear --output $@ -- make
+$(CCDB): distclean
+	bear --output $@ -- make -j`nproc`
 	$(MAKE) distclean
 
 $(OBJ): $(OBJDIR)/%.o: $(SRCDIR)/% $(DEPS)
@@ -166,7 +168,7 @@ distclean: clean
 	@rm -df $(OUTDIR)
 
 # Reset dir tree to git repo state
-reset: fullclean
+reset: distclean
 	@rm -f $(CCDB)
 	@rm -f $(TAGS)
 
@@ -174,4 +176,15 @@ reset: fullclean
 run: $(KERNEL_IMG) $(SD_IMG)
 	$(VM) -kernel "$(KERNEL_IMG)" -drive file="$(SD_IMG)",if=sd,format=raw
 
-.PHONY: clean distclean fullclean run kernel setup tags
+# $(DEBUG_PIDFILE) *MUST* BE THE FIRST PREREQUISITE
+debug: $(DEBUG_PIDFILE) $(KERNEL_ELF) $(GDB_CMDFILE)
+	$(GDB) -command='$(GDB_CMDFILE)' '$(KERNEL_ELF)'
+	@echo "[KILL] VM process"
+	@kill `cat $<`
+	@echo "[RM] VM PID file '$<'"
+	@rm $<
+
+$(DEBUG_PIDFILE): $(KERNEL_IMG) $(SD_IMG)
+	{ $(VM_DBG) -kernel '$(KERNEL_IMG)' -drive file='$(SD_IMG)',if=sd,format=raw & echo $$! > $@; }
+
+.PHONY: tags clean distclean reset run debug
