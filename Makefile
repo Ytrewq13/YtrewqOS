@@ -161,17 +161,19 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 	@$(OBJCOPY) $(KERNEL_ELF) $(KERNEL_IMG)
 
 $(SD_IMG): $(BINDIR)
-	dd if=/dev/zero of=$@ bs=1M count=1024
+	@echo "DD       $@"
+	@dd if=/dev/zero of=$@ bs=1M count=1024
 
 # Clean all intermediate files
 clean:
-	@rm -f $(KERNEL_ELF)
+	@rm -f  $(KERNEL_ELF)
+	@rm -f  $(DEBUG_PIDFILE)
 	@rm -rf $(OBJDIR)
 
 # Clean ALL files (including the kernel image)
 distclean: clean
-	@rm -f $(KERNEL_IMG)
-	@rm -f $(SD_IMG)
+	@rm -f  $(KERNEL_IMG)
+	@rm -f  $(SD_IMG)
 	@rm -df $(BINDIR)
 	@rm -df $(OUTDIR)
 
@@ -187,9 +189,9 @@ run: $(KERNEL_IMG) $(SD_IMG)
 # $(DEBUG_PIDFILE) *MUST* BE THE FIRST PREREQUISITE
 debug: $(DEBUG_PIDFILE) $(KERNEL_ELF) $(GDB_CMDFILE)
 	$(GDB) -command='$(GDB_CMDFILE)' '$(KERNEL_ELF)'
-	@echo "[KILL] VM process"
-	@kill `cat $<`
-	@echo "[RM] VM PID file '$<'"
+	@echo "KILL     VM process (PID `cat $<`)"
+	-@kill `cat $<`
+	@echo "RM       VM PID file '$<'"
 	@rm $<
 
 $(DEBUG_PIDFILE): $(KERNEL_IMG) $(SD_IMG)
