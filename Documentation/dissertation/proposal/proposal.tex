@@ -1,0 +1,299 @@
+\documentclass{article}
+
+\usepackage[margin=0.55in,bottom=0.75in]{geometry}
+\usepackage{titlesec}
+\usepackage{datetime}
+
+\usepackage{graphicx}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+% Format footnotes (bottom of page, reset counter at every page break, use
+% symbols instead of numbers)
+\usepackage[bottom,perpage,symbol*]{footmisc}
+
+\usepackage{csquotes}
+\usepackage[british]{babel}
+\usepackage[backend=biber,urldate=iso,date=iso,seconds=true]{biblatex}
+\addbibresource{refs.bib}
+
+\usepackage{xcolor}
+
+\usepackage{pgfgantt}
+
+\usepackage{hyperref}
+
+\usepackage{subfiles}
+
+\newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
+
+\renewcommand{\baselinestretch}{0.85}
+
+\begin{document}
+\begin{titlepage}
+    % Custom cover page
+    \begin{center}
+        \null\mbox{}\vfill
+
+        \vspace*{1cm}
+
+        \huge
+        \textbf{Operating System for the Raspberry Pi}
+
+        \vspace{0.5cm}
+        \Large
+        A Unix-like Kernel, Shell, and Coreutils for the 64-bit Raspberry Pi 3b
+
+        \large
+        Project Proposal
+
+        \Large
+
+        \vspace{1.5cm}
+
+        \textbf{Sam Whitehead} - 14325283
+
+        \texttt{psysrw@nottingham.ac.uk}
+
+        Msci Computer Science
+
+        \vfill
+
+        COMP4029: Individual Programming Project\\
+        Project Supervisor: Steve Bagley\\
+        University of Nottingham
+
+        \vfill\null
+    \end{center}
+    \thispagestyle{empty}
+\end{titlepage}
+
+\section{Motivation and Background}
+
+\subsection*{Motivation for this project}
+My motivation for choosing to create an Operating System for this project stems
+from my interest in low-level programming. I have an interest in understanding
+how computers work at the lowest level, and the best way to learn how an
+Operating System is implemented and the reasons for design decisions will be to
+implement my own Operating System at that low level.
+
+\subsection*{Background: the Raspberry Pi and Operating Systems}
+The Raspberry Pi is a cheap Single Board Computer (SBC) powered by an ARM SOC.
+This project focuses on the Pi 3, the first iteration of the Pi to use a 64-bit
+CPU. The Raspberry Pi is ideal for a project like this, as it is complex enough
+that creating an Operating System for it is a challenge, but also modern enough
+that no out-of-date technologies will be necessary to work with it. The Pi
+board includes a number of different components that will require drivers to
+function, so there is plenty of room for additional features if the project
+moves faster than anticipated.
+
+The Raspberry Pi is popular among hobbyist OS developers, and its hardware
+schematics and technical manuals are made available, so there are plenty of
+resources available online for documentation of technical details. The OS I
+develop will be a learning resource for others who wish to discover more about
+OS design. The source code will be made available under an open source license,
+and I will create documentation of how each component of the final system
+works.
+
+Operating Systems are programs which run directly on top of computer hardware
+and allow other software to run on the computer. They come in many different
+varieties, but this project will be based on the ``microkernel'' design. Unix
+was an Operating System developed at Bell Labs of AT\&T in the 1970s. It was
+originally written in assembly language for the specific target machine, the
+PDP7, but for its 4th version it was rewritten in C, a new language at the time
+(also created at Bell Labs). Being written in C made the OS very portable, as
+only the compiler had to be ported for the entire system to run on a new
+machine. This made Unix very popular, and soon there were many Unix-like
+Operating Systems. ``A Unix-like Operating System is one that behaves in a
+similar manner to a Unix system''\footnote{Wikipedia, `Unix-like':
+\texttt{en.wikipedia.org/wiki/Unix-like}}. There are many examples of Unix-like
+Operating Systems, including some very popular ones like Linux, MacOS, and BSD.
+The Operating System I create in this project will aim to be Unix-like in its
+behaviour.
+
+\section{Aims and Objectives}
+I am aiming to produce a Unix-like Operating System which is capable of being
+used as a general purpose hobbyist OS. The objectives of the project are as
+follows.
+
+\subsection*{OS components/features I expect to complete}
+\begin{itemize}
+    \item Microkernel with UART serial output and graphics driver for the Pi's
+        HDMI video output. User interaction will use the display and read from
+        the keyboard.
+    \item Shell (hopefully POSIX-compliant) with scripting capabilities.
+        Depending on time constraints, this may be a port of
+        Dash~\cite{dash-shell}.
+    \item Multi-process system allowing multiple processes to time-share the
+        CPU with a process scheduler.
+    \item An implementation of the System V ABI for executable files
+        (statically compiled ELF files).
+    \item Suite of core utilities (like those provided by GNU) - these may be
+        partially or totally ported from the GNU
+        coreutils~\cite{gnu-coreutils}.
+    \item An init program for starting the OS's essentials and for starting the
+        root\footnote{Here, ``root'' means PID 0, not a root user (although if
+        users are implemented, it would be both).} shell.
+    \item A service manager for starting services at boot and ensuring that
+        they remain running, restarting them if they fail. This may be bundled
+        with the init system, like with systemd on most Linux distributions, or
+        may be a separate program.
+\end{itemize}
+
+\subsection*{Nice-to-haves}
+\begin{itemize}
+    \item A threads system with multithreading support (multiple threads owned
+        by one process).
+    \item A multi-user system with basic passwords and access control on files
+        (file/directory ownership).
+    \item Runs on hardware (not just a VM/emulator).
+\end{itemize}
+
+
+\section{External Sponsor}
+This project is being sponsored by Steve Bagley of the University of
+Nottingham. I have already asked him and he has agreed to sponsor this project,
+as he has an interest in the technical side of this project.
+
+Since he is also this project's supervisor, we will be having regular meetings
+to update him on the project's progress. He has mentioned that when we meet, he
+would like to hear technical details of problems I encounter and how I overcome
+them on the Raspberry Pi. He will also advise me on issues I am unsure of
+during these meetings in order to support the project's development.
+
+\section{Work Plan}
+\subsection*{Tasks}
+Tasks are the individual components of the project, separated into the
+components of the Kernel and Shell, the miscellaneous parts, and the documents
+I will need to produce for the project. These tasks are enumerated in
+\autoref{tab:work-plan} and then assembled into a Gantt chart in
+\autoref{fig:gantt-chart}.
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|l|r|}
+    \hline
+    Task & Duration (weeks)\\
+    \hline \textbf{Kernel} &\\
+    Bootloader & 1\\
+    Graphics driver & 2\\
+    Syscalls & 6\\
+    Filesystem & 3\\
+    Statically linked ELF Loader & 2\\
+    Memory management & 4\\
+    Process control & 8\\
+    Init system and service manager & 5\\
+    Threads and multithreading & 4\\
+    \hline \textbf{Shell} &\\
+    Debug shell & 2\\
+    \texttt{pwd}, \texttt{cd}, \texttt{ls}, \texttt{stat}, etc. & 2\\
+    \texttt{export}, variables, \texttt{set}, etc. & 2\\
+    \texttt{if}, \texttt{while}, \texttt{for}, \texttt{case}, globs, etc. & 3\\
+    Command substitution & 4\\
+    IO pipes and output redirection & 1\\
+    \hline \textbf{Misc parts} &\\
+    Setup cross-compiler and build environment & 1\\
+    IO and strings libraries & 2\\
+    libc & 8\\
+    \texttt{cat}, \texttt{head}, \texttt{less}, etc. & 2\\
+    \texttt{roff} & 1\\
+    \texttt{man} & 1\\
+    \hline \textbf{Documents} &\\
+    Interrim report & 1\\
+    Documentation & 5\\
+    Dissertation & 7\\
+    \hline
+\end{tabular}
+\caption{The plan of work for the project, including how many weeks I think
+each component will take.}
+\label{tab:work-plan}
+\end{center}
+\end{table}
+
+\subsection*{Work Packages}
+A ``Work Package'' is a collection of tasks with a well-defined deliverable.
+Not every task will be part of a work package, and some tasks will be work
+packages on their own. \autoref{tab:work-packages} contains all of the work
+packages for this project.
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|p{45mm}|p{125mm}|}
+    \hline
+    \textbf{Work package} & \textbf{Description of the deliverable} \\
+    \hline
+    Debug shell using the graphics driver &
+    A debug shell which is printed on the Pi's display and which uses keyboard
+    input. The debug shell should accept several commands for debugging the
+    processor status (including, but not limited to, printing the contents of
+    memory, writing to memory, and jumping to a given memory address).
+    \\ \hline
+    A basic kernel which can load (from disk) and jump into a compiled ELF
+    program. &
+    A program that can load a statically compiled ELF executable binary into
+    memory and then jump to its entry point. This requires a filesystem library
+    to be implemented, and also includes the ELF loader task.
+    \\ \hline
+    Scheduling algorithm &
+    A scheduling algorithm with support for multiple processes running on the
+    system concurrently. This will include an implementation of
+    \texttt{fork(3)} or a similar function in order to spawn new processes and
+    \texttt{execve(2)} to replace the current program with a new process.
+    \\ \hline
+    Init system and service manager &
+    An init system which is run at boot and starts all necessary parts of the
+    OS and then spawns the root shell. The service manager ensures that all
+    desired daemons and processes are started at the correct times and remain
+    running, restarting them if they die.
+    \\ \hline
+    A shell &
+    A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
+    Dash\cite{dash-shell}. If I decide that implementing my own
+    POSIX-compliant shell is too large of a task, then I will port the source
+    code for Dash to run on my OS, implementing the required syscalls to get it
+    working. This shell will be the main way users interact with the OS.
+    \\ \hline
+    Documentation &
+    This package contains several parts. I will create documentation for how
+    each part of the OS works, and a guide for how new programmers can get
+    started developing programs for the system. The documentation will be
+    completed in stages as I develop the operating system, and I will go back
+    to keep it up-to-date as I make changes to components and add new
+    components.
+    \\ \hline
+    Multithreading support and multi-core scheduling &
+    The Pi 3 has 4 CPU cores. This work package will enable users to take
+    advantage of the additional processing power of the other 3 cores for their
+    programs. This includes a threading library similar to \texttt{pthread} on
+    Linux systems, and improvements to the scheduler so that it can give
+    different CPU cores to multiple threads owned by the same process.
+    \textbf{This work package is optional}.
+    \\ \hline
+\end{tabular}
+\caption{The work packages of the project and their deliverables.}
+\label{tab:work-packages}
+\end{center}
+\end{table}
+
+\subsection*{Key Dates}
+\textbf{2021-10-27 15:00}: Deadline for submitting:
+\begin{itemize}
+    \item The revised project proposal (this document).
+    \item The preliminary ethics checklist.
+\end{itemize}
+\textbf{2021-12-13 15:00}: Deadline for submitting the imterrim report (worth
+10\% of the final project mark).\\
+\textbf{2022-04-25 15:00}: Deadline for electronic submission of the
+dissertation (75\% of the final project mark).\\
+\textbf{2022-05-12/2022-05-13}: Final Presentation/Demonstration of the project
+(worth 15\% of the final project mark).
+
+\subfile{gantt.tex}
+
+% Mark each of our references as cited without actually citing them.
+\nocite{design-of-unix-os}
+\nocite{osdev-wiki}
+\nocite{unix-prog-env}
+% Print the bibliography
+\printbibliography
+\end{document}

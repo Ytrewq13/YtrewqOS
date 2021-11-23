@@ -3,8 +3,8 @@
 *.o
 *.img
 
-# We don't want to track any PDF files - docs will be generated from source
-*.pdf
+Documentation/dissertation/*/build/*
+!Documentation/dissertation/*/build/*.pdf
 
 # Vim swapfiles
 *.swp
