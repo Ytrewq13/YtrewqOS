@@ -66,47 +66,83 @@
     \thispagestyle{empty}
 \end{titlepage}
 
-\section{Aims and Objectives}
+\section{Introduction}
+TODO: describe / introduce the project.
+
 % FIXME: reword this section
 I am aiming to produce a Unix-like Operating System which is capable of being
 used as a general purpose hobbyist OS. The objectives of the project are as
 follows.
 
-\subsection*{OS components/features I expect to complete}
+
+\section{Motivation and Background}
+\subsection*{Motivation for this project}
+My motivation for choosing to create an Operating System for this project stems
+from my interest in low-level programming. I have an interest in understanding
+how computers work at the lowest level, and the best way to learn how an
+Operating System is implemented and the reasons for design decisions will be to
+implement my own Operating System at that low level.
+
+\subsection*{Background: the Raspberry Pi and Operating Systems}
+The Raspberry Pi is a cheap Single Board Computer (SBC) powered by an ARM SOC.
+This project focuses on the Pi 3, the first iteration of the Pi to use a 64-bit
+CPU. The Raspberry Pi is ideal for a project like this, as it is complex enough
+that creating an Operating System for it is a challenge, but also modern enough
+that no out-of-date technologies will be necessary to work with it. The Pi
+board includes a number of different components that will require drivers to
+function, so there is plenty of room for additional features if the project
+moves faster than anticipated.
+
+The Raspberry Pi is popular among hobbyist OS developers, and its hardware
+schematics and technical manuals are made available, so there are plenty of
+resources available online for documentation of technical details. The OS I
+develop will be a learning resource for others who wish to discover more about
+OS design. The source code will be made available under an open source license,
+and I will create documentation of how each component of the final system
+works.
+
+Operating Systems are programs which run directly on top of computer hardware
+and allow other software to run on the computer. They come in many different
+varieties, but this project will be based on the ``microkernel'' design. Unix
+was an Operating System developed at Bell Labs of AT\&T in the 1970s. It was
+originally written in assembly language for the specific target machine, the
+PDP7, but for its 4th version it was rewritten in C, a new language at the time
+(also created at Bell Labs). Being written in C made the OS very portable, as
+only the compiler had to be ported for the entire system to run on a new
+machine. This made Unix very popular, and soon there were many Unix-like
+Operating Systems. ``A Unix-like Operating System is one that behaves in a
+similar manner to a Unix system''\footnote{Wikipedia, `Unix-like':
+\texttt{en.wikipedia.org/wiki/Unix-like}}. There are many examples of Unix-like
+Operating Systems, including some very popular ones like Linux, MacOS, and BSD.
+The Operating System I create in this project will aim to be Unix-like in its
+behaviour.
+
+
+\section{Related work}
+TODO: Move these projects to \texttt{refs.bib} (and add a partial bibliography
+at the end of this section?)
+
 \begin{itemize}
-    \item Microkernel with UART serial output and graphics driver for the Pi's
-        HDMI video output. User interaction will use the display and read from
-        the keyboard.
-    \item Shell (hopefully POSIX-compliant) with scripting capabilities.
-        Depending on time constraints, this may be a port of
-        Dash~\cite{dash-shell}.
-    \item Multi-process system allowing multiple processes to time-share the
-        CPU with a process scheduler.
-    \item An implementation of the System V ABI for executable files
-        (statically compiled ELF files).
-    \item Suite of core utilities (like those provided by GNU) - these may be
-        partially or totally ported from the GNU
-        coreutils~\cite{gnu-coreutils}.
-    \item An init program for starting the OS's essentials and for starting the
-        root\footnote{Here, ``root'' means PID 0, not a root user (although if
-        users are implemented, it would be both).} shell.
-    \item A service manager for starting services at boot and ensuring that
-        they remain running, restarting them if they fail. This may be bundled
-        with the init system, like with systemd on most Linux distributions, or
-        may be a separate program.
+    \item ``rpi-boot'': A second stage bootloader for the Raspberry Pi,
+        \url{https://github.com/jncronin/rpi-boot}.
+    \item ``raspberry-pi-os'': Learning operating system development using
+        Linux kernel and Raspberry Pi,
+        \url{https://github.com/s-matyukevich/raspberry-pi-os}.
+    \item ``raspi3-tutorial'': Bare metal Raspberry Pi 3 tutorials,
+        \url{https://github.com/bztsrc/raspi3-tutorial}.
+    \item The Linux kernel: \url{https://github.com/torvalds/linux}.
+    \item NetBSD (and the rest of the BSDs):
+        \url{https://github.com/NetBSD/src}.
+    \item RiscOS: \url{https://www.riscosopen.org/content/}.
 \end{itemize}
 
-\subsection*{Nice-to-haves}
-\begin{itemize}
-    \item A threads system with multithreading support (multiple threads owned
-        by one process).
-    \item A multi-user system with basic passwords and access control on files
-        (file/directory ownership).
-    \item Runs on hardware (not just a VM/emulator).
-\end{itemize}
+TODO: Describe each project and how I will be using them for inspiration / code
+snippets.
 
 
-\section{Work Plan}
+\section{Description of the work}
+TODO: Modules / work packages.
+
 % FIXME: reword this section
 \subsection*{Tasks}
 Tasks are the individual components of the project, separated into the
@@ -221,6 +257,73 @@ packages for this project.
 \end{table}
 
 \subfile{gantt.tex}
+
+
+\section{Methodology}
+TODO
+
+
+\section{Design}
+TODO: design the structure of the OS - modules overview (graphviz?).
+
+TODO: reword this section.
+\subsection*{OS components/features I expect to complete}
+\begin{itemize}
+    \item Microkernel with UART serial output and graphics driver for the Pi's
+        HDMI video output. User interaction will use the display and read from
+        the keyboard.
+    \item Shell (hopefully POSIX-compliant) with scripting capabilities.
+        Depending on time constraints, this may be a port of
+        Dash~\cite{dash-shell}.
+    \item Multi-process system allowing multiple processes to time-share the
+        CPU with a process scheduler.
+    \item An implementation of the System V ABI for executable files
+        (statically compiled ELF files).
+    \item Suite of core utilities (like those provided by GNU) - these may be
+        partially or totally ported from the GNU
+        coreutils~\cite{gnu-coreutils}.
+    \item An init program for starting the OS's essentials and for starting the
+        root\footnote{Here, ``root'' means PID 0, not a root user (although if
+        users are implemented, it would be both).} shell.
+    \item A service manager for starting services at boot and ensuring that
+        they remain running, restarting them if they fail. This may be bundled
+        with the init system, like with systemd on most Linux distributions, or
+        may be a separate program.
+\end{itemize}
+
+\subsection*{Nice-to-haves}
+\begin{itemize}
+    \item A threads system with multithreading support (multiple threads owned
+        by one process).
+    \item A multi-user system with basic passwords and access control on files
+        (file/directory ownership).
+    \item Runs on hardware (not just a VM/emulator).
+\end{itemize}
+
+
+
+\section{Implementation (if there is any)}
+TODO: describe the current implementation - challenges encountered during
+development so far, how I tackled problems.
+
+
+\section{Progress}
+\subsection{Project management}
+TODO: \textbf{Project management} covering the tasks as a part of your
+\textbf{work plan as presented in your final proposal} and progress as well as
+how time and resources are managed. Your interaction with the external sponsor.
+The need for reviewing the tasks and explanation of/reasons for any adjustment
+made to the future work plan. Inclusion of a Gantt chart is strongly
+recommended as a visual indicating the progress of the project.
+
+
+\subsection{Contributions and reflections}
+TODO: \textbf{Contributions and reflections} providing the details of your
+achievements and contributions (including the contributions from the external
+sponsor) up to date as well as a personal reflection on the plan and your
+experience of the project (a critical appraisal of how the project has been
+progressing).
+
 
 % Mark each of our references as cited without actually citing them.
 \nocite{design-of-unix-os}
