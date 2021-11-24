@@ -3,32 +3,29 @@
 \usepackage[margin=0.55in,bottom=0.75in]{geometry}
 \usepackage{titlesec}
 \usepackage{datetime}
-
 \usepackage{graphicx}
-
 \usepackage{amssymb}
 \usepackage{amsmath}
-
 % Format footnotes (bottom of page, reset counter at every page break, use
 % symbols instead of numbers)
 \usepackage[bottom,perpage,symbol*]{footmisc}
-
 \usepackage{csquotes}
 \usepackage[british]{babel}
 \usepackage[backend=biber,urldate=iso,date=iso,seconds=true]{biblatex}
-\addbibresource{refs.bib}
-
 \usepackage{xcolor}
-
 \usepackage{pgfgantt}
-
+\usepackage[acronym,nomain,automake]{glossaries-extra}
 \usepackage{hyperref}
-
 \usepackage{subfiles}
 
-\newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
+\setabbreviationstyle[acronym]{long-short}
+\makeglossaries
 
+\newacronym{os}{OS}{Operating System}
+
+\newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
 \renewcommand{\baselinestretch}{0.85}
+\addbibresource{refs.bib}
 
 \begin{document}
 \begin{titlepage}
@@ -70,7 +67,8 @@
 TODO: describe / introduce the project.
 
 % FIXME: reword this section
-I am aiming to produce a Unix-like Operating System which is capable of being
+%I am aiming to produce a Unix-like Operating System which is capable of being
+I am aiming to produce a Unix-like \gls{os} which is capable of being
 used as a general purpose hobbyist OS. The objectives of the project are as
 follows.
 
@@ -324,6 +322,7 @@ sponsor) up to date as well as a personal reflection on the plan and your
 experience of the project (a critical appraisal of how the project has been
 progressing).
 
+\printglossaries
 
 % Mark each of our references as cited without actually citing them.
 \nocite{design-of-unix-os}
