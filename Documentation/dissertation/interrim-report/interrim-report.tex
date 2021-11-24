@@ -14,14 +14,20 @@
 \usepackage[backend=biber,urldate=iso,date=iso,seconds=true]{biblatex}
 \usepackage{xcolor}
 \usepackage{pgfgantt}
-\usepackage[acronym,nomain,automake]{glossaries-extra}
+\usepackage[acronym,nonumberlist,nomain,automake]{glossaries-extra}
 \usepackage{hyperref}
 \usepackage{subfiles}
+
+\hypersetup{colorlinks=true,
+        linkcolor={red!60!blue},
+        citecolor={green!65!black},
+        urlcolor=blue}
 
 \setabbreviationstyle[acronym]{long-short}
 \makeglossaries
 
-\newacronym{os}{OS}{Operating System}
+\loadglsentries[acronym]{acronyms}
+\preto\section{\glsresetall}
 
 \newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
 \renewcommand{\baselinestretch}{0.85}
@@ -67,53 +73,52 @@
 TODO: describe / introduce the project.
 
 % FIXME: reword this section
-%I am aiming to produce a Unix-like Operating System which is capable of being
-I am aiming to produce a Unix-like \gls{os} which is capable of being
-used as a general purpose hobbyist OS. The objectives of the project are as
+I am aiming to produce a Unix-like \gls{os} which is capable of being used as a
+general purpose hobbyist \gls{os}. The objectives of the project are as
 follows.
 
 
 \section{Motivation and Background}
 \subsection*{Motivation for this project}
-My motivation for choosing to create an Operating System for this project stems
-from my interest in low-level programming. I have an interest in understanding
-how computers work at the lowest level, and the best way to learn how an
-Operating System is implemented and the reasons for design decisions will be to
-implement my own Operating System at that low level.
+My motivation for choosing to create an \gls{os} for this project stems from my
+interest in low-level programming. I have an interest in understanding how
+computers work at the lowest level, and the best way to learn how an \gls{os}
+is implemented and the reasons for design decisions will be to implement my own
+\gls{os} at that low level.
 
-\subsection*{Background: the Raspberry Pi and Operating Systems}
-The Raspberry Pi is a cheap Single Board Computer (SBC) powered by an ARM SOC.
-This project focuses on the Pi 3, the first iteration of the Pi to use a 64-bit
-CPU. The Raspberry Pi is ideal for a project like this, as it is complex enough
-that creating an Operating System for it is a challenge, but also modern enough
-that no out-of-date technologies will be necessary to work with it. The Pi
-board includes a number of different components that will require drivers to
-function, so there is plenty of room for additional features if the project
-moves faster than anticipated.
+\subsection*{Background: the \glsxtrlong{rpi} and \glsxtrlongpl{os}}
+The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
+project focuses on the \gls{rpi} 3, the first iteration of the \gls{rpi} to use
+a 64-bit \gls{cpu}. The \gls{rpi} is ideal for a project like this, as it is
+complex enough that creating an \gls{os} for it is a challenge, but also modern
+enough that no out-of-date technologies will be necessary to work with it. The
+\gls{rpi} board includes a number of different components that will require
+drivers to function, so there is plenty of room for additional features if the
+project moves faster than anticipated.
 
-The Raspberry Pi is popular among hobbyist OS developers, and its hardware
+The \gls{rpi} is popular among hobbyist \gls{os} developers, and its hardware
 schematics and technical manuals are made available, so there are plenty of
-resources available online for documentation of technical details. The OS I
-develop will be a learning resource for others who wish to discover more about
-OS design. The source code will be made available under an open source license,
-and I will create documentation of how each component of the final system
+resources available online for documentation of technical details. The \gls{os}
+I develop will be a learning resource for others who wish to discover more
+about \gls{os} design. The source code will be made available under an open
+source license, and I will create documentation of how each component of the
+final system
 works.
 
-Operating Systems are programs which run directly on top of computer hardware
-and allow other software to run on the computer. They come in many different
+\glspl{os} are programs which run directly on top of computer hardware and
+allow other software to run on the computer. They come in many different
 varieties, but this project will be based on the ``microkernel'' design. Unix
-was an Operating System developed at Bell Labs of AT\&T in the 1970s. It was
-originally written in assembly language for the specific target machine, the
-PDP7, but for its 4th version it was rewritten in C, a new language at the time
-(also created at Bell Labs). Being written in C made the OS very portable, as
-only the compiler had to be ported for the entire system to run on a new
-machine. This made Unix very popular, and soon there were many Unix-like
-Operating Systems. ``A Unix-like Operating System is one that behaves in a
-similar manner to a Unix system''\footnote{Wikipedia, `Unix-like':
-\texttt{en.wikipedia.org/wiki/Unix-like}}. There are many examples of Unix-like
-Operating Systems, including some very popular ones like Linux, MacOS, and BSD.
-The Operating System I create in this project will aim to be Unix-like in its
-behaviour.
+was an \gls{os} developed at Bell Labs of AT\&T in the 1970s. It was originally
+written in assembly language for the specific target machine, the PDP7, but for
+its 4th version it was rewritten in C, a new language at the time (also created
+at Bell Labs). Being written in C made the \gls{os} very portable, as only the
+compiler had to be ported for the entire system to run on a new machine. This
+made Unix very popular, and soon there were many Unix-like \glspl{os}. ``A
+Unix-like \gls{os} is one that behaves in a similar manner to a Unix
+system''\footnote{Wikipedia, `Unix-like':
+\url{en.wikipedia.org/wiki/Unix-like}}. There are many examples of Unix-like
+\glspl{os}, including some very popular ones like Linux, MacOS, and BSD. The
+\gls{os} I create in this project will aim to be Unix-like in its behaviour.
 
 
 \section{Related work}
@@ -121,17 +126,16 @@ TODO: Move these projects to \texttt{refs.bib} (and add a partial bibliography
 at the end of this section?)
 
 \begin{itemize}
-    \item ``rpi-boot'': A second stage bootloader for the Raspberry Pi,
-        \url{https://github.com/jncronin/rpi-boot}.
-    \item ``raspberry-pi-os'': Learning operating system development using
-        Linux kernel and Raspberry Pi,
-        \url{https://github.com/s-matyukevich/raspberry-pi-os}.
-    \item ``raspi3-tutorial'': Bare metal Raspberry Pi 3 tutorials,
-        \url{https://github.com/bztsrc/raspi3-tutorial}.
-    \item The Linux kernel: \url{https://github.com/torvalds/linux}.
-    \item NetBSD (and the rest of the BSDs):
-        \url{https://github.com/NetBSD/src}.
-    \item RiscOS: \url{https://www.riscosopen.org/content/}.
+    \item \href{https://github.com/jncronin/rpi-boot}{rpi-boot}: A second
+        stage bootloader for the \gls{rpi}.
+    \item \href{https://github.com/s-matyukevich/raspberry-pi-os}{raspberry-pi-os}:
+        Learning \gls{os} development using Linux kernel and \gls{rpi}.
+    \item \href{https://github.com/bztsrc/raspi3-tutorial}{raspi3-tutorial}:
+        Bare metal \gls{rpi} 3 tutorials.
+    \item \href{https://github.com/torvalds/linux}{The Linux kernel}.
+    \item \href{https://github.com/NetBSD/src}{NetBSD} (and the rest of the
+        BSDs).
+    \item \href{https://www.riscosopen.org/content/}{RiscOS}.
 \end{itemize}
 
 TODO: Describe each project and how I will be using them for inspiration / code
@@ -202,16 +206,17 @@ packages for this project.
     \textbf{Work package} & \textbf{Description of the deliverable} \\
     \hline
     Debug shell using the graphics driver &
-    A debug shell which is printed on the Pi's display and which uses keyboard
-    input. The debug shell should accept several commands for debugging the
-    processor status (including, but not limited to, printing the contents of
-    memory, writing to memory, and jumping to a given memory address).
+    A debug shell which is printed on the \gls{rpi}'s display and which uses
+    keyboard input. The debug shell should accept several commands for
+    debugging the processor status (including, but not limited to, printing the
+    contents of memory, writing to memory, and jumping to a given memory
+    address).
     \\ \hline
-    A basic kernel which can load (from disk) and jump into a compiled ELF
+    A basic kernel which can load (from disk) and jump into a compiled \gls{elf}
     program. &
-    A program that can load a statically compiled ELF executable binary into
-    memory and then jump to its entry point. This requires a filesystem library
-    to be implemented, and also includes the ELF loader task.
+    A program that can load a statically compiled \gls{elf} executable binary
+    into memory and then jump to its entry point. This requires a filesystem
+    library to be implemented, and also includes the \gls{elf} loader task.
     \\ \hline
     Scheduling algorithm &
     A scheduling algorithm with support for multiple processes running on the
@@ -221,32 +226,32 @@ packages for this project.
     \\ \hline
     Init system and service manager &
     An init system which is run at boot and starts all necessary parts of the
-    OS and then spawns the root shell. The service manager ensures that all
-    desired daemons and processes are started at the correct times and remain
-    running, restarting them if they die.
+    \gls{os} and then spawns the root shell. The service manager ensures that
+    all desired daemons and processes are started at the correct times and
+    remain running, restarting them if they die.
     \\ \hline
     A shell &
     A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
-    Dash\cite{dash-shell}. If I decide that implementing my own
-    POSIX-compliant shell is too large of a task, then I will port the source
-    code for Dash to run on my OS, implementing the required syscalls to get it
-    working. This shell will be the main way users interact with the OS.
+    Dash\cite{dash-shell}. If I decide that implementing my own POSIX-compliant
+    shell is too large of a task, then I will port the source code for Dash to
+    run on my \gls{os}, implementing the required syscalls to get it working.
+    This shell will be the main way users interact with the \gls{os}.
     \\ \hline
     Documentation &
     This package contains several parts. I will create documentation for how
-    each part of the OS works, and a guide for how new programmers can get
+    each part of the \gls{os} works, and a guide for how new programmers can get
     started developing programs for the system. The documentation will be
-    completed in stages as I develop the operating system, and I will go back
+    completed in stages as I develop the \gls{os}, and I will go back
     to keep it up-to-date as I make changes to components and add new
     components.
     \\ \hline
     Multithreading support and multi-core scheduling &
-    The Pi 3 has 4 CPU cores. This work package will enable users to take
-    advantage of the additional processing power of the other 3 cores for their
-    programs. This includes a threading library similar to \texttt{pthread} on
-    Linux systems, and improvements to the scheduler so that it can give
-    different CPU cores to multiple threads owned by the same process.
-    \textbf{This work package is optional}.
+    The \gls{rpi} 3 has 4 \gls{cpu} cores. This work package will enable users
+    to take advantage of the additional processing power of the other 3 cores
+    for their programs. This includes a threading library similar to
+    \texttt{pthread} on Linux systems, and improvements to the scheduler so
+    that it can give different \gls{cpu} cores to multiple threads owned by the
+    same process. \textbf{This work package is optional}.
     \\ \hline
 \end{tabular}
 \caption{The work packages of the project and their deliverables.}
@@ -262,12 +267,12 @@ TODO
 
 
 \section{Design}
-TODO: design the structure of the OS - modules overview (graphviz?).
+TODO: design the structure of the \gls{os} - modules overview (graphviz?).
 
 TODO: reword this section.
 \subsection*{OS components/features I expect to complete}
 \begin{itemize}
-    \item Microkernel with UART serial output and graphics driver for the Pi's
+    \item Microkernel with UART serial output and graphics driver for the \gls{rpi}'s
         HDMI video output. User interaction will use the display and read from
         the keyboard.
     \item Shell (hopefully POSIX-compliant) with scripting capabilities.
@@ -280,7 +285,7 @@ TODO: reword this section.
     \item Suite of core utilities (like those provided by GNU) - these may be
         partially or totally ported from the GNU
         coreutils~\cite{gnu-coreutils}.
-    \item An init program for starting the OS's essentials and for starting the
+    \item An init program for starting the \gls{os}'s essentials and for starting the
         root\footnote{Here, ``root'' means PID 0, not a root user (although if
         users are implemented, it would be both).} shell.
     \item A service manager for starting services at boot and ensuring that
