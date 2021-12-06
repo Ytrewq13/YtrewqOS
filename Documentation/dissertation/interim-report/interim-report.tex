@@ -1,0 +1,727 @@
+\documentclass{article}
+
+\usepackage[margin=0.55in,bottom=0.75in]{geometry}
+\usepackage{titlesec}
+\usepackage{datetime}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{makecell}
+%\usepackage{booktabs} % For \addlinespace
+% Format footnotes (bottom of page, reset counter at every page break, use
+% symbols instead of numbers)
+\usepackage[bottom,perpage,symbol*]{footmisc}
+\usepackage{csquotes}
+\usepackage[british]{babel}
+\usepackage[backend=biber,defernumbers=true,urldate=iso,date=iso,seconds=true]{biblatex}
+\usepackage{xcolor}
+\usepackage{pgfgantt}
+\usepackage[acronym,nonumberlist,nomain,automake]{glossaries-extra}
+\usepackage[nottoc]{tocbibind}
+\usepackage{nameref}
+\usepackage{hyperref}
+\usepackage{subfiles}
+
+\hypersetup{colorlinks=true,
+        linkcolor={red!60!blue},
+        citecolor={green!65!black},
+        urlcolor=blue}
+
+\setabbreviationstyle[acronym]{long-short}
+\makeglossaries
+
+\loadglsentries[acronym]{acronyms}
+\preto\section{\glsresetall}
+
+\newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
+\renewcommand{\baselinestretch}{0.85}
+
+\addbibresource{refs.bib}
+\DeclareRefcontext{default}{}
+\DeclareRefcontext{relatedworks}{labelprefix=Rw}
+\DeclareRefcontext{appendix}{labelprefix=A}
+
+\emergencystretch=1em
+
+\begin{document}
+\newrefcontext{default}
+\begin{titlepage}
+    % Custom cover page
+    \begin{center}
+        \null\mbox{}\vfill
+
+        \vspace*{1cm}
+
+        \huge
+        \textbf{Operating System for the Raspberry Pi}
+
+        \vspace{0.5cm}
+        \Large
+        A Unix-like Kernel, Shell, and Coreutils for the 64-bit Raspberry Pi 3b
+
+        \Large
+
+        \vspace{1.5cm}
+
+        \textbf{Sam Whitehead} - 14325283
+
+        \texttt{psysrw@nottingham.ac.uk}
+
+        Msci Computer Science
+
+        \vfill
+
+        COMP4029: Individual Programming Project\\
+        Project Supervisor: Steve Bagley\\
+        University of Nottingham
+
+        \vfill\null
+    \end{center}
+    \thispagestyle{empty}
+\end{titlepage}
+
+{\hypersetup{hidelinks} \tableofcontents}
+\clearpage
+
+\section{Introduction}
+I am aiming to produce a Unix-like \gls{os} which is capable of being used as a
+general purpose hobbyist \gls{os}.
+
+TODO: expand this
+
+
+\section{Motivation and Background}
+\subsection*{Motivation for this project}
+My motivation for choosing to create an \gls{os} for this project stems from my
+interest in low-level programming. I have an interest in understanding how
+computers work at the lowest level, and the best way to learn how an \gls{os}
+is implemented and the reasons for design decisions will be to implement my own
+\gls{os} at that low level.
+
+\subsection*{Background: the \glsxtrlong{rpi} and \glsxtrlongpl{os}}
+The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
+project focuses on the \gls{rpi} 3, the first iteration of the \gls{rpi} to use
+a 64-bit \gls{cpu}. The \gls{rpi} is ideal for a project like this, as it is
+complex enough that creating an \gls{os} for it is a challenge, but also modern
+enough that no out-of-date technologies will be necessary to work with it. The
+\gls{rpi} board includes a number of different components that will require
+drivers to function, so there is plenty of room for additional features if the
+project moves faster than anticipated.
+
+The \gls{rpi} is popular among hobbyist \gls{os} developers, and its hardware
+schematics and technical manuals are made available, so there are plenty of
+resources available online for documentation of technical details. The \gls{os}
+I develop will be a learning resource for others who wish to discover more
+about \gls{os} design. The source code will be made available under an open
+source license, and I will create documentation of how each component of the
+final system
+works.
+
+\glspl{os} are programs which run directly on top of computer hardware and
+allow other software to run on the computer. They come in many different
+varieties, but this project will be based on the ``microkernel'' design. Unix
+was an \gls{os} developed at Bell Labs of AT\&T in the 1970s. It was originally
+written in assembly language for the specific target machine, the PDP7, but for
+its 4th version it was rewritten in C, a new language at the time (also created
+at Bell Labs). Being written in C made the \gls{os} very portable, as only the
+compiler had to be ported for the entire system to run on a new machine. This
+made Unix very popular, and soon there were many Unix-like \glspl{os}. ``A
+Unix-like \gls{os} is one that behaves in a similar manner to a Unix
+system''
+\footnote{Wikipedia, `Unix-like': \url{en.wikipedia.org/wiki/Unix-like}}.
+There are many examples of Unix-like \glspl{os}, including some very popular
+ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs. The
+\gls{os} I am creating in this project aims to be Unix-like in its behaviour.
+
+
+\section{Related works}
+\label{sec:related-works}
+\begin{refsection}
+\newrefcontext{relatedworks}
+
+\subsection*{Filesystem code and memory management}
+The project ``rpi-boot''~\cite{rpi-boot-gh} contains code for a \gls{fat}
+\gls{fs} and also some code for common libc functions. It includes an
+implementation of the \texttt{malloc} function~\cite{dlmalloc}, used to
+allocate memory.
+
+TODO: Expand this.
+
+\subsection*{\gls{cpu} mode initialisation for \gls{arm} \glspl{cpu}}
+A project~\cite{raspberry-pi-os-gh} which contains assembly code to switch
+\gls{arm} 64-bit architecture \glspl{cpu} into the correct operation mode for
+an \gls{os}. This code will be very useful when I write the boot code, as I
+will want to setup the processor into the correct \gls{arm-el} for the kernel.
+
+This project also contains example code for Exception handlers, which is
+something I will need in order to implement System Calls. TODO: refer to system
+calls implementation/progress here (cross-reference).
+
+TODO: Expand this.
+
+\subsection*{\gls{uart} serial \gls{io}}
+A set of tutorials on Github~\cite{raspi3-tutorial-gh} contains code which
+enables debugging via the \gls{uart} serial pins on the \gls{rpi}. I will use
+this code as a reference when I implement a library for the two \gls{uart}
+outputs for the \gls{rpi}.
+
+This project's later lessons also implement code for the framebuffer and for
+\gls{arm} \glspl{arm-el}, but I will reference other implementations when I
+work on these for my \gls{os}.
+
+TODO: Expand this.
+
+\begin{itemize}
+    \item The Linux kernel~\cite{linux-kernel-git}.
+    \item NetBSD~\cite{netBSD-git} (and the rest of the BSDs).
+    \item RiscOS~\cite{riscOS-source} -- the first operating system written for
+        \gls{arm} \glspl{cpu}, kept updated to run on the \gls{rpi}. Written in
+        assembly language.
+\end{itemize}
+
+TODO: Describe each project and how I will be using them for inspiration / code
+snippets.
+
+\defbibheading{relworks}{\subsection*{References for the
+{\hypersetup{hidelinks}\nameref{sec:related-works}}}}
+\printbibliography[heading=relworks]
+
+\newrefcontext{default}
+\end{refsection}
+\section{Description of the work}
+TODO: Modules / work packages.
+
+% FIXME: reword this section
+\subsection*{Tasks}
+Tasks are the individual components of the project, separated into the
+components of the Kernel and Shell, the miscellaneous parts, and the documents
+I will need to produce for the project. These tasks are enumerated in
+\autoref{tab:work-plan} on page~\pageref*{tab:work-plan} and then assembled into
+a Gantt chart in \autoref{fig:gantt-chart}.
+
+TODO:
+\begin{itemize}
+    \item Talk about the changes since the original set of tasks.
+\end{itemize}
+
+\subsection*{Work Packages}
+A ``Work Package'' is a collection of tasks with a well-defined deliverable.
+Not every task will be part of a work package, and some tasks will be work
+packages on their own. \autoref{tab:work-packages} contains all of the work
+packages for this project. Some changes have been made to the descriptions of
+the deliverables from the work packages listed in the original table of work
+packages from the initial project proposal
+(\autoref{tab:original-work-packages}, in the Appendix). The work package
+``Init system and service manager'' has been removed, as I do not think I will
+have enough time to create a working init system, and a service manager is not
+an essential part of an \gls{os}, especially when the \gls{os} is very simple
+and will not need to run any services.
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|X|p{0.1\textwidth}|}
+    \hline
+    \textbf{Work package} & \textbf{Description of the deliverable} & \textbf{Progress}
+    \\ \hline
+    \makecell[lt]{Debug terminal using the \\ graphics driver} &
+    A debug terminal which is printed on the \gls{rpi}'s display. The debug
+    terminal should print important values to the display while the \gls{os} is
+    starting up, allowing me to debug the features I am working on easily by
+    verifying that memory addresses are set correctly and that functions are
+    performing their behaviours as I expect them to. &
+    Finished.
+    \\ \hline
+    \makecell[lt]{A basic kernel which can load \\ (from disk) and jump into a
+        \\ compiled \gls{elf} program} &
+    A program that can load a statically compiled \gls{elf} executable binary
+    into memory and then jump to its entry point. This requires a filesystem
+    library to be implemented, and also includes the \gls{elf} loader task. &
+    In progress.
+    \\ \hline
+    \makecell[lt]{Scheduling algorithm} &
+    A scheduling algorithm with support for multiple processes running on the
+    system concurrently. This will include an implementation of
+    \texttt{fork(3)} or a similar function in order to spawn new processes and
+    \texttt{execve(2)} to replace the current program with a new process. It
+    will also require process control infrastructure in the kernel to keep
+    track of the running processees. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{A shell} &
+    A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
+    Dash\cite{dash-shell}. If I decide that implementing my own POSIX-compliant
+    shell is too large of a task, then I will port the source code for Dash to
+    run on my \gls{os}, implementing the required syscalls to get it working.
+    This shell will be the main way users interact with the \gls{os}. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{Documentation} &
+    This package contains several parts. I will create documentation for how
+    each part of the \gls{os} works, and a guide for how new programmers can get
+    started developing programs for the system. The documentation will be
+    completed in stages as I develop the \gls{os}, and I will go back
+    to keep it up-to-date as I make changes to components and add new
+    features. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{Multithreading support and \\ multi-core scheduling} &
+    The \gls{rpi} 3 has 4 \gls{cpu} cores. This work package will enable users
+    to take advantage of the additional processing power of the other 3 cores
+    for their programs. This includes a threading library similar to
+    \texttt{pthread} on Linux systems, and improvements to the scheduler so
+    that it can give different \gls{cpu} cores to multiple threads owned by the
+    same process. \textbf{This work package is optional}. &
+    Not started.
+    \\ \hline
+\end{tabularx}
+\caption{The work packages of the project and their deliverables.}
+\label{tab:work-packages}
+\end{center}
+\end{table}
+
+\subfile{gantt.tex}
+
+
+\section{Methodology}
+
+TODO
+\begin{itemize}
+    \item Mention open source?
+    \item Software development tools used (i.e. vim, CoC, clangd, ctags, etc.)?
+    \item TODO: what is my SW methodology?
+\end{itemize}
+
+\section{Design}
+\subsection{\texorpdfstring{\gls{os}}{OS} components}
+\subsubsection{Features I expect to complete}
+\begin{itemize}
+    \item Microkernel with UART serial output and graphics driver for the \gls{rpi}'s
+        HDMI video output. User interaction will use the display and read from
+        the keyboard.
+    \item Shell (hopefully POSIX-compliant) with scripting capabilities.
+        Depending on time constraints, this may be a port of
+        Dash~\cite{dash-shell}.
+    \item Multi-process system allowing multiple processes to time-share the
+        CPU with a process scheduler.
+    \item An implementation of the System V ABI for executable files
+        (statically compiled ELF files).
+    \item Suite of core utilities (like those provided by GNU) - these may be
+        partially or totally ported from the GNU
+        coreutils~\cite{gnu-coreutils}.
+    \item An init program for starting the \gls{os}'s essentials and for starting the
+        root\footnote{Here, ``root'' means PID 0, not a root user (although if
+        users are implemented, it would be both).} shell.
+\end{itemize}
+
+\subsubsection{Nice-to-haves}
+\begin{itemize}
+    \item A service manager for starting services at boot and ensuring that
+        they remain running, restarting them if they fail. This may be bundled
+        with the init system, like with systemd on most Linux distributions, or
+        may be a separate program.
+    \item Runs on hardware (not just a VM/emulator).
+\end{itemize}
+
+\subsubsection{Future possibilities}
+\begin{itemize}
+    \item A multi-user system with basic passwords and access control on files
+        (file/directory ownership).
+    \item A threads system with multithreading support (multiple threads owned
+        by one process).
+\end{itemize}
+
+\subsection*{\gls{os} components block diagram}
+\autoref{fig:os-block-diagram} is a diagram of how the different components of
+the \gls{os} will fit together. It shows how user programs running on the
+\gls{os} would be supported by the \gls{os} components. The components
+mentioned include user libraries (which would be included at
+\texttt{/usr/include/} in the \gls{fs}), as well as various parts of the
+kernel, such as system calls (see \autoref{sec:impl_syscalls}), the filesystem
+(\autoref{sec:impl_fs}), and the ``process control subsystem''. The ``process
+control subsystem'' does not currently have any implementation, but it will be
+made up of the parts of the kernel which control the processes that run on the
+\gls{cpu} at any particular time.
+
+\subfile{os-block-diagram.tex}
+
+\section{Implementation (if there is any)}
+TODO: A comprehensive description of the implementation of your software,
+including the language(s) and platform chosen, problems encountered, any
+changes made to the design as a result of the implementation, etc.
+
+\subsection{Programming languages used}
+From the beginning of this project, I had already decided to write the majority
+of the code for the \gls{os} in C~\cite{c-programming-language}. C is primarily
+a systems implementation language (making it perfect for writing an \gls{os}),
+and I was already very familiar with it, having used it regularly for the past
+5 years.
+
+For some very low-level parts of the \gls{os}, I needed to specify the exact
+order in which I wanted \gls{arm} instructions to be executed, so ARMv8
+assembly was the natural choice, being the closest language to the machine code
+that gets executed without actually being the machine code. Assembly language
+allows preprocessor macros, so I did not have to manually align instructions to
+4-byte boundaries anytime there was a change, and header file ``include''s
+which allow register values to be abstracted away from the logic and replaced
+with meaningful names. These features were used extensively in the bootloader
+and in \autoref{sec:impl_cpu_setup} for explaining the values placed into
+various \gls{cpu} registers.
+
+\subsection{Problems ecountered with the original implementation details}
+At the start of development, I was using the GNU cross-compiler for bare-metal
+\gls{arm} 64-bit targets, \texttt{gcc-aarch64-none-elf}. This was working but
+the build system I was using at the time (CMake) was easier to configure using
+clang/llvm as a cross-compiler. Also, the GNU cross-compilers are not available
+in most Linux distributions' core repositories, so clang/llvm is much easier to
+install, needing only the package manager of a Linux system.
+
+Later in development, I was having difficulties maintaining the build system
+which I had started the project with (CMake), as the intended usage is to
+automatically detect the executables that should be used for compilation (the
+cross-compiler, linker, etc.). This caused problems because if I modified the
+status of my build computer, by installing some new packages for example, CMake
+would detect and start using the wrong linker, causing the build process to
+fail\footnote{I later discovered the cause of this. I had re-installed the
+\texttt{gcc-aarch64-none-elf} cross-compiler, which resulted in the GNU
+\gls{arm} 64-bit linker appearing before llvm's \texttt{ld.ldd}. CMake then
+tried to use \texttt{gcc} (\textbf{not} the cross-compiler) to invoke the
+linker, but the arguments for invoking the linker via \texttt{gcc} and
+\texttt{clang} are different, so \texttt{gcc} was giving back an error, saying
+that the \texttt{-T} argument was missing a parameter, and I was unable to
+force CMake to call \texttt{ld.ldd} directly.}.
+
+As a result of the problems I was having with CMake, I decided to use GNU Make
+(with a \texttt{Makefile} instead of a \texttt{CMakeLists.txt}, calling the
+\texttt{make} executable) instead. I created a Makefile for the project, and
+this allowed me to hardcode the name of the compiler executable, and all the
+tools needed to generate the compiled kernel image and SD card image. During
+the implementation, as the number of source code files grew, I decided to start
+using sub-make~\cite{sub-make} for compilation so that the main Makefile could
+be kept simpler, so I moved the compilation commands into a separate Makefile
+which handles each subdirectory of the main \texttt{src/} directory.
+
+\subsection{Design changes}
+TODO: Were there any changes to the design as a result of the implementation?
+\begin{itemize}
+    \item Removed tasks
+    \begin{itemize}
+        \item Init system and service manager
+    \end{itemize}
+    \item Moved some tasks to ``future possibilities''
+    \begin{itemize}
+        \item Multithreading and multicore scheduling
+    \end{itemize}
+    \item Microkernel $\to$ something else?
+\end{itemize}
+
+\section{Progress}
+\subsection{Project management}
+TODO: \textbf{Project management} covering the tasks as a part of your
+\textbf{work plan as presented in your final proposal} and progress as well as
+how time and resources are managed. Your interaction with the external sponsor.
+The need for reviewing the tasks and explanation of/reasons for any adjustment
+made to the future work plan. Inclusion of a Gantt chart is strongly
+recommended as a visual indicating the progress of the project.
+
+\subsubsection*{Re-planning the project}
+The original plan for the project was a little over-ambitious, which I
+discovered as I was developing the current implementation. I have modified the
+plan to account for the more restrictive time constraints, and also considering
+my experience developing the \gls{os} so far. Some of the later, more complex
+tasks have been removed from the plan, as I no longer believe I would be able
+to complete them, and some tasks have been given more time. The new plan for
+the tasks of the project is shown in TODO (table of tasks and time
+expectations). \autoref{tab:work-plan} shows the new plan for the project's
+tasks, and \autoref{fig:gantt-chart} is the Gantt chart which describes the
+dates on which I expect to start and finish each of the tasks.
+
+\subsubsection*{Unexpected difficulties}
+
+TODO: Talk about the difficulties and problems I encountered during
+development.
+
+\begin{itemize}
+    \item Filesystem required SD card driver.
+    \item Memory allocation is a more complex topic than I assumed it would be.
+    \item Programming without \texttt{malloc} is difficult. Low-level kernel
+        functions must take pointers as arguments and put results in variables
+        allocated on the stack, as there is no heap. (Also, \texttt{malloc} is
+        easiest implemented using a system call \texttt{mmap}, but I don't have
+        system calls yet.)
+\end{itemize}
+
+I have encountered several issues during development which I did not account
+for in the original project plan. The first is not so much an issue as it is a
+task not being required in the way that I expected. The \textbf{debug shell}
+was not needed in the way I had planned to implement it. My plan was to prompt
+the user for a command, and for the shell to support a very limited range of
+commands, perhaps starting with a command to print the contents of a memory
+address. This type of debugging has not been needed so far during the
+development process, and I don't believe it will be needed, as I can use
+\gls{gdb} for debugging memory locations, and \gls{gdb} doesn't even require
+the \gls{os} kernel to be in a working state, which would be the most likely
+scenario for if I would need to read memory.
+
+The ``debug'' part of the debug shell task was still completed, as the current
+version of the kernel prints debugging information to the serial port (and also
+to the \gls{rpi} video output once the framebuffer is allocated). This
+debugging information is changing as I add more features to the \gls{os}, and
+lines which tested code that will not change again (i.e. the \texttt{printf}
+function) are removed.
+
+\textbf{System calls} were far more difficult to implement than I expected. The
+way that system calls will be (TODO) implemented is using \gls{arm} exceptions
+to execute a function with the processor in a privileged mode of operation.
+Unfortunately, when I started working on the system call implementation, I did
+not have a very good understanding of the \gls{cpu} mechanisms by which
+\gls{arm} processors handle exceptions. The \gls{cpu} will use a large number
+of system registers, along with the current \gls{arm-el}, to decide where the
+exception handler can be found, and in which \gls{arm-el} the \gls{cpu} should
+handle the exception. I did not know any of this at the time that I started to
+implement the system call mechanism, and I was using documentation for a very
+old version of the \gls{arm} architecture. I did not even know which
+\gls{arm-el} the \gls{cpu} was executing the kernel in, so I worked on code for
+the \textbf{filesystem} for a while.
+
+When I returned to working on system calls, I knew I needed to initialise the
+\gls{cpu} state, so I followed a tutorial~\cite{raspberry-pi-os-gh} and used
+the \gls{arm} developer documentation~\cite{arm-developer-regs} to learn enough
+about \gls{arm} \glspl{arm-el} and exceptions. I wrote code to initialise the
+\gls{cpu} into \gls{arm-el} 1, which I am going to use for the kernel of my
+\gls{os}. I also set up the processor registers to correctly handle exceptions,
+so that any system calls from either user space (\gls{arm-el} 0) or kernel
+space (\gls{arm-el} 1) will both be handled by the kernel in \gls{arm-el} 1.
+
+When I started working on the \textbf{filesystem}, I immediately realised
+something that I forgot to consider for the original project plan. The
+filesystem would require an SD card driver in order to interact with the
+\gls{rpi} storage.
+
+TODO: Filesystem
+
+TODO: Memory managemant (malloc).
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|l|r|}
+    \hline
+    Task & Duration (weeks) \\
+    \hline \textbf{Kernel} & \\
+    Bootloader & 1 \\
+    Graphics driver & 2 \\
+    Syscalls & 7 \\
+    Memory management & 5 \\
+    Filesystem & 4 \\
+    Statically linked ELF Loader & 2 \\
+    Process control & 8 \\
+    \hline \textbf{Shell} & \\
+    Debug terminal & 2 \\
+    \texttt{pwd}, \texttt{cd}, \texttt{ls}, \texttt{stat}, etc. & 1 \\
+    \texttt{export}, variables, \texttt{set}, etc. & 2 \\
+    \texttt{if}, \texttt{while}, \texttt{for}, \texttt{case}, globs, etc. & 3 \\
+    Command substitution & 4 \\
+    IO pipes and output redirection & 1 \\
+    \hline \textbf{Tools and libraries} & \\
+    Setup cross-compiler and build environment & 1 \\
+    IO and strings libraries & 2 \\
+    libc & 8 \\
+    \hline \textbf{Programs} & \\
+    \texttt{cat}, \texttt{head}, \texttt{less}, etc. & 2 \\
+    \texttt{roff} & 2 \\
+    \texttt{man} & 1 \\
+    \hline \textbf{Documents} & \\
+    Interim report & 2 \\
+    Documentation & 4 \\
+    Dissertation & 7 \\
+    \hline
+\end{tabular}
+\caption{The plan of work for the project, including how many weeks I think
+each component will take.}
+\label{tab:work-plan}
+\end{center}
+\end{table}
+
+TODO:
+\begin{itemize}
+    \item Re-evaluate the parts of the project I think I can complete in the
+        time I have.
+    \item Move the Gantt chart to here?
+    \item Re-plan the organisation of the project modules based on the work
+        I've already done, the current time, and the future.
+    \item Move the planning part to the ``Description of the work'' section.
+\end{itemize}
+
+\subsection{Contributions and reflections}
+TODO: \textbf{Contributions and reflections} providing the details of your
+achievements and contributions (including the contributions from the external
+sponsor) up to date as well as a personal reflection on the plan and your
+experience of the project (a critical appraisal of how the project has been
+progressing).
+
+\subsection{Graphics driver}
+\label{sec:impl_graphics}
+TODO
+
+\subsection{\texorpdfstring{\gls{cpu}}{CPU} setup}
+\label{sec:impl_cpu_setup}
+TODO
+
+\subsection{System Calls}
+\label{sec:impl_syscalls}
+TODO
+
+\subsection{\texorpdfstring{\gls{fs}}{Filesystem}}
+\label{sec:impl_fs}
+TODO
+
+% End of main document - print glossaries, references, etc.
+\printglossaries
+
+% Mark each of our references as cited without actually citing them.
+\nocite{osdev-wiki}
+\nocite{unix-prog-env}
+% Print the bibliography
+\printbibliography[heading=bibintoc]
+
+\clearpage
+\appendix
+\newrefcontext{appendix}
+\newrefsection
+\section*{Appendices}
+\addcontentsline{toc}{section}{Appendices}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\subsection{The original project plan}
+This appendix contains all of the tables, figures, and diagrams from the
+original project proposal, laying out my initial beliefs about what the project
+entailed, and how much work each part of the project would take.
+
+The diagrams are copied directly from the project proposal, so tenses may now
+be incorrect (e.g. ``I think'' instead of the now more correct ``I thought''),
+but this is done intentionally as this section is included only as a reference
+to the content of the previous document.
+
+\subsubsection{Work tasks}
+Tasks are the individual components of the project, separated into the
+components of the Kernel and Shell, the miscellaneous parts, and the documents
+I will need to produce for the project. These tasks are enumerated in
+\autoref{tab:original-work-plan} and then assembled into a Gantt chart in
+\autoref{fig:original-gantt-chart}.
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|l|r|}
+    \hline
+    Task & Duration (weeks)\\
+    \hline \textbf{Kernel} &\\
+    Bootloader & 1\\
+    Graphics driver & 2\\
+    Syscalls & 6\\
+    Filesystem & 3\\
+    Statically linked ELF Loader & 2\\
+    Memory management & 4\\
+    Process control & 8\\
+    Init system and service manager & 5\\
+    Threads and multithreading & 4\\
+    \hline \textbf{Shell} &\\
+    Debug shell & 2\\
+    \texttt{pwd}, \texttt{cd}, \texttt{ls}, \texttt{stat}, etc. & 2\\
+    \texttt{export}, variables, \texttt{set}, etc. & 2\\
+    \texttt{if}, \texttt{while}, \texttt{for}, \texttt{case}, globs, etc. & 3\\
+    Command substitution & 4\\
+    IO pipes and output redirection & 1\\
+    \hline \textbf{Misc parts} &\\
+    Setup cross-compiler and build environment & 1\\
+    IO and strings libraries & 2\\
+    libc & 8\\
+    \texttt{cat}, \texttt{head}, \texttt{less}, etc. & 2\\
+    \texttt{roff} & 1\\
+    \texttt{man} & 1\\
+    \hline \textbf{Documents} &\\
+    Interim report & 1\\
+    Documentation & 5\\
+    Dissertation & 7\\
+    \hline
+\end{tabular}
+\caption{The plan of work for the project, including how many weeks I think
+each component will take.}
+\label{tab:original-work-plan}
+\end{center}
+\end{table}
+
+\subsubsection{Gantt chart}
+\subfile{original-gantt.tex}
+
+\subsubsection{Work Packages}
+A ``Work Package'' is a collection of tasks with a well-defined deliverable.
+Not every task will be part of a work package, and some tasks will be work
+packages on their own. \autoref{tab:original-work-packages} contains all of the
+work packages for this project.
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|p{45mm}|p{125mm}|}
+    \hline
+    \textbf{Work package} & \textbf{Description of the deliverable} \\
+    \hline
+    Debug shell using the graphics driver &
+    A debug shell which is printed on the \gls{rpi}'s display and which uses
+    keyboard input. The debug shell should accept several commands for
+    debugging the processor status (including, but not limited to, printing the
+    contents of memory, writing to memory, and jumping to a given memory
+    address).
+    \\ \hline
+    A basic kernel which can load (from disk) and jump into a compiled \gls{elf}
+    program. &
+    A program that can load a statically compiled \gls{elf} executable binary
+    into memory and then jump to its entry point. This requires a filesystem
+    library to be implemented, and also includes the \gls{elf} loader task.
+    \\ \hline
+    Scheduling algorithm &
+    A scheduling algorithm with support for multiple processes running on the
+    system concurrently. This will include an implementation of
+    \texttt{fork(3)} or a similar function in order to spawn new processes and
+    \texttt{execve(2)} to replace the current program with a new process.
+    \\ \hline
+    Init system and service manager &
+    An init system which is run at boot and starts all necessary parts of the
+    \gls{os} and then spawns the root shell. The service manager ensures that
+    all desired daemons and processes are started at the correct times and
+    remain running, restarting them if they die.
+    \\ \hline
+    A shell &
+    A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
+    Dash\cite{dash-shell}. If I decide that implementing my own POSIX-compliant
+    shell is too large of a task, then I will port the source code for Dash to
+    run on my \gls{os}, implementing the required syscalls to get it working.
+    This shell will be the main way users interact with the \gls{os}.
+    \\ \hline
+    Documentation &
+    This package contains several parts. I will create documentation for how
+    each part of the \gls{os} works, and a guide for how new programmers can get
+    started developing programs for the system. The documentation will be
+    completed in stages as I develop the \gls{os}, and I will go back
+    to keep it up-to-date as I make changes to components and add new
+    components.
+    \\ \hline
+    Multithreading support and multi-core scheduling &
+    The \gls{rpi} 3 has 4 \gls{cpu} cores. This work package will enable users
+    to take advantage of the additional processing power of the other 3 cores
+    for their programs. This includes a threading library similar to
+    \texttt{pthread} on Linux systems, and improvements to the scheduler so
+    that it can give different \gls{cpu} cores to multiple threads owned by the
+    same process. \textbf{This work package is optional}.
+    \\ \hline
+\end{tabular}
+\caption{The work packages of the project and their deliverables.}
+\label{tab:original-work-packages}
+\end{center}
+\end{table}
+
+
+\subsection{The source code}
+TODO
+
+% If references appear in the Appendices, uncomment the following line.
+\printbibliography
+\end{document}
