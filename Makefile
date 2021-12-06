@@ -15,6 +15,7 @@ export TOOLSDIR = $(SRCDIR)/tools
 LDDIR = $(SRCDIR)/link
 
 CCDB = compile_commands.json
+CFLAGS_FILE = compile_flags.txt
 TAGS = tags
 
 KERNEL_ELF = $(BINDIR)/kernel8.elf

@@ -9,6 +9,9 @@ Documentation/dissertation/*/build/*
 # Vim swapfiles
 *.swp
 
+# Clangd language server files
+.cache/clangd
+
 # ctags file
 tags
 
