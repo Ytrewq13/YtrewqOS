@@ -93,7 +93,7 @@ I am aiming to produce a Unix-like \gls{os} for the \gls{rpi} 3 which is
 capable of being used as a general purpose hobbyist \gls{os}.
 
 The \gls{os} will provide a kernel, with a system call interface, process
-scheduler, and filesystem abstraction layer, as well as a shell which it will
+scheduler, and \gls{fs} abstraction layer, as well as a shell which it will
 boot into to run programs for the user
 \footnote{The details of the shell are not given here as I do not know them
 yet. The shell will probably be a port of an already-existing POSIX compliant
@@ -308,7 +308,7 @@ and will not need to run any services.
     \texttt{fork(3)} or a similar function in order to spawn new processes and
     \texttt{execve(2)} to replace the current program with a new process. It
     will also require process control infrastructure in the kernel to keep
-    track of the running processees. &
+    track of the running processes. &
     Not started.
     \\ \hline
     \makecell[lt]{A shell} &
@@ -357,7 +357,7 @@ attributes from both \nameref{sec:cowboy_programming} and
 \subsubsection{Cowboy programming}
 \label{sec:cowboy_programming}
 Cowboy programming is a methodology categorised by being very free-form and not
-having a very weell-defined structure. It is often used by novice programmers
+having a very well-defined structure. It is often used by novice programmers
 when they create solo projects, and it is the default when someone doesn't
 think they are using any kind of methodology.
 
@@ -379,7 +379,7 @@ Agile software development is a group of methodologies which all focus on
 several core ideas. These are: frequent reviews of the product, lots of
 planning and re-planning, a focus on good communication, and a very
 well-structured development process. Some of the more popular Agile
-methodologies include Kanban, SCRUM, Test Driven Development, and Extreme
+methodologies include KanBan, SCRUM, Test Driven Development, and Extreme
 Programming.
 
 Agile development works best in situations with small development teams, and
@@ -439,7 +439,7 @@ a package on most linux distributions, ususally called something like
 \texttt{qemu-arch-extra}, which adds support for other architectures. This
 provides the program \texttt{qemu-system-aarch64}, which spins up an emulator
 for Aarch64-based machines. The \gls{rpi} 3 is supported as a machine preset,
-using the commandline argument \texttt{-machine raspi3}.
+using the command line argument \texttt{-machine raspi3}.
 
 The emulator can emulate everything about the \gls{rpi} except for the first
 stage bootloader, which is the code that runs at the very start of the boot
@@ -454,7 +454,7 @@ file=sd.img,if=sd,format=raw}.
 
 \subsubsection{Debugging}
 GDB~\cite{gdb} is a debugger which can be used to debug executable programs.
-Similar to QEMU only supporting one architechture by default, GDB only supports
+Similar to QEMU only supporting one architecture by default, GDB only supports
 running a program directly on the current machine. However, it does support
 remote debugging with a commands once it has started (\texttt{target remote
 URL:PORT}). Like with QEMU, there is an additional package which provides
@@ -545,7 +545,7 @@ the \gls{os} will fit together. It shows how user programs running on the
 \gls{os} would be supported by the \gls{os} components. The components
 mentioned include user libraries (which would be included at
 \texttt{/usr/include/} in the \gls{fs}), as well as various parts of the
-kernel, such as system calls (see \autoref{sec:impl_syscalls}), the filesystem
+kernel, such as system calls (see \autoref{sec:impl_syscalls}), the \gls{fs}
 (\autoref{sec:impl_fs}), and the ``process control subsystem''. The ``process
 control subsystem'' does not currently have any implementation, but it will be
 made up of the parts of the kernel which control the processes that run on the
@@ -664,7 +664,7 @@ into \gls{arm-el} 1. The code sets up the system registers correctly to fake
 the \gls{cpu} returning from an exception. When the registers are correctly
 set, the \gls{arm} instruction \texttt{eret} is run, and the \gls{cpu}
 ``returns'' from the ``exception handler'', jumping into the kernel code and
-entering into \gls{arm-el} 1. This is done in this way because exeptions are
+entering into \gls{arm-el} 1. This is done in this way because exceptions are
 the only way to change \gls{arm-el}, and the only way to reduce the
 \gls{arm-el} is to perform an exception return (\texttt{eret}).
 
