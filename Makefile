@@ -30,7 +30,7 @@ SUB_MAKE_MAKEFILE = $(CURDIR)/submake.mk
 export CC = $(_CC_BIN) --target=aarch64-elf -mcpu=cortex-a53
 LD = $(_LD_BIN) -m aarch64elf -nostdlib
 OBJCOPY = $(_OBJCOPY_BIN) -O binary
-VM = $(_VM_BIN) -M raspi3 -serial stdio
+VM = $(_VM_BIN) -machine raspi3b -serial stdio
 VM_DBG = $(VM) -s -S
 GDB = $(_GDB_BIN)
 
