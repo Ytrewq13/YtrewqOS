@@ -26,7 +26,7 @@ push @generated_exts, "acr";
 push @generated_exts, "alg";
 push @generated_exts, "ist";
 
-@default_files = ('interim-report.tex');
+@default_files = ('interim-report.tex', 'gantt.tex');
 
 add_cus_dep('glo', 'gls', 0, 'makeglo2gls');
 sub makeglo2gls {
