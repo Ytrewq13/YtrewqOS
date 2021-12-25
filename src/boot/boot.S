@@ -34,7 +34,7 @@ cpu_init_check_el:
     // If we are in EL0, something is wrong, so we panic/abort
     // GET_EL() shouldn't work in EL0, so an exception would have been
     // generated rather than returning 0 (or does it just give garbage?)
-    beq     proc_hang
+    b       proc_hang
 
 el3_entry:
     // Setup system registers for entry to Exception level 2
@@ -46,7 +46,6 @@ el3_entry:
     mov     x2, sp
     msr     sp_el2, x2
     // Setup the Vector Base Address Register for EL3 (used for exceptions)
-//     ldr     x2, =__exceptions_start
     ldr     x2, =Vector_table_el321
     msr     vbar_el3, x2
     // Setup the jump into EL2
@@ -58,7 +57,6 @@ el2_entry:
     // Setup system registers for entry to Exception level 1
     msr     sp_el1, x1
     // Setup the Vector Base Address Register for EL2 (used for exceptions)
-//     ldr     x2, =__exceptions_start
     ldr     x2, =Vector_table_el321
     msr     vbar_el2, x2
     // enable CNTP for EL1
@@ -85,7 +83,6 @@ el2_entry:
 
 el1_entry:
     // Setup the Vector Base Address Register for EL1 (used for exceptions)
-//     ldr     x2, =__exceptions_start
     ldr     x2, =Vector_table_el321
     msr     vbar_el1, x2
     // enable Floating point registers (this allows variadic functions to work)
