@@ -78,6 +78,7 @@
 #define SPSR_MASK_ALL   (SPSR_MASK_DBG | SPSR_MASK_SERR | SPSR_MASK_IRQ | SPSR_MASK_FIQ)
 // 't' = thread, 'h' = handler
 #define SPSR_EL0t       (0)
+#define SPSR_EL0h       (BIT(0))  // TODO: Determine if this is real -- it's never mentioned in the manuals but SPSR_EL1t was causing problems with the SP
 #define SPSR_EL1t       (BIT(2))
 #define SPSR_EL1h       (BIT(2) | BIT(0))
 #define SPSR_EL2t       (BIT(3))
@@ -87,7 +88,7 @@
 #define SPSR_EL3_VALUE  (SPSR_MASK_ALL | SPSR_EL2h)
 // 0x3c9
 // 0011 1100 1001
-#define SPSR_EL2_VALUE  (SPSR_MASK_ALL | SPSR_EL1t)
+#define SPSR_EL2_VALUE  (SPSR_MASK_ALL | SPSR_EL1h)
 // 0x3c4
 // 0011 1100 0100
 

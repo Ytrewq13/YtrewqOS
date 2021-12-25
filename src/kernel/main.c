@@ -207,15 +207,6 @@ void kernel_main()
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
-    printf("Reading memory at 0x0...\n");
-    printf("%#x: %#x\n", 0x00, GET32(0x00));
-    printf("%#x: %#x\n", 0x04, GET32(0x04));
-    printf("%#x: %#x\n", 0x08, GET32(0x08));
-    printf("%#x: %#x\n", 0x0C, GET32(0x0C));
-    printf("%#x: %#x\n", 0x10, GET32(0x10));
-    printf("%#x: %#x\n", 0x14, GET32(0x14));
-    printf("%#x: %#x\n", 0x18, GET32(0x18));
-    printf("%#x: %#x\n", 0x1C, GET32(0x1C));
     printf("Trying to run a software interrupt...\n");
     int syscall_ret = system_call(0);
     printf("System call returned %d\n", syscall_ret);
@@ -239,14 +230,13 @@ void kernel_main()
  * - Graphics driver
  * - Implement any needed Frame Buffer mailbox calls to get something onto the
  *   screen
- *   TODO:
- * - Get a basic shell
- *   - First function: print memory contents?
- * - Load important values from the GPU using mailbox calls and store them in
- *   memory
- * - Memory management
- * - System calls?
- * - USB drivers?
- * - Filesystem
+ * - Filesystem:
  *   - SD card
+ *   TODO:
+ * - System calls
+ * - Filesystem:
+ *   - FAT filesystem
+ *   - Virtual FS
+ * - Memory management
+ * - USB drivers?
  */

@@ -1,12 +1,5 @@
 SECTIONS
 {
-    . = ALIGN(2048);
-    __exceptions_start = .;
-    .exceptions : {
-        KEEP(*(.text.exceptions))
-        *(.text.exceptions) /* The table of exception function pointers */
-    }
-    __exceptions_end = .;
     /* Starts at LOADER_ADDR. */
     . = 0x80000;
     __start = .;
@@ -16,6 +9,14 @@ SECTIONS
         *(.text .text.* .gnu.linkonce.t*)  /* Everything else. */
     }
     __text_end = .;
+
+    . = ALIGN(2048);
+    __exceptions_start = .;
+    .exceptions : {
+        KEEP(*(.text.exceptions))
+        *(.text.exceptions) /* The exception vector table */
+    }
+    __exceptions_end = .;
 
     __rodata_start = .;
     .rodata : {

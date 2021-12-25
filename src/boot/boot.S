@@ -42,8 +42,12 @@ el3_entry:
     msr     scr_el3, x2
     ldr     x2, =SPSR_EL3_VALUE
     msr     spsr_el3, x2 // Saved Program Status Register
+    // Setup the stack pointer for EL2
+    mov     x2, sp
+    msr     sp_el2, x2
     // Setup the Vector Base Address Register for EL3 (used for exceptions)
-    ldr     x2, =__exceptions_start
+//     ldr     x2, =__exceptions_start
+    ldr     x2, =Vector_table_el321
     msr     vbar_el3, x2
     // Setup the jump into EL2
     adr     x2, el2_entry
@@ -54,7 +58,8 @@ el2_entry:
     // Setup system registers for entry to Exception level 1
     msr     sp_el1, x1
     // Setup the Vector Base Address Register for EL2 (used for exceptions)
-    ldr     x2, =__exceptions_start
+//     ldr     x2, =__exceptions_start
+    ldr     x2, =Vector_table_el321
     msr     vbar_el2, x2
     // enable CNTP for EL1
     ldr     x0, =CNTHCTL_EL2_VALUE
@@ -68,14 +73,20 @@ el2_entry:
     // change execution level to EL1
     ldr     x2, =SPSR_EL2_VALUE
     msr     spsr_el2, x2
+    // Setup the stack pointer for EL1
+    mov     x2, sp
+    msr     sp_el1, x2
+    // Set the exception return address
     adr     x2, el1_entry // Exception Link Register
     msr     elr_el2, x2
+    // Exception return, enter EL1
     eret
 
 
 el1_entry:
     // Setup the Vector Base Address Register for EL1 (used for exceptions)
-    ldr     x2, =__exceptions_start
+//     ldr     x2, =__exceptions_start
+    ldr     x2, =Vector_table_el321
     msr     vbar_el1, x2
     // enable Floating point registers (this allows variadic functions to work)
     ldr     x0, =CPACR_EL1_VALUE

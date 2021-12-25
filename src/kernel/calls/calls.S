@@ -9,22 +9,29 @@ syscall:
     //            function pointers
     // TODO: Call the function
     bl syscall_hello
+    eret
 
 .globl system_call
 // int system_call(long nr, ...);
 // up to 6 args in x1 to x6, syscall nr in x0
 system_call:
     // Move nr to x8
-//     mov x8, x0
+    mov x8, x0
     // Move x1..x6 to x0..x5 (same convention as Linux)
-//     mov x0, x1
-//     mov x1, x2
-//     mov x2, x3
-//     mov x3, x4
-//     mov x4, x5
-//     mov x5, x6
+    mov x0, x1
+    mov x1, x2
+    mov x2, x3
+    mov x3, x4
+    mov x4, x5
+    mov x5, x6
+    // Save the return address
+    sub sp, sp, #32
+    stp x30, xzr, [sp, #0]
     // Generate an interrupt
     svc #0
+    ldp x30, xzr, [sp, #0]  // x30 is the Link Register (used by ret)
+    add sp, sp, #32
+    ret  // FIXME: How to return from this function after handling the syscall?
 
 // RiscOS - first OS for ARM - easier to follow than Linux
 // NetBSD - cleaner code than Linux

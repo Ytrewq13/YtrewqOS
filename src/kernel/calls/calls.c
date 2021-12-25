@@ -5,5 +5,5 @@
 void syscall_hello()
 {
     uart0_printf("Hello from a system call!\n");
-    while (1) __asm volatile("nop");
+//    while (1) __asm volatile("nop");
 }

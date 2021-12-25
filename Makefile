@@ -59,7 +59,8 @@ export CFLAGS
 
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S \
-			kernel/calls/calls.S
+			kernel/calls/calls.S \
+			kernel/calls/exceptions.S
 _SRCS_C = drivers/GPIO/miniUART.c \
 		  drivers/GPIO/uart_PL011.c \
 		  drivers/SD/emmc.c \
