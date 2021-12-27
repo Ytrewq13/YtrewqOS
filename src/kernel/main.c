@@ -208,7 +208,7 @@ void kernel_main()
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
     printf("Trying to run a software interrupt...\n");
-    int syscall_ret = system_call(0);
+    int syscall_ret = system_call(0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde);
     printf("System call returned %d\n", syscall_ret);
 
     // echo everything back

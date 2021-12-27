@@ -2,6 +2,15 @@
 .globl syscall
 // up to 6 args in x0 to x5, syscall nr in x8
 syscall:
+    // Move syscall args from x0..x5 to x1..x6
+    mov x6, x5
+    mov x5, x4
+    mov x4, x3
+    mov x3, x2
+    mov x2, x1
+    mov x1, x0
+    // Move syscall nr to x0
+    mov x0, x8
     // Syscall NR in x8
     // TODO: Lookup the sys_### function defined in include/sys/unistd.h
     //          - how to do this?
@@ -25,13 +34,10 @@ system_call:
     mov x4, x5
     mov x5, x6
     // Save the return address
-    sub sp, sp, #32
+    sub sp, sp, #0x10
     stp x30, xzr, [sp, #0]
     // Generate an interrupt
     svc #0
     ldp x30, xzr, [sp, #0]  // x30 is the Link Register (used by ret)
-    add sp, sp, #32
-    ret  // FIXME: How to return from this function after handling the syscall?
-
-// RiscOS - first OS for ARM - easier to follow than Linux
-// NetBSD - cleaner code than Linux
+    add sp, sp, #0x10
+    ret

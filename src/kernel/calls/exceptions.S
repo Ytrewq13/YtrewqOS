@@ -7,43 +7,28 @@
 .globl Vector_table_el321
 Vector_table_el321:
 curr_el_sp0_sync:
-// TODO: The exception handler for a synchronous exception from the current EL
-// using SP0.
-// THIS COULD BE A KERNEL SYSCALL (FROM EL1)
-    mrs x6, esr_el1  // Get the Exception Syndrome Register
-    // Check if the instruction that caused the interrupt was SVC
-    lsr x7, x6, #26  // Shift right (ESR_EL1 >> 26)
-    and x7, x7, #0x3f  // Mask only the bits we want ((ESR_EL1 >> 26) & 0x3f)
-    cmp x7, #0x15  // 0x15 is the EC for SVC
-    bne _curr_el_sp0_sync_ret  // FIXME: Branch to a different handler if not SVC
-    // Check if the instruction was `svc #0` - this is a syscall
-    // The imm16 argument of SVC instruction is placed in ESR_EL1[15:0]
-    and x7, x6, #0xffff  // Mask bits [15:0]
-    cmp x7, #0
-    bne _curr_el_sp0_sync_ret  // FIXME: Branch to a different handler if not syscall
-    bl syscall
-_curr_el_sp0_sync_ret:
-    eret
+// The exception handler for a synchronous exception from the current EL using
+// SP0.
+    b .
 .balign 0x80
 curr_el_sp0_irq:
-// TODO: The exception handler for an IRQ exception from the current EL using
-// SP0.
-b .
+// The exception handler for an IRQ exception from the current EL using SP0.
+    b .
 .balign 0x80
 curr_el_sp0_fiq:
-// TODO: The exception handler for an FIQ exception from the current EL using
-// SP0.
-b .
+// The exception handler for an FIQ exception from the current EL using SP0.
+    b .
 .balign 0x80
 curr_el_sp0_serror:
-// TODO: The exception handler for a System Error exception from the current EL
-// using SP0.
-b .
+// The exception handler for a System Error exception from the current EL using
+// SP0.
+    b .
 .balign 0x80
 curr_el_spx_sync:
-// TODO: The exception handler for a synchrous exception from the current EL
-// using the current SP.
+// The exception handler for a synchronous exception from the current EL using
+// the current SP.
 // THIS COULD BE A KERNEL SYSCALL (FROM EL1)
+// Syscall args are in x0..x5 and x8, so we can use x6,x7
     mrs x6, esr_el1  // Get the Exception Syndrome Register
     // Check if the instruction that caused the interrupt was SVC
     lsr x7, x6, #26  // Shift right (ESR_EL1 >> 26)
@@ -62,55 +47,53 @@ _curr_el_spx_sync_ret:
 curr_el_spx_irq:
 // TODO: The exception handler for an IRQ exception from the current EL using
 // the current SP.
-b .
+    b .
 .balign 0x80
 curr_el_spx_fiq:
 // TODO: The exception handler for an FIQ from the current EL using the current
 // SP.
-b .
+    b .
 .balign 0x80
 curr_el_spx_serror:
 // TODO: The exception handler for a System Error exception from the current EL
 // using the current SP.
-b .
+    b .
 .balign 0x80
 lower_el_aarch64_sync:
 // TODO: The exception handler for a synchronous exception from a lower EL
 // (AArch64).
 // THIS COULD BE A SYSCALL FROM EL0
-b .
+    b .
 .balign 0x80
 lower_el_aarch64_irq:
 // TODO: The exception handler for an IRQ from a lower EL (AArch64).
-b .
+    b .
 .balign 0x80
 lower_el_aarch64_fiq:
 // TODO: The exception handler for an FIQ from a lower EL (AArch64).
-b .
+    b .
 .balign 0x80
 lower_el_aarch64_serror:
 // TODO: The exception handler for a System Error exception from a lower EL
 // (AArch64).
-b .
+    b .
 .balign 0x80
 // The Aarch32 exceptions should never be needed
 lower_el_aarch32_sync:
-// TODO: The exception handler for a synchronous exception from a lower EL
-// (AArch32).
-b .
+// The exception handler for a synchronous exception from a lower EL (AArch32).
+    b .
 .balign 0x80
 lower_el_aarch32_irq:
-// TODO: The exception handler for an IRQ exception from a lower EL (AArch32).
-b .
+// The exception handler for an IRQ exception from a lower EL (AArch32).
+    b .
 .balign 0x80
 lower_el_aarch32_fiq:
-// TODO: The exception handler for an FIQ exception from a lower EL (AArch32).
-b .
+// The exception handler for an FIQ exception from a lower EL (AArch32).
+    b .
 .balign 0x80
 lower_el_aarch32_serror:
-// TODO: The exception handler for a System Error exception from a lower EL
-// (AArch32).
-b .
+// The exception handler for a System Error exception from a lower EL (AArch32).
+    b .
 
 // For system calls (SVC #0)
 // ---------------------------
