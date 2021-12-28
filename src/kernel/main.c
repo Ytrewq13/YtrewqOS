@@ -197,14 +197,15 @@ void kernel_main()
     printf("\n\n");
     uint8_t c;
 
-//    struct block_device dev;
-//    struct block_device *foo = &dev;
     struct block_device *foo = malloc(sizeof(struct block_device));
     int ret = sd_card_init(&foo);
     printf("sd_card_init() returned %d\n", ret);
     if (ret) {
         printf("Failed to initialise SD card!\n");
     }
+    free(foo);
+
+    printf("\n");
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
@@ -212,15 +213,17 @@ void kernel_main()
     int syscall_ret = system_call(0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde);
     printf("System call returned %d\n", syscall_ret);
 
+    printf("\n");
+
     // Test malloc()
     size_t malloc_size = 100*sizeof(int);
     void *allocd_mem;
     void *a, *b;
-    allocd_mem = (void*)(uint64_t)malloc(malloc_size);
+    allocd_mem = malloc(malloc_size);
     printf("malloc(%d) returned %p\n", malloc_size, allocd_mem);
     free(allocd_mem);
     malloc_size = 257;
-    allocd_mem = (void*)(uint64_t)malloc(malloc_size);
+    allocd_mem = malloc(malloc_size);
     printf("malloc(%d) returned %p\n", malloc_size, allocd_mem);
     free(allocd_mem);
     malloc_size = 4094;
@@ -230,6 +233,7 @@ void kernel_main()
     printf("malloc(%d) returned %p\n", malloc_size, b);
     free(a);
     free(b);
+    printf("Finished freeing all malloc'd memory\n");
 
 
     // echo everything back
@@ -238,7 +242,7 @@ void kernel_main()
         uart0_putc(c);
         console_putc(c);
     }
-    // TODO: echo everything back to console (reading from keyboard)
+    // TODO: echo everything back to console (reading from keyboard) - USB?
 }
 
 /*
