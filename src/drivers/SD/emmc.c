@@ -1314,6 +1314,11 @@ static void sd_issue_command(struct emmc_block_dev *dev, uint32_t command, uint3
 
 int sd_card_init(struct block_device **dev)
 {
+    if (!dev) {
+        printf("EMMC: nullptr passed as argument!");
+        return -1;
+    }
+
     // Check the sanity of the sd_commands and sd_acommands structures
     if(sizeof(sd_commands) != (64 * sizeof(uint32_t)))
     {

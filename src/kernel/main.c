@@ -13,6 +13,8 @@
 #include "fonts/bizcat_font.h"
 #include "hw/eMMC.h"
 
+#include "stdlib.h"
+
 #include "printf.h"
 
 extern void PUT32(uint64_t addr, uint32_t x);
@@ -195,10 +197,9 @@ void kernel_main()
     printf("\n\n");
     uint8_t c;
 
-    // TODO: sd_card_init(NULL) doesn't return.
-    // (caused by malloc'd memory is inaccessible)
-    struct block_device dev;
-    struct block_device *foo = &dev;
+//    struct block_device dev;
+//    struct block_device *foo = &dev;
+    struct block_device *foo = malloc(sizeof(struct block_device));
     int ret = sd_card_init(&foo);
     printf("sd_card_init() returned %d\n", ret);
     if (ret) {
@@ -210,6 +211,26 @@ void kernel_main()
     printf("Trying to run a software interrupt...\n");
     int syscall_ret = system_call(0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde);
     printf("System call returned %d\n", syscall_ret);
+
+    // Test malloc()
+    size_t malloc_size = 100*sizeof(int);
+    void *allocd_mem;
+    void *a, *b;
+    allocd_mem = (void*)(uint64_t)malloc(malloc_size);
+    printf("malloc(%d) returned %p\n", malloc_size, allocd_mem);
+    free(allocd_mem);
+    malloc_size = 257;
+    allocd_mem = (void*)(uint64_t)malloc(malloc_size);
+    printf("malloc(%d) returned %p\n", malloc_size, allocd_mem);
+    free(allocd_mem);
+    malloc_size = 4094;
+    a = malloc(malloc_size);
+    printf("malloc(%d) returned %p\n", malloc_size, a);
+    b = malloc(malloc_size);
+    printf("malloc(%d) returned %p\n", malloc_size, b);
+    free(a);
+    free(b);
+
 
     // echo everything back
     while (1) {
