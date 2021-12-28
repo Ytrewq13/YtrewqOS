@@ -4,18 +4,16 @@
  */
 #include <stdint.h>
 
+#include "fonts/bizcat_font.h"
 #include "framebuf.h"
+#include "graphics/console.h"
+#include "graphics/fb_pixels.h"
+#include "hw/eMMC.h"
 #include "hw/mbox.h"
 #include "hw/mem.h"
 #include "hw/uart.h"
-#include "graphics/fb_pixels.h"
-#include "graphics/console.h"
-#include "fonts/bizcat_font.h"
-#include "hw/eMMC.h"
-
-#include "stdlib.h"
-
 #include "printf.h"
+#include "stdlib.h"
 
 #define BG_COLOR 0x202020
 #define FG_COLOR 0xe0e0e0
@@ -25,21 +23,6 @@ extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int system_call(long nr, ...);
-
-// TODO: put this somewhere else
-int printf(const char *fmt, ...)
-{
-    int count, c1, c2;
-    va_list ap1, ap2;
-    va_start(ap1, fmt);
-    c1 = generic_printf(uart0_putc, fmt, ap1);
-    va_end(ap1);
-    va_start(ap2, fmt);
-    c2 = generic_printf(console_putc, fmt, ap2);
-    va_end(ap2);
-    count = (c1 == c2) ? c1 : -1;
-    return count;
-}
 
 void delay(size_t time)
 {
@@ -154,9 +137,8 @@ void kernel_main()
         printf("Display (to monitor): %dx%d\n", virt_display_info.width,
                     virt_display_info.height);
     }
-    // TODO: Make error handling less verbose (uart0_panic?)
 
-    uart0_puts("\n");
+    printf("\n");
 
     ERROR_TYPE err;
     if ((err = fb_bit_depth(FB_ATTR_GET, &bit_depth, &bit_depth_result)) !=
@@ -225,6 +207,8 @@ void kernel_main()
     printf("\n");
 
     // Test malloc()
+    // TODO: write tests for these components
+    // - testing interface? Kernel runs all unit tests on boot?
     size_t malloc_size = 100*sizeof(int);
     void *allocd_mem;
     void *a, *b;
@@ -266,11 +250,18 @@ void kernel_main()
  *   screen
  * - Filesystem:
  *   - SD card
+ * - System calls:
+ *   - syscall interface
+ * - Memory management:
+ *   - malloc, etc.
  *   TODO:
- * - System calls
  * - Filesystem:
  *   - FAT filesystem
  *   - Virtual FS
- * - Memory management
+ * - System calls:
+ *   - implement basic syscalls
+ *   - implement/port more obscure syscalls
+ * - Memory management:
+ *   - Track memory usage?
  * - USB drivers?
  */

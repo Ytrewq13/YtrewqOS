@@ -1,16 +1,16 @@
-#include <stdarg.h>
-
-#include "graphics/console.h"
-#include "io/printf.h"
-
 /* console.c
  * Copyright Sam Whitehead, 2021
  * Last updated 2021-11-01
  */
 
+#include "graphics/console.h"
+#include "io/printf.h"
+
 #include "hw/uart.h"
 
 console_info_t console_descriptor;
+
+bool console_putc_enabled = false;
 
 ERROR_TYPE console_init()
 {
@@ -29,6 +29,7 @@ ERROR_TYPE console_init()
     console_descriptor.rows = fb_dimensions.height / char_height;
 
     console_descriptor.enabled = 1;
+    console_putc_enabled = true;
 
     // TODO: store the text written so we can implement scrolling (and scrollback?)
 

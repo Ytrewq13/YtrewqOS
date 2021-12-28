@@ -3,8 +3,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "mmio.h"
+
+#define HAVE_UART0_PUTC 1
+extern bool uart0_putc_enabled;
+#define HAVE_UART1_PUTC 1
+extern bool uart1_putc_enabled;
 
 // PL011 (Hardware) UART
 enum UART0_REGS {

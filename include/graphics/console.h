@@ -1,9 +1,15 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H 1
 
+#include <stdarg.h>
+#include <stdbool.h>
+
 #include "fonts/bizcat_font.h"
 #include "error_types.h"
 #include "fb_pixels.h"
+
+#define HAVE_CONSOLE_PUTC 1
+extern bool console_putc_enabled;
 
 typedef struct {
     uint32_t fg_color;

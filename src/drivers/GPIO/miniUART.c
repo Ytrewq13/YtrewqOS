@@ -9,8 +9,6 @@
 #include "io/printf.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
@@ -20,6 +18,8 @@ extern uint32_t GET32(uint64_t addr);
  * Modified slightly to use our enums instead of '#define's and the GET32()
  * and PUT32() functions defined in our boot.S file.
  */
+
+bool uart1_putc_enabled = false;
 
 void uart1_init()
 {
@@ -46,6 +46,7 @@ void uart1_init()
     while (r--) __asm volatile("nop");  // Delay 150
     PUT32(GPPUDCLK0, 0);                // flush GPIO setup
     PUT32(AUX_MU_CNTL, 3);              // enable Tx, Rx
+    uart1_putc_enabled = true;
 }
 
 void uart1_send(uint32_t c)

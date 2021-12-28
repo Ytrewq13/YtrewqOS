@@ -9,8 +9,6 @@
 #include "io/printf.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
@@ -20,6 +18,8 @@ extern uint32_t GET32(uint64_t addr);
  * Modified slightly to use our enums instead of '#define's and the GET32()
  * and PUT32() functions defined in our boot.S file.
  */
+
+bool uart0_putc_enabled = false;
 
 void uart0_init()
 {
@@ -63,6 +63,7 @@ void uart0_init()
     PUT32(UART0_FBRD, 0xB);
     PUT32(UART0_LCRH, 0x7 << 4); // 8n1, enable FIFOs
     PUT32(UART0_CR, 0x301); // Enable Tx, Rx, UART
+    uart0_putc_enabled = true;
 }
 
 void uart0_send(uint32_t c)
