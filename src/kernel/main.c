@@ -17,6 +17,10 @@
 
 #include "printf.h"
 
+#define BG_COLOR 0x202020
+#define FG_COLOR 0xe0e0e0
+
+
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
@@ -188,8 +192,13 @@ void kernel_main()
         while (1) uart0_putc(uart0_getc());
     }
 
-    printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
+    // Draw the background color onto the framebuffer
+    console_set_bg_color(BG_COLOR);
+    console_set_fg_color(FG_COLOR);
     fb_dims(FB_ATTR_GET, NULL, &display_info);
+    set_rectangle(0, 0, display_info.width, display_info.height, BG_COLOR);
+
+    printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
     printf("Display dimensions: %dx%d\n", display_info.width, display_info.height);
     fb_get_pitch(&pitch);
     printf("Pitch: %d\n", pitch);
