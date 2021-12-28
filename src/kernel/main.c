@@ -153,31 +153,46 @@ void kernel_main()
 
     fb_release();
     // TODO: implement a function to run multiple mailbox calls at once on the framebuffer.
-    uart0_printf("Setting physical/virtual display size to 640x480, and bit depth to %d...\n", depth);
+    // - mbox_init_buffer()  <- mallocs a buffer which is stored internally
+    // - mbox_add_tag()  <- repeat n times... (reallocs buffer if it grows too large) (checks if the same tag has already been used and updates the args if so)
+    // - mbox_send_call()  <- calls mbox_call_raw() using the internal buffer
+    // - mbox_get_results()  <- get all results at once? Just return buffer ptr?
+    // - mbox_free_buffer()
+    printf("Setting physical/virtual display size to 640x480, and bit depth to %d...\n", depth);
     mbox[0]  = 80;
     mbox[1]  = MBOX_REQUEST;
-    mbox[2]  = MBOX_TAG_FB_SET_DIMS;      mbox[3]  = 8; mbox[4]  = 0; mbox[5]  = 640; mbox[6]  = 480;
-    mbox[7]  = MBOX_TAG_FB_SET_VIRT_DIMS; mbox[8]  = 8; mbox[9]  = 0; mbox[10] = 640; mbox[11] = 480;
-    mbox[12] = MBOX_TAG_FB_SET_DEPTH;     mbox[13] = 4; mbox[14] = 0; mbox[15] = depth; // (depth) bit pixel depth
+    mbox[2]  = MBOX_TAG_FB_SET_DIMS;      mbox[3]  = 8;   mbox[4]  = 0;
+                                          mbox[5]  = 640; mbox[6]  = 480;
+    mbox[7]  = MBOX_TAG_FB_SET_VIRT_DIMS; mbox[8]  = 8;   mbox[9]  = 0;
+                                          mbox[10] = 640; mbox[11] = 480;
+    mbox[12] = MBOX_TAG_FB_SET_DEPTH;     mbox[13] = 4; mbox[14] = 0;
+                                  mbox[15] = depth; // (depth) bit pixel depth
     mbox[16] = MBOX_TAG_LAST;
     mbox[17] = 0; mbox[18] = 0; mbox[19] = 0;
     if (!mbox_call_raw((void*)mbox)) {
         printf("Error running combined VC mailbox call.\n");
+        // TODO: enter emergency shell (accepts some commands to restart,
+        // shutdown, etc.)
         while (1) uart0_putc(uart0_getc());
     }
     if (mbox[15] != depth) {
-        printf("Error setting pixel depth to %d, it is instead set to %d\n", depth, mbox[15]);
+        printf("Error setting pixel depth to %d, it is instead set to %d\n",
+               depth, mbox[15]);
     }
     printf("Requesting a framebuffer...\n");
     if (fb_alloc(16) != FB_SUCCESS) {
         printf("Error requesting a framebuffer.\n");
+        // TODO: enter emergency shell (accepts some commands to restart,
+        // shutdown, etc.)
         while (1) uart0_putc(uart0_getc());
     }
+
+    // Get the screen dimensions
+    fb_dims(FB_ATTR_GET, NULL, &display_info);
 
     // Draw the background color onto the framebuffer
     console_set_bg_color(BG_COLOR);
     console_set_fg_color(FG_COLOR);
-    fb_dims(FB_ATTR_GET, NULL, &display_info);
     set_rectangle(0, 0, display_info.width, display_info.height, BG_COLOR);
 
     printf("Got framebuffer at %p of size %d.\n", framebuf.base_addr, framebuf.size);
@@ -188,7 +203,7 @@ void kernel_main()
     printf("\n\n");
     uint8_t c;
 
-    struct block_device *foo = malloc(sizeof(struct block_device));
+    struct block_device *foo = NULL;
     int ret = sd_card_init(&foo);
     printf("sd_card_init() returned %d\n", ret);
     if (ret) {
