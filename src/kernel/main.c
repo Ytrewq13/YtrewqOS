@@ -1,9 +1,12 @@
-/* kernel.c
+/* kernel/main.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2021-08-10
+ * Last updated 2022-01-01
  */
 #include <stdint.h>
 
+// TODO: Reduce header files included here
+// - Master header file for all includes?
+// - Header file for collections of headers? (e.g. graphics.h, hw.h, etc.)
 #include "fonts/bizcat_font.h"
 #include "framebuf.h"
 #include "graphics/console.h"
@@ -35,6 +38,7 @@ void delay(size_t time)
 
 void kernel_main()
 {
+    // TODO: re-organise variable declarations
     uint32_t firmware_version;
     uint64_t serial_number;
     uint32_t board_model;
