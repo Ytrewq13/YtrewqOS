@@ -12,13 +12,16 @@
 #include "hw/mbox.h"
 #include "hw/mem.h"
 #include "hw/uart.h"
+#include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
 
+// Console fg/bg colors (TODO: header file for defines? "config.def.h"?)
 #define BG_COLOR 0x202020
 #define FG_COLOR 0xe0e0e0
 
 
+// TODO: Declare these functions in header files and remove the "extern"s
 extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();

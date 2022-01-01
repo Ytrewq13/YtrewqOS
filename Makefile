@@ -75,6 +75,8 @@ _SRCS_C = drivers/GPIO/miniUART.c \
 		  kernel/malloc.c \
 		  kernel/mbox.c \
 		  kernel/printf.c \
+		  kernel/test/main.c \
+		  kernel/test/tests_examples.c \
 		  kernel/timer.c \
 		  lib/io/printf.c \
 		  libc/stdlib.c \
@@ -102,6 +104,7 @@ _DEPS_H = errno.h \
 		  hw/mmio.h \
 		  hw/uart.h \
 		  io/printf.h \
+		  kernel/test.h \
 		  kernel/timer.h \
 		  kernel/util.h \
 		  stdlib.h \
