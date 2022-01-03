@@ -23,7 +23,7 @@ KERNEL_IMG = $(BINDIR)/kernel8.img
 SD_IMG = $(BINDIR)/sd.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
 GDB_CMDFILE = $(TOOLSDIR)/commands.gdb
-DEBUG_PIDFILE = $(BINDIR)/vm.PID
+DEBUG_PIDFILE = $(BINDIR)/vm.pid
 
 SUB_MAKE_MAKEFILE = $(CURDIR)/submake.mk
 
@@ -198,10 +198,8 @@ debug: $(DEBUG_PIDFILE) $(KERNEL_ELF) $(GDB_CMDFILE)
 	$(GDB) -command='$(GDB_CMDFILE)' '$(KERNEL_ELF)'
 	@echo "KILL     VM process (PID `cat $<`)"
 	-@kill `cat $<`
-	@echo "RM       VM PID file '$<'"
-	@rm $<
 
 $(DEBUG_PIDFILE): $(KERNEL_IMG) $(SD_IMG)
-	{ $(VM_DBG) -kernel '$(KERNEL_IMG)' -drive file='$(SD_IMG)',if=sd,format=raw & echo $$! > $@; }
+	{ $(VM_DBG) -kernel '$(KERNEL_IMG)' -drive file='$(SD_IMG)',if=sd,format=raw -pidfile '$@' & }
 
 .PHONY: tags clean distclean reset run debug

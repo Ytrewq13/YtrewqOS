@@ -4,6 +4,9 @@
  */
 
 #include "graphics/console.h"
+#include "error_types.h"
+#include "fonts/bizcat_font.h"
+#include "graphics/fb_pixels.h"
 #include "io/printf.h"
 
 #include "hw/uart.h"
@@ -59,11 +62,43 @@ ERROR_TYPE console_write_from_bitmap_with_colors(
     return CONSOLE_SUCCESS;
 }
 
+const uint32_t console_get_fg_color()
+{ return console_descriptor.fg_color; }
+
+const uint32_t console_get_bg_color()
+{ return console_descriptor.bg_color; }
+
 void console_set_fg_color(const uint32_t color)
 { console_descriptor.fg_color = color; }
 
 void console_set_bg_color(const uint32_t color)
 { console_descriptor.bg_color = color; }
+
+// Stores the fg and bg colors into the variables used to remember them during
+// a temporary color change.
+static void __console_store_reset_colors()
+{
+    console_descriptor.fg_reset_color = console_descriptor.fg_color;
+    console_descriptor.bg_reset_color = console_descriptor.bg_color;
+}
+
+void console_set_tmp_fg_color(const uint32_t color)
+{
+    __console_store_reset_colors();
+    console_set_fg_color(color);
+}
+
+void console_set_tmp_bg_color(const uint32_t color)
+{
+    __console_store_reset_colors();
+    console_set_bg_color(color);
+}
+
+void console_reset_colors()
+{
+    console_descriptor.fg_color = console_descriptor.fg_reset_color;
+    console_descriptor.bg_color = console_descriptor.bg_reset_color;
+}
 
 ERROR_TYPE console_write_character_at_pos(const uint8_t c, const uint32_t x,
                                           const uint32_t y)
@@ -81,16 +116,10 @@ ERROR_TYPE console_write_character_at_pos(const uint8_t c, const uint32_t x,
 ERROR_TYPE console_write_character(const uint8_t c)
 {
     ERROR_TYPE err;
-    if (console_descriptor.col == console_descriptor.cols) {
-        console_descriptor.col = 0;
-        console_descriptor.row++;
-    }
-    if (console_descriptor.row == console_descriptor.rows)
-        console_descriptor.row = 0;
     err = console_write_character_at_pos(c, console_descriptor.col,
             console_descriptor.row);
     if (err != CONSOLE_SUCCESS) return err;
-    console_descriptor.col++;
+    console_next_pos();
     return CONSOLE_SUCCESS;
 }
 
@@ -124,15 +153,52 @@ ERROR_TYPE console_erase_row(const uint32_t rnum)
     return CONSOLE_SUCCESS;
 }
 
+ERROR_TYPE console_swap_row(const uint32_t rnum_a, const uint32_t rnum_b)
+{
+    ERROR_TYPE err;
+    uint32_t w, h;
+    uint32_t y_a, y_b;
+    if (rnum_a == rnum_b) return CONSOLE_ERR_INVALID_ARGS;
+    y_a = rnum_a * char_height;
+    y_b = rnum_b * char_height;
+    w = console_descriptor.cols * char_width;
+    h = char_height;
+    err = fb_swap_rectangle(0, y_a, 0, y_b, w, h);
+    if (err != FB_PIX_SUCCESS) return err;
+    return CONSOLE_SUCCESS;
+}
+
+ERROR_TYPE console_scroll_down(uint32_t rows_count)
+{
+    ERROR_TYPE err;
+    uint32_t y, w, h;
+    uint32_t bg_color;
+    y = rows_count * char_height;
+    w = console_descriptor.cols * char_width;
+    h = (console_descriptor.rows - rows_count) * char_height;
+    bg_color = console_get_bg_color();
+    // Copy everything to the top
+    err = fb_cpy_rectangle(0, y, 0, 0, w, h);
+    if (err != FB_PIX_SUCCESS) return err;
+    // Erase the rows that have been removed from the bottom
+    y = (console_descriptor.rows - rows_count) * char_height;
+    h = rows_count * char_height;
+    err = set_rectangle(0, y, w, h, bg_color);
+    if (err != FB_PIX_SUCCESS) return err;
+    return CONSOLE_SUCCESS;
+}
+
 void console_next_pos()
 {
+    console_descriptor.col++;
     if (console_descriptor.col == console_descriptor.cols) {
         console_descriptor.col = 0;
         console_descriptor.row++;
-        if (console_descriptor.row == console_descriptor.rows)
-            console_descriptor.row = 0;
-    } else
-        console_descriptor.col++;
+        if (console_descriptor.row == console_descriptor.rows) {
+            console_descriptor.row--;
+            console_scroll_down(1);
+        }
+    }
 }
 
 void console_prev_pos()
@@ -142,11 +208,17 @@ void console_prev_pos()
 
 void console_putc(const uint32_t c)
 {
+    size_t scroll_limit = console_descriptor.rows -
+        CONFIG_CONSOLE_MIN_ROWS_BELOW;
     if (!(console_descriptor.enabled && framebuf_enabled))
         return;
     if (c == '\n') {
         console_descriptor.col = 0;
         console_descriptor.row++;
+        if (console_descriptor.row == scroll_limit) {
+            console_descriptor.row--;
+            console_scroll_down(1);
+        }
     }
     else {
         console_erase_character();

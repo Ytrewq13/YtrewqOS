@@ -208,6 +208,29 @@ void kernel_main()
     printf("Pitch: %d\n", pitch);
 
     printf("\n\n");
+
+    // Run all kernel unit tests
+    tests_stat_t tests_status;
+    test_all(&tests_status);
+    printf("\n");
+    printf("Test results:\n");
+    printf("Passed: ");
+    console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
+    printf("%d", tests_status.passed);
+    console_reset_colors();
+    printf(", Warnings: ");
+    console_set_tmp_fg_color(CONFIG_COLOR_TEST_WARN);
+    printf("%d", tests_status.warned);
+    console_reset_colors();
+    printf(", Failed: ");
+    console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+    printf("%d", tests_status.failed);
+    console_reset_colors();
+    printf("\n");
+
+    printf("\n");
+
+    // TODO: refactor all this into unit tests
     uint8_t c;
 
     struct block_device *foo = NULL;

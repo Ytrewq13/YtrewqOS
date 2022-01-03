@@ -1,23 +1,44 @@
 #ifndef KERN_TEST_H
 #define KERN_TEST_H 1
 
+#define TEST_VERBOSE 2
+
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
+#include "stdlib.h"
 #include "printf.h"
 
 typedef enum {
     TEST_PASSED,
     TEST_WARN,
-    TEST_FAIL,
+    // A failure we can recover from (continue to the end of this batch of
+    // tests)
+    TEST_FAIL_CONTINUE,
+    // A failure we cannot recover from
+    TEST_FAIL_ABORT,
 } TEST_RESULT;
 
-struct test_counts {
+typedef struct tests_status {
     size_t passed;
     size_t warned;
     size_t failed;
-};
+    // Do we cancel testing after the current batch?
+    bool cancel_batch;
+    // Do we cancel testing and not attempt the next test in the batch?
+    bool cancel_now;
+} tests_stat_t;
 
-unsigned int test_all();
+typedef struct {
+    size_t count;
+    TEST_RESULT (**test_funs)(char**);
+} test_batch_t;
+
+bool test_all(tests_stat_t*);
+
+#define CONFIG_COLOR_TEST_PASS 0x00ff00
+#define CONFIG_COLOR_TEST_WARN 0x00e8e8
+#define CONFIG_COLOR_TEST_FAIL 0x0000ff
 
 #endif /* kern_test_h */

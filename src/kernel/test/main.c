@@ -3,48 +3,97 @@
  * Last updated 2022-01-01
  */
 
+#include "graphics/console.h"
 #include "kernel/test.h"
+#include "string.h"
 
-void run_test(TEST_RESULT (*test_func)(char**), struct test_counts *cnts);
+static void run_test(TEST_RESULT (*test_func)(char**), tests_stat_t *status);
+static void run_test_batch(test_batch_t batch, tests_stat_t *status);
 
-// Test declarations
+// Test batch declarations
 // (test definitions are in external *.c files)
-
-extern TEST_RESULT test_pass(char** msg);
-extern TEST_RESULT test_warn(char** msg);
-extern TEST_RESULT test_fail(char** msg);
+extern test_batch_t test_batch_examples;
 
 // Run all the tests which are enabled
-unsigned int test_all()
+bool test_all(tests_stat_t *stats_return)
 {
-    struct test_counts cnts = {.passed = 0, .warned = 0, .failed = 0};
-    run_test(test_pass, &cnts);
-    run_test(test_warn, &cnts);
-    run_test(test_fail, &cnts);
-    return cnts.failed;
+    bool failed, allocd = false;
+    tests_stat_t *tests_status;
+#if defined (TEST_VERBOSE) && TEST_VERBOSE >= 1
+    printf("Kernel tests\n============\n");
+#endif
+    // Prepare the status structure
+    if (!stats_return) {
+        allocd = true;
+        tests_status = malloc(sizeof(tests_stat_t));
+    } else {
+        tests_status = stats_return;
+    }
+    memset(tests_status, 0, sizeof(tests_stat_t));
+    // Run the tests
+    run_test_batch(test_batch_examples, tests_status);
+    // Get the failure value from the status struct
+    failed = tests_status->failed > 0 || tests_status->cancel_batch ||
+        tests_status->cancel_now;
+    if (allocd) free(tests_status);
+    return !failed;
+}
+
+// Run a batch of tests
+static void run_test_batch(test_batch_t batch, tests_stat_t *status)
+{
+    size_t i;
+    for (i = 0; i < batch.count; i++) {
+        run_test(batch.test_funs[i], status);
+        if (status->cancel_now) break;
+    }
 }
 
 // Run an individual test, modifying an external counter of pass/warn/failed
 // tests
-void run_test(TEST_RESULT (*test_func)(char**), struct test_counts *cnts)
+static void run_test(TEST_RESULT (*test_func)(char**), tests_stat_t *status)
 {
     char* msg;
+    char* msg_prefix = "  ";
     switch (test_func(&msg)) {
         case TEST_PASSED:
-            cnts->passed++;
+            status->passed++;
 #if defined (TEST_VERBOSE) && TEST_VERBOSE >= 2
-            printf("PASS: %s\n", msg);
+            printf("%s", msg_prefix);
+            console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
+            printf("PASS:");
+            console_reset_colors();
+            printf(" %s\n", msg);
 #endif
             break;
         case TEST_WARN:
-            cnts->warned++;
+            status->passed++;  // Warning tests count as passed
+            status->warned++;
 #if defined (TEST_VERBOSE) && TEST_VERBOSE >= 1
-            printf("WARN: %s\n", msg);
+            printf("%s", msg_prefix);
+            console_set_tmp_fg_color(CONFIG_COLOR_TEST_WARN);
+            printf("WARN:");
+            console_reset_colors();
+            printf(" %s\n", msg);
 #endif
             break;
-        case TEST_FAIL:
-            cnts->failed++;
-            printf("FAIL: %s\n", msg);
+        case TEST_FAIL_CONTINUE:
+            status->failed++;
+            status->cancel_batch = true;
+            printf("%s", msg_prefix);
+            console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+            printf("FAIL:");
+            console_reset_colors();
+            printf(" %s\n", msg);
+            break;
+        case TEST_FAIL_ABORT:
+            status->failed++;
+            status->cancel_now = true;
+            printf("%s", msg_prefix);
+            console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+            printf("FAIL:");
+            console_reset_colors();
+            printf(" %s\n", msg);
             break;
     }
 }

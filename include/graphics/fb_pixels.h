@@ -5,6 +5,7 @@
 
 #include "error_types.h"
 #include "framebuf.h"
+#include "stdlib.h"
 
 typedef enum {
     FB_PIX_ERRORS_BASE = 0x81000000,
@@ -61,5 +62,12 @@ ERROR_TYPE set_pixel(const uint32_t x, const uint32_t y, const uint8_t* color);
 ERROR_TYPE set_rectangle(const uint32_t x, const uint32_t y,
                          const uint32_t width, const uint32_t height,
                          const uint32_t color);
+
+ERROR_TYPE fb_swap_rectangle(const uint32_t xa, const uint32_t ya, const
+        uint32_t xb, const uint32_t yb, const uint32_t w, const uint32_t h);
+
+ERROR_TYPE fb_cpy_rectangle(const uint32_t x_src, const uint32_t y_src, const
+        uint32_t x_dst, const uint32_t y_dst, const uint32_t w,
+        const uint32_t h);
 
 #endif /* graphics_fb_pixels_h */
