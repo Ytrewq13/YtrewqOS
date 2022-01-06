@@ -4,15 +4,13 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "fonts/bizcat_font.h"
+#include "config.def.h"
 #include "error_types.h"
+#include "fonts/bizcat_font.h"
 #include "fb_pixels.h"
 
 #define HAVE_CONSOLE_PUTC 1
 extern bool console_putc_enabled;
-
-// The minimum number of rows below the console before we start scrolling
-#define CONFIG_CONSOLE_MIN_ROWS_BELOW 1
 
 typedef struct {
     uint32_t fg_color;

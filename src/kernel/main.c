@@ -19,9 +19,7 @@
 #include "printf.h"
 #include "stdlib.h"
 
-// Console fg/bg colors (TODO: header file for defines? "config.def.h"?)
-#define BG_COLOR 0x202020
-#define FG_COLOR 0xe0e0e0
+#include "config.def.h"
 
 
 // TODO: Declare these functions in header files and remove the "extern"s

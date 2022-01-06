@@ -86,7 +86,7 @@ static void run_test(TEST_RESULT (*test_func)(char**), tests_stat_t *status)
             console_reset_colors();
             printf(" %s\n", msg);
             break;
-        case TEST_FAIL_ABORT:
+        case TEST_FAIL_FATAL:
             status->failed++;
             status->cancel_now = true;
             printf("%s", msg_prefix);

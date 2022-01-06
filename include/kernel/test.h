@@ -17,7 +17,7 @@ typedef enum {
     // tests)
     TEST_FAIL_CONTINUE,
     // A failure we cannot recover from
-    TEST_FAIL_ABORT,
+    TEST_FAIL_FATAL,
 } TEST_RESULT;
 
 typedef struct tests_status {
@@ -36,9 +36,5 @@ typedef struct {
 } test_batch_t;
 
 bool test_all(tests_stat_t*);
-
-#define CONFIG_COLOR_TEST_PASS 0x00ff00
-#define CONFIG_COLOR_TEST_WARN 0x00e8e8
-#define CONFIG_COLOR_TEST_FAIL 0x0000ff
 
 #endif /* kern_test_h */
