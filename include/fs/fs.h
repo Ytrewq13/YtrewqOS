@@ -58,4 +58,3 @@ size_t fs_fwrite(uint32_t (*get_next_bdev_block_num)(uint32_t f_block_idx, FILE 
 	FILE *stream, void *opaque);
 
 #endif /* FS_H */
-

@@ -49,5 +49,3 @@ size_t block_write(struct block_device *dev, uint8_t *buf, size_t buf_size, uint
 
 #endif
 
-#include "fs/fs.h"
-

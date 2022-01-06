@@ -1,13 +1,12 @@
 #ifndef VFS_H
 #define VFS_H 1
 
+#include <stdlib.h>
+
 struct vfs_file;
 
 #include "fs/dirent.h"
-
 #include "fs/file.h"
-
-#include "fs/fs.h"
 
 // An entry in the Virtual FileSystem
 struct vfs_entry {
