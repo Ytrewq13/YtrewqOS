@@ -1350,10 +1350,12 @@ int sd_card_init(struct block_device **dev)
     // Read the controller version
 //    uint32_t ver = GET32(MMIO_BASE + emmc_base + EMMC_SLOTISR_VER);
     uint32_t ver = GET32(EMMC_REGS_SLOT_ISR_VER);
-    uint32_t vendor = ver >> 24;
     uint32_t sdversion = (ver >> 16) & 0xff;
+#ifdef EMMC_DEBUG
+    uint32_t vendor = ver >> 24;
     uint32_t slot_status = ver & 0xff;
     printf("EMMC: vendor %x, sdversion %x, slot_status %x\n", vendor, sdversion, slot_status);
+#endif
     hci_ver = sdversion;
 
     if(hci_ver < 2)
@@ -1979,8 +1981,8 @@ int sd_card_init(struct block_device **dev)
 #endif
     }
 
-    printf("SD: found a valid version %s SD card\n", sd_versions[ret->scr->sd_version]);
 #ifdef EMMC_DEBUG
+    printf("SD: found a valid version %s SD card\n", sd_versions[ret->scr->sd_version]);
     printf("SD: setup successful (status %i)\n", status);
 #endif
 

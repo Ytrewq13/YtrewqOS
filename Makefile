@@ -76,7 +76,9 @@ _SRCS_C = drivers/GPIO/miniUART.c \
 		  kernel/mbox.c \
 		  kernel/printf.c \
 		  kernel/test/main.c \
+		  kernel/test/tests_emmc.c \
 		  kernel/test/tests_examples.c \
+		  kernel/test/tests_malloc.c \
 		  kernel/timer.c \
 		  lib/io/printf.c \
 		  libc/stdlib.c \

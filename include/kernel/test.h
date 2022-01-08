@@ -1,12 +1,11 @@
 #ifndef KERN_TEST_H
 #define KERN_TEST_H 1
 
-#define TEST_VERBOSE 2
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#include "config.def.h"
 #include "stdlib.h"
 #include "printf.h"
 
@@ -21,6 +20,8 @@ typedef enum {
 } TEST_RESULT;
 
 typedef struct tests_status {
+    size_t total;
+    size_t skipped;
     size_t passed;
     size_t warned;
     size_t failed;

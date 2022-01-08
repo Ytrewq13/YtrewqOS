@@ -211,35 +211,29 @@ void kernel_main()
     tests_stat_t tests_status;
     test_all(&tests_status);
     printf("\n");
-    printf("Test results:\n");
+    printf("Test results (%lu total tests)\n", tests_status.total);
     printf("Passed: ");
     console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
-    printf("%d", tests_status.passed);
+    printf("%lu", tests_status.passed);
     console_reset_colors();
     printf(", Warnings: ");
     console_set_tmp_fg_color(CONFIG_COLOR_TEST_WARN);
-    printf("%d", tests_status.warned);
+    printf("%lu", tests_status.warned);
     console_reset_colors();
     printf(", Failed: ");
     console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
-    printf("%d", tests_status.failed);
+    printf("%lu", tests_status.failed);
+    console_reset_colors();
+    printf(", Skipped: ");
+    console_set_tmp_fg_color(CONFIG_COLOR_TEST_SKIP);
+    printf("%lu", tests_status.skipped);
     console_reset_colors();
     printf("\n");
 
     printf("\n");
 
-    // TODO: refactor all this into unit tests
+    // TODO: refactor all of this into unit tests
     uint8_t c;
-
-    struct block_device *foo = NULL;
-    int ret = sd_card_init(&foo);
-    printf("sd_card_init() returned %d\n", ret);
-    if (ret) {
-        printf("Failed to initialise SD card!\n");
-    }
-    free(foo);
-
-    printf("\n");
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);

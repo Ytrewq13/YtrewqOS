@@ -56,8 +56,8 @@ uintptr_t alloc_buf(size_t size)
 
 /* Increment the program break (or decrement for a negative value)
  * The program break will always be aligned on a page (4096 byte)
- * boundary, so if the value isn't a multiple of 0x1000 then the break will be
- * moved forwards to the next page.
+ * boundary when initialised, so if the value isn't a multiple of 0x1000 then
+ * the break will be moved forwards to the next page.
  */
 void *sbrk(ptrdiff_t increment)
 {
