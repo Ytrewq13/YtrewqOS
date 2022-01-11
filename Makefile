@@ -170,8 +170,9 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 	@$(OBJCOPY) $(KERNEL_ELF) $(KERNEL_IMG)
 
 $(SD_IMG): $(BINDIR)
-	@echo "DD       $@"
-	@dd if=/dev/zero of=$@ bs=1M count=1024
+	@echo "IMG      $@"
+	@qemu-img create -f raw -q "$@" 1024M
+#	@dd if=/dev/zero of=$@ bs=1M count=1024
 
 # Clean all intermediate files
 clean:
@@ -191,6 +192,10 @@ reset: distclean
 	@rm -f $(CCDB)
 	@rm -f $(TAGS)
 
+sd: $(BINDIR)
+	@rm -f $(SD_IMG)
+	@$(MAKE) --no-print-directory $(SD_IMG)
+
 # Run the VM with the generated kernel
 run: $(KERNEL_IMG) $(SD_IMG)
 	$(VM) -kernel "$(KERNEL_IMG)" -drive file="$(SD_IMG)",if=sd,format=raw
@@ -204,4 +209,4 @@ debug: $(DEBUG_PIDFILE) $(KERNEL_ELF) $(GDB_CMDFILE)
 $(DEBUG_PIDFILE): $(KERNEL_IMG) $(SD_IMG)
 	{ $(VM_DBG) -kernel '$(KERNEL_IMG)' -drive file='$(SD_IMG)',if=sd,format=raw -pidfile '$@' & }
 
-.PHONY: tags clean distclean reset run debug
+.PHONY: tags clean distclean reset sd run debug

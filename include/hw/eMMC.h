@@ -187,9 +187,6 @@ struct emmc_block_dev
 
 void emmc_set_base(uint32_t base);
 
-int sd_read(struct block_device *, uint8_t *, size_t buf_size, uint32_t);
-int sd_write(struct block_device *, uint8_t *, size_t buf_size, uint32_t);
-
 int sd_card_init(struct block_device **dev);
 int sd_read(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_no);
 #ifdef SD_WRITE_SUPPORT

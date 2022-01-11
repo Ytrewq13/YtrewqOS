@@ -41,7 +41,6 @@
 #include "kernel/util.h"
 #include "stdlib.h"
 #include "printf.h"
-
 #include "hw/eMMC.h"
 
 uint32_t GET32(uint32_t);
@@ -81,7 +80,9 @@ void PUT32(uint32_t, uint32_t);
 //#define SD_CARD_INTERRUPTS
 
 // Enable EXPERIMENTAL (and possibly DANGEROUS) SD write support
+#ifndef SD_WRITE_SUPPORT
 #define SD_WRITE_SUPPORT
+#endif
 
 // Allow old sdhci versions (may cause errors)
 #define EMMC_ALLOW_OLD_SDHCI

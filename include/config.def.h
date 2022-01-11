@@ -19,4 +19,7 @@
 #define TEST_ON_BOOT 1
 #define TEST_VERBOSE 2
 
+// Enable writing to the SD card
+#define SD_WRITE_SUPPORT 1
+
 #endif /* config_def_h */

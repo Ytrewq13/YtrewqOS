@@ -7,6 +7,7 @@
 // TODO: Reduce header files included here
 // - Master header file for all includes?
 // - Header file for collections of headers? (e.g. graphics.h, hw.h, etc.)
+#include "config.def.h"
 #include "fonts/bizcat_font.h"
 #include "framebuf.h"
 #include "graphics/console.h"
@@ -18,8 +19,7 @@
 #include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
-
-#include "config.def.h"
+#include "string.h"
 
 
 // TODO: Declare these functions in header files and remove the "extern"s
@@ -264,6 +264,56 @@ void kernel_main()
     free(a);
     free(b);
     printf("Finished freeing all malloc'd memory\n");
+    printf("\n");
+
+    /* Notes for reading/writing SD card:
+     * - buffer size must be an exact multiple of block size
+     *   - block size is available in `dev->block_size`
+     * - SD card data persists after writing (even when VM is shut down), so
+     *   sd_write() should be called only when there is a sync() syscall
+     */
+    // Try to write something to the SD card
+    struct block_device *dev;
+    err = sd_card_init(&dev);
+    if (err != 0) {
+        printf("ERR (");
+        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+        printf("FATAL");
+        console_reset_colors();
+        printf("): failed to initialise SD card - sd_card_init() returned %d\n",
+                err);
+        while (1) {}
+    }
+    size_t sd_buf_sz = 512;
+    size_t block_id = 1;
+    char *sd_write_buf = malloc(sd_buf_sz);
+    char *msg = "hello sd card!";
+    memset(sd_write_buf, 0, sd_buf_sz);
+    memcpy(sd_write_buf, msg, strlen(msg)+1);
+    char *sd_read_buf = malloc(sd_buf_sz);
+    err = sd_write(dev, (uint8_t*)sd_write_buf, sd_buf_sz, block_id);
+    if (err != sd_buf_sz) {
+        printf("ERR (");
+        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+        printf("FATAL");
+        console_reset_colors();
+        printf("): failed to write to SD card - sd_write() returned %d\n", err);
+        while (1) {}
+    }
+    printf("Sucessfully wrote to SD card!\n");
+    // Read back the bytes
+    err = sd_read(dev, (uint8_t*)sd_read_buf, sd_buf_sz, block_id);
+    if (err != sd_buf_sz) {
+        printf("ERR (");
+        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+        printf("FATAL");
+        console_reset_colors();
+        printf("): failed to read from SD card - sd_read() returned %d\n", err);
+        while (1) {}
+    }
+    printf("Read '%s' from SD card\n", sd_read_buf);
+    free(sd_write_buf);
+    free(sd_read_buf);
 
 
     // echo everything back
@@ -272,7 +322,7 @@ void kernel_main()
         uart0_putc(c);
         console_putc(c);
     }
-    // TODO: echo everything back to console (reading from keyboard) - USB?
+    // TODO: reading from keyboard - USB?
 }
 
 /*
