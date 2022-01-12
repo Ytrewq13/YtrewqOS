@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+/* From linux/arch/arm64/include/asm/ptrace.h */
 struct pt_regs {
     struct {
         uint64_t regs[31];

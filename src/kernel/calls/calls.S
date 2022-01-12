@@ -12,13 +12,12 @@ sys_call_handler:
     // Move syscall nr to x0
     mov x0, x8
     // Get the function pointer for the given syscall function
-    ldr x7, =sys_call_table
-    // TODO: Lookup the sys_### function defined in include/unistd.h
-    //          - how to do this?
-    //          - Need an area of memory to store a table of system call NR and
-    //            function pointers
-    // TODO: Call the function
-    bl syscall_hello
+    ldr x8, =sys_call_table
+    add x9, x8, x0
+    ldr x10, [x9, #6]
+    // Call the function
+    blr x10
+//     bl syscall_hello
     eret
 
 .globl syscall

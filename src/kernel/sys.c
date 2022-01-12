@@ -18,7 +18,7 @@ long __arm64_sys_ni_syscall(const struct pt_regs *__unused)
 
 #define __SYSCALL(nr, sym)  [nr] = __arm64_##sym,
 
-const syscall_fn_t sys_call_table[__NR_syscalls] = {
+const syscall_fn_t __attribute__((aligned(4))) sys_call_table[__NR_syscalls] = {
 //    [0 ... __NR_syscalls - 1] = __arm64_sys_ni_syscall,
 #include "unistd.h"
 };
