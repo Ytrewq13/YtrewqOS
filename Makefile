@@ -75,6 +75,7 @@ _SRCS_C = drivers/GPIO/miniUART.c \
 		  kernel/malloc.c \
 		  kernel/mbox.c \
 		  kernel/printf.c \
+		  kernel/sys.c \
 		  kernel/test/main.c \
 		  kernel/test/tests_emmc.c \
 		  kernel/test/tests_examples.c \
@@ -109,9 +110,11 @@ _DEPS_H = errno.h \
 		  kernel/test.h \
 		  kernel/timer.h \
 		  kernel/util.h \
+		  printf.h \
+		  ptrace.h \
 		  stdlib.h \
 		  string.h \
-		  printf.h \
+		  syscall.h \
 		  unistd.h
 
 # Variables used by sub-make

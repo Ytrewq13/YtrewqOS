@@ -40,7 +40,7 @@ curr_el_spx_sync:
     and x7, x6, #0xffff  // Mask bits [15:0]
     cmp x7, #0
     bne _curr_el_spx_sync_ret  // FIXME: Branch to a different handler if not syscall
-    bl syscall
+    bl sys_call_handler
 _curr_el_spx_sync_ret:
     eret
 .balign 0x80
