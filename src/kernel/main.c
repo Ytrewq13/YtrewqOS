@@ -8,6 +8,7 @@
 // - Master header file for all includes?
 // - Header file for collections of headers? (e.g. graphics.h, hw.h, etc.)
 #include "config.def.h"
+#include "errno.h"
 #include "fonts/bizcat_font.h"
 #include "framebuf.h"
 #include "graphics/console.h"
@@ -237,9 +238,20 @@ void kernel_main()
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
-    printf("Trying to run a software interrupt...\n");
-    int syscall_ret = syscall(0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde);
+    int i = 442;
+    int syscall_ret;
+    while (i > 0) {
+        printf("Running syscall(%#x)...\n", i);
+        syscall_ret = syscall(i);
+        printf("System call returned %d\n", syscall_ret);
+        i -= 53;
+    }
+    printf("Running syscall(%#x)...\n", i);
+    syscall_ret = syscall(i);
     printf("System call returned %d\n", syscall_ret);
+    if (syscall_ret != 0) {
+        printf("errno: %d\n", errno);
+    }
 
     printf("\n");
 

@@ -24,14 +24,6 @@
 
 extern int errno;
 
-#define ENOMEM		-1
-#define EINVAL		-2
-#define ENOENT		-3
-#define ENOTDIR		-4
-#define EFAULT		-5
-#define EROFS		-6
-#define ERANGE		-7
-#define ENOSPC		-8
+#include "asm/errno.h"
 
 #endif
-

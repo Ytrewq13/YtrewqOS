@@ -88,7 +88,11 @@ export _SRCS_ASM
 export _SRCS_C
 # Header files (relative to ./include/)
 # TODO: automatically track each object file's dependencies
-_DEPS_H = errno.h \
+_DEPS_H = asm/errno.h \
+		  asm/syscalls.h \
+		  config.def.h \
+		  cpu/sysregs.h \
+		  errno.h \
 		  error_types.h \
 		  fonts/bizcat_font.h \
 		  framebuf.h \

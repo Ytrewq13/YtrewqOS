@@ -2,8 +2,7 @@
 #define __SYSCALL_H 1
 
 #include "ptrace.h"
-
-#define __NR_syscalls 443
+#include "asm/syscalls.h"
 
 typedef long (*syscall_fn_t)(const struct pt_regs *regs);
 
