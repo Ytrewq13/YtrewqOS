@@ -7,7 +7,7 @@
 #include "config.def.h"
 #include "error_types.h"
 #include "fonts/bizcat_font.h"
-#include "fb_pixels.h"
+#include "drivers/graphics/fb_pixels.h"
 
 #define HAVE_CONSOLE_PUTC 1
 extern bool console_putc_enabled;

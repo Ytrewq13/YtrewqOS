@@ -3,8 +3,8 @@
 
 #include <stdarg.h>
 
-#include "hw/uart.h"
-#include "graphics/console.h"
+#include "drivers/hw/uart.h"
+#include "drivers/graphics/console.h"
 #include "io/printf.h"
 
 int printf(const char *fmt, ...);

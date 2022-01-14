@@ -1,6 +1,5 @@
-
-#include "hw/mmio.h"
-#include "hw/mbox.h"
+#include "drivers/hw/mmio.h"
+#include "drivers/hw/mbox.h"
 #include "fs/block.h"
 #include "kernel/timer.h"
 

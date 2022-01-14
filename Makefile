@@ -11,8 +11,8 @@ export OUTDIR = build
 export BINDIR = $(OUTDIR)/bin
 export OBJDIR = $(OUTDIR)/obj
 export INCDIR = include
-export TOOLSDIR = $(SRCDIR)/tools
-LDDIR = $(SRCDIR)/link
+export TOOLSDIR = tools
+LDDIR = $(TOOLSDIR)/link
 
 CCDB = compile_commands.json
 CFLAGS_FILE = compile_flags.txt
@@ -22,7 +22,7 @@ KERNEL_ELF = $(BINDIR)/kernel8.elf
 KERNEL_IMG = $(BINDIR)/kernel8.img
 SD_IMG = $(BINDIR)/sd.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
-GDB_CMDFILE = $(TOOLSDIR)/commands.gdb
+GDB_CMDFILE = $(TOOLSDIR)/debug/commands.gdb
 DEBUG_PIDFILE = $(BINDIR)/vm.pid
 
 SUB_MAKE_MAKEFILE = $(CURDIR)/submake.mk
@@ -59,57 +59,57 @@ export CFLAGS
 
 # The source files (relative to ./src/)
 _SRCS_ASM = boot/boot.S \
-			kernel/calls/calls.S \
-			kernel/calls/exceptions.S
-_SRCS_C = drivers/GPIO/miniUART.c \
+			calls/calls.S \
+			calls/exceptions.S
+_SRCS_C = calls/calls.c \
+		  drivers/GPIO/miniUART.c \
 		  drivers/GPIO/uart_PL011.c \
 		  drivers/SD/emmc.c \
 		  drivers/graphics/console.c \
 		  drivers/graphics/fb_pixels.c \
+		  drivers/mbox.c \
 		  fonts/bizcat_font.c \
 		  fs/fat.c \
-		  kernel/calls/calls.c \
 		  kernel/framebuf.c \
-		  kernel/heap.c \
 		  kernel/main.c \
-		  kernel/malloc.c \
-		  kernel/mbox.c \
 		  kernel/printf.c \
 		  kernel/sys.c \
-		  kernel/test/main.c \
-		  kernel/test/tests_emmc.c \
-		  kernel/test/tests_examples.c \
-		  kernel/test/tests_malloc.c \
-		  kernel/timer.c \
 		  lib/io/printf.c \
 		  libc/stdlib.c \
-		  libc/string.c
+		  libc/string.c \
+		  mm/heap.c \
+		  mm/malloc.c \
+		  test/main.c \
+		  test/tests_emmc.c \
+		  test/tests_examples.c \
+		  test/tests_malloc.c \
+		  kernel/timer.c
 export _SRCS_ASM
 export _SRCS_C
 # Header files (relative to ./include/)
 # TODO: automatically track each object file's dependencies
 _DEPS_H = asm/errno.h \
-		  asm/syscalls.h \
+		  asm/syscall.h \
+		  asm/sysregs.h \
 		  config.def.h \
-		  cpu/sysregs.h \
 		  errno.h \
 		  error_types.h \
 		  fonts/bizcat_font.h \
-		  framebuf.h \
+		  drivers/framebuf.h \
+		  drivers/graphics/console.h \
+		  drivers/graphics/fb_pixels.h \
+		  drivers/hw/eMMC.h \
+		  drivers/hw/gpio.h \
+		  drivers/hw/mbox.h \
+		  drivers/hw/mem.h \
+		  drivers/hw/mmio.h \
+		  drivers/hw/uart.h \
 		  fs/block.h \
 		  fs/dirent.h \
 		  fs/fat.h \
 		  fs/file.h \
 		  fs/fs.h \
 		  fs/vfs.h \
-		  graphics/console.h \
-		  graphics/fb_pixels.h \
-		  hw/eMMC.h \
-		  hw/gpio.h \
-		  hw/mbox.h \
-		  hw/mem.h \
-		  hw/mmio.h \
-		  hw/uart.h \
 		  io/printf.h \
 		  kernel/test.h \
 		  kernel/timer.h \

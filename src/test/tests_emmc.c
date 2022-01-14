@@ -4,7 +4,7 @@
  */
 
 #include "kernel/test.h"
-#include "hw/eMMC.h"
+#include "drivers/hw/eMMC.h"
 
 // Test implementations
 

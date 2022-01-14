@@ -3,11 +3,11 @@
  * Last updated 2021-11-01
  */
 
-#include "graphics/fb_pixels.h"
 #include <stdint.h>
 
-#include "framebuf.h"
-#include "hw/uart.h"
+#include "drivers/graphics/fb_pixels.h"
+#include "drivers/framebuf.h"
+#include "drivers/hw/uart.h"
 #include "string.h"
 
 

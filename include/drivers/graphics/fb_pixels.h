@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "error_types.h"
-#include "framebuf.h"
+#include "drivers/framebuf.h"
 #include "stdlib.h"
 
 typedef enum {

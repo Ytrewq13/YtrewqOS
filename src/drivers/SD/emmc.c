@@ -34,14 +34,14 @@
 #include <string.h>
 //#include <assert.h>
 
-#include "hw/mmio.h"
+#include "drivers/hw/mmio.h"
 #include "fs/block.h"
-#include "hw/mbox.h"
+#include "drivers/hw/mbox.h"
 #include "kernel/timer.h"
 #include "kernel/util.h"
 #include "stdlib.h"
 #include "printf.h"
-#include "hw/eMMC.h"
+#include "drivers/hw/eMMC.h"
 
 uint32_t GET32(uint32_t);
 void PUT32(uint32_t, uint32_t);

@@ -1,5 +1,5 @@
 #include "stdlib.h"
-#include "hw/uart.h"
+#include "drivers/hw/uart.h"
 
 /* stdlib.c
  * Copyright Sam Whitehead, 2021

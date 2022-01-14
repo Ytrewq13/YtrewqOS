@@ -4,8 +4,8 @@
  * Last updated 2021-08-10
  */
 
-#include "hw/uart.h"
-#include "hw/gpio.h"
+#include "drivers/hw/uart.h"
+#include "drivers/hw/gpio.h"
 #include "io/printf.h"
 
 #include <stdarg.h>

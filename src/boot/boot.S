@@ -1,4 +1,4 @@
-#include "cpu/sysregs.h"
+#include "asm/sysregs.h"
 // To keep this in the first portion of the binary.
 .section ".text.boot"
 

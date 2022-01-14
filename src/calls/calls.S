@@ -1,4 +1,4 @@
-#include "asm/syscalls.h"
+#include "asm/syscall.h"
 #include "asm/errno.h"
 
 .extern errno

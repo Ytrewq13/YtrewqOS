@@ -3,7 +3,7 @@
  * Last updated 2022-01-06
  */
 
-#include "graphics/console.h"
+#include "drivers/graphics/console.h"
 #include "kernel/test.h"
 #include "string.h"
 

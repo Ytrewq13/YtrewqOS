@@ -10,13 +10,13 @@
 #include "config.def.h"
 #include "errno.h"
 #include "fonts/bizcat_font.h"
-#include "framebuf.h"
-#include "graphics/console.h"
-#include "graphics/fb_pixels.h"
-#include "hw/eMMC.h"
-#include "hw/mbox.h"
-#include "hw/mem.h"
-#include "hw/uart.h"
+#include "drivers/framebuf.h"
+#include "drivers/graphics/console.h"
+#include "drivers/graphics/fb_pixels.h"
+#include "drivers/hw/eMMC.h"
+#include "drivers/hw/mbox.h"
+#include "drivers/hw/mem.h"
+#include "drivers/hw/uart.h"
 #include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
@@ -257,7 +257,6 @@ void kernel_main()
 
     // Test malloc()
     // TODO: write tests for these components
-    // - testing interface? Kernel runs all unit tests on boot?
     size_t malloc_size = 100*sizeof(int);
     void *allocd_mem;
     void *a, *b;

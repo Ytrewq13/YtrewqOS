@@ -3,13 +3,12 @@
  * Last updated 2021-11-01
  */
 
-#include "graphics/console.h"
+#include "drivers/graphics/console.h"
 #include "error_types.h"
 #include "fonts/bizcat_font.h"
-#include "graphics/fb_pixels.h"
+#include "drivers/graphics/fb_pixels.h"
 #include "io/printf.h"
-
-#include "hw/uart.h"
+#include "drivers/hw/uart.h"
 
 console_info_t console_descriptor;
 

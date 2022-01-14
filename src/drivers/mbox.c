@@ -3,8 +3,8 @@
  * Last updated 2021-08-10
  */
 
-#include "hw/mbox.h"
-#include "hw/mmio.h"
+#include "drivers/hw/mmio.h"
+#include "drivers/hw/mbox.h"
 
 #include <stdint.h>
 

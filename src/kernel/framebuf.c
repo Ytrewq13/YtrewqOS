@@ -1,4 +1,4 @@
-#include "framebuf.h"
+#include "drivers/framebuf.h"
 
 mem_info_t framebuf;
 uint8_t framebuf_enabled = 0;

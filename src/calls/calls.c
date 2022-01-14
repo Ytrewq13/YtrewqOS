@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdarg.h>
-#include "hw/uart.h"
+
+#include "drivers/hw/uart.h"
 
 uint64_t syscall_hello(uint64_t nr, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4, uint64_t x5, uint64_t x6)
 {
