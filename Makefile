@@ -139,6 +139,34 @@ vpath %.S $(SRCDIR)
 vpath %.o $(OBJDIR)
 
 
+ifndef KERNEL_ELF
+	$(error KERNEL_ELF is undefined)
+endif
+ifndef DEBUG_PIDFILE
+	$(error DEBUG_PIDFILE is undefined)
+endif
+ifndef OBJDIR
+	$(error OBJDIR is undefined)
+endif
+ifndef KERNEL_IMG
+	$(error KERNEL_IMG is undefined)
+endif
+ifndef SD_IMG
+	$(error SD_IMG is undefined)
+endif
+ifndef BINDIR
+	$(error BINDIR is undefined)
+endif
+ifndef OUTDIR
+	$(error OUTDIR is undefined)
+endif
+ifndef CCDB
+	$(error CCDB is undefined)
+endif
+ifndef TAGS
+	$(error TAGS is undefined)
+endif
+
 
 all: $(KERNEL_IMG)
 
