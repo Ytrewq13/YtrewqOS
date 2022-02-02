@@ -1,4 +1,4 @@
-# Notes from development
+# Interim report notes
 
 ## 2021-10
 
@@ -26,3 +26,9 @@
   controls the exception vector table start address for each EL.
 * *Variadic* functions use the scalar / vector / floating - point registers
   (`q0` - `q31`), so they need `CPTR_EL2.FPEN` bits to be set.
+
+# File System
+
+## FAT
+
+* [FAT specification](https://wiki.osdev.org/FAT)

@@ -1431,8 +1431,7 @@ int sd_card_init(struct block_device **dev)
 
     // Get the base clock rate
     uint32_t base_clock = sd_get_base_clock_hz();
-    if(base_clock == 0)
-    {
+    if(base_clock == 0) {
         printf("EMMC: assuming clock rate to be 100MHz\n");
         base_clock = 100000000;
     }
@@ -1447,8 +1446,7 @@ int sd_card_init(struct block_device **dev)
 
     // Set to identification frequency (400 kHz)
     uint32_t f_id = sd_get_clock_divider(base_clock, SD_CLOCK_ID);
-    if(f_id == SD_GET_CLOCK_DIVIDER_FAIL)
-    {
+    if(f_id == SD_GET_CLOCK_DIVIDER_FAIL) {
         printf("EMMC: unable to get a valid clock divider for ID frequency\n");
         return -1;
     }
@@ -1460,8 +1458,7 @@ int sd_card_init(struct block_device **dev)
 //    if((GET32(MMIO_BASE + emmc_base + EMMC_CONTROL1) & 0x2) == 0)
     PUT32(EMMC_REGS_CONTROL1, control1);
     TIMEOUT_WAIT(GET32(EMMC_REGS_CONTROL1) & 0x2, 0x1000000);
-    if((GET32(EMMC_REGS_CONTROL1) & 0x2) == 0)
-    {
+    if((GET32(EMMC_REGS_CONTROL1) & 0x2) == 0) {
         printf("EMMC: controller's clock did not stabilise within 1 second\n");
         return -1;
     }
@@ -1483,7 +1480,7 @@ int sd_card_init(struct block_device **dev)
     control1 |= 4;
 //    PUT32(MMIO_BASE + emmc_base + EMMC_CONTROL1, control1);
     PUT32(EMMC_REGS_CONTROL1, control1);
-    usleep(2000);
+    usleep(2000); // FIXME: usleep is unimplemented
 #ifdef EMMC_DEBUG
     printf("EMMC: SD clock enabled\n");
 #endif
@@ -1509,7 +1506,7 @@ int sd_card_init(struct block_device **dev)
 
     // Prepare the device structure
     struct emmc_block_dev *ret;
-    if(*dev == NULL) // Not supported
+    if(*dev == NULL)
         ret = (struct emmc_block_dev *)malloc(sizeof(struct emmc_block_dev));
     else
         ret = (struct emmc_block_dev *)*dev;
@@ -1994,6 +1991,15 @@ int sd_card_init(struct block_device **dev)
     *dev = (struct block_device *)ret;
 
     return 0;
+}
+
+/* Properly dispose of a block device struct setup by sd_card_init(). */
+void sd_card_cleanup(struct block_device *dev)
+{
+    struct emmc_block_dev *edev = (struct emmc_block_dev*)dev;
+    free(dev->device_id);
+    free(edev->scr);
+    free(edev);
 }
 
 static int sd_ensure_data_mode(struct emmc_block_dev *edev)
