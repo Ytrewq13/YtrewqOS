@@ -25,7 +25,7 @@ int      strcoll(const char *, const char *);
 char    *strcpy(char *restrict, const char *restrict);
 size_t   strcspn(const char *, const char *); // TODO
 char    *strdup(const char *); // TODO
-char    *strerror(int); // TODO
+char    *strerror(int);
 int      strerror_r(int, char *, size_t); // TODO
 size_t   strlen(const char *);
 char    *strncat(char *restrict, const char *restrict, size_t); // TODO
