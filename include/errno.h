@@ -22,7 +22,6 @@
 #ifndef ERRNO_H
 #define ERRNO_H
 
-// TODO: implement errname function (strerror() - in string.h)
 enum {
     EPERM = 1, // Operation not permitted
     ENOENT = 2, // No such file or directory
