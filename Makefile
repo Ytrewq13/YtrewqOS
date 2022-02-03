@@ -204,10 +204,11 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 	@echo "Objcopy  $@"
 	@$(OBJCOPY) $(KERNEL_ELF) $(KERNEL_IMG)
 
+# Create the SD card image and format it to exFAT
 $(SD_IMG): $(BINDIR)
 	@echo "IMG      $@"
 	@qemu-img create -f raw -q "$@" 1024M
-#	@dd if=/dev/zero of=$@ bs=1M count=1024
+	@mkfs.exfat "$@" &> /dev/null
 
 # Clean all intermediate files
 clean:
