@@ -173,7 +173,6 @@ all: $(KERNEL_IMG)
 #dbg:
 #	@echo \$$\(SRCS\): $(SRCS)
 #	@echo \$$\(OBJ\):  $(OBJ)
-#	@echo \$$\(OBJDIRS\): $(OBJDIRS)
 #	@echo \$$\(DEPS\): $(DEPS)
 
 
@@ -231,6 +230,9 @@ reset: distclean
 sd: $(BINDIR)
 	@rm -f $(SD_IMG)
 	@$(MAKE) --no-print-directory $(SD_IMG)
+
+$(OUTDIR) $(BINDIR) $(OBJDIR):
+	mkdir -p $@
 
 # Run the VM with the generated kernel
 run: $(KERNEL_IMG) $(SD_IMG)
