@@ -1,8 +1,12 @@
+#ifndef DRIVERS_HW_EMMC_H
+#define DRIVERS_HW_EMMC_H
+
 #include "drivers/hw/mmio.h"
 #include "drivers/hw/mbox.h"
 #include "fs/block.h"
 #include "kernel/timer.h"
 
+// TODO: rewrite implementation of SD card stuff (so I understand it better)
 enum EMMC_REGS {
     EMMC_BASE = MMIO_BASE | 0x00300000,
 
@@ -187,7 +191,10 @@ struct emmc_block_dev
 void emmc_set_base(uint32_t base);
 
 int sd_card_init(struct block_device **dev);
+void sd_card_cleanup(struct block_device *dev);
 int sd_read(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_no);
 #ifdef SD_WRITE_SUPPORT
 int sd_write(struct block_device *dev, uint8_t *buf, size_t buf_size, uint32_t block_no);
 #endif
+
+#endif /* drivers_hw_emmc_h */

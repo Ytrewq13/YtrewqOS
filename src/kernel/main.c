@@ -17,6 +17,7 @@
 #include "drivers/hw/mbox.h"
 #include "drivers/hw/mem.h"
 #include "drivers/hw/uart.h"
+#include "fs/fat.h"
 #include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
@@ -282,6 +283,8 @@ void kernel_main()
      *   - block size is available in `dev->block_size`
      * - SD card data persists after writing (even when VM is shut down), so
      *   sd_write() should be called only when there is a sync() syscall
+     * - sd_card_init() has hidden malloc() calls which leak memory. Call
+     *   sd_card_cleanup() on `dev` to free these blocks.
      */
     // Try to write something to the SD card
     struct block_device *dev;
@@ -295,37 +298,43 @@ void kernel_main()
                 err);
         while (1) {}
     }
-    size_t sd_buf_sz = 512;
-    size_t block_id = 1;
-    char *sd_write_buf = malloc(sd_buf_sz);
-    char *msg = "hello sd card!";
-    memset(sd_write_buf, 0, sd_buf_sz);
-    memcpy(sd_write_buf, msg, strlen(msg)+1);
-    char *sd_read_buf = malloc(sd_buf_sz);
-    err = sd_write(dev, (uint8_t*)sd_write_buf, sd_buf_sz, block_id);
-    if (err != sd_buf_sz) {
-        printf("ERR (");
-        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
-        printf("FATAL");
-        console_reset_colors();
-        printf("): failed to write to SD card - sd_write() returned %d\n", err);
-        while (1) {}
-    }
-    printf("Sucessfully wrote to SD card!\n");
-    // Read back the bytes
-    err = sd_read(dev, (uint8_t*)sd_read_buf, sd_buf_sz, block_id);
-    if (err != sd_buf_sz) {
-        printf("ERR (");
-        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
-        printf("FATAL");
-        console_reset_colors();
-        printf("): failed to read from SD card - sd_read() returned %d\n", err);
-        while (1) {}
-    }
-    printf("Read '%s' from SD card\n", sd_read_buf);
-    free(sd_write_buf);
-    free(sd_read_buf);
 
+    // TODO: read filesystem info from SD card
+    struct exfat_superblock exfat_info;
+    err = exfat_read_boot_block(dev, &exfat_info);
+    if (err != 0) {
+        printf("ERR (");
+        console_set_tmp_fg_color(CONFIG_COLOR_TEST_FAIL);
+        printf("FATAL");
+        console_reset_colors();
+        printf("): Failed to read SD boot block: '%s' (Error %d)\n",
+                strerror(errno), errno);
+        while (1) {}
+    }
+    // FIXME: printf width specifiers
+    printf("SD card exFAT properties (from boot block)\n");
+    printf("Volume serial number    %#x\n", exfat_info.volume_serialnumber);
+    printf("FS version              %#hx\n", exfat_info.fs_revision);
+    printf("Sector size             %ld\n", exfat_info.sectorsize);
+    printf("Cluster size            %#ld\n", exfat_info.sectorsize *
+            exfat_info.clustersize);
+    printf("Sectors count           %#ld\n", exfat_info.volume_length);
+    printf("Clusters Count          %#d\n", exfat_info.cluster_count);
+    printf("First sector            %#ld\n", exfat_info.partition_offset);
+    printf("FAT first sector        %#d\n", exfat_info.fat_offset);
+    printf("Fat sectors count       %#d\n", exfat_info.fat_length);
+    printf("First cluster sector    %#d\n", exfat_info.clusterheap_offset);
+    printf("Root directory cluster  %d\n", exfat_info.rootdir_start);
+    printf("FATs count              %hhd\n", exfat_info.fat_cnt);
+    printf("Allocated space         %hhd%%\n", exfat_info.use_percent);
+//    u8 active_fat;  // Which fat is active
+//    printf("");
+//    bool volume_dirty;
+//    printf("");
+//    bool media_failure;
+//    printf("");
+//    bool clear_to_zero;
+//    printf("");
 
     // echo everything back
     while (1) {

@@ -20,7 +20,7 @@
  */
 
 #ifndef FS_H
-#define FS_H 1
+#define FS_H
 
 #include <stdint.h>
 
@@ -48,13 +48,17 @@ struct fs {
 	struct dirent *(*read_directory)(struct fs *, char **name);
 };
 
+// TODO: what does this do?
 int register_fs(struct block_device *dev, int part_id);
+// TODO: what does this do?
 int fs_interpret_mode(const char *mode);
+// TODO: what does this do?
 size_t fs_fread(uint32_t (*get_next_bdev_block_num)(uint32_t f_block_idx, FILE *s, void *opaque, int add_blocks),
 	struct fs *fs, void *ptr, size_t byte_size,
 	FILE *stream, void *opaque);
+// TODO: what does this do?
 size_t fs_fwrite(uint32_t (*get_next_bdev_block_num)(uint32_t f_block_idx, FILE *s, void *opaque, int add_blocks),
 	struct fs *fs, void *ptr, size_t byte_size,
 	FILE *stream, void *opaque);
 
-#endif /* FS_H */
+#endif /* fs_h */
