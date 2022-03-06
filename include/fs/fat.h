@@ -69,12 +69,6 @@ struct exfat_cluster {
     bool end_of_chain;  // This cluster is the last in its ClusterChain
 };
 
-// code | importance | category | use
-// (C)ritical/(B)enign (P)rimary/(S)econdary
-#define ENTRYTYPE_CP(code) ((((code) & 0x1F) << 0) | (0 << 5) | (0 << 6) | (1 << 7))
-#define ENTRYTYPE_BP(code) ((((code) & 0x1F) << 0) | (1 << 5) | (0 << 6) | (1 << 7))
-#define ENTRYTYPE_CS(code) ((((code) & 0x1F) << 0) | (0 << 5) | (1 << 6) | (1 << 7))
-#define ENTRYTYPE_BS(code) ((((code) & 0x1F) << 0) | (1 << 5) | (1 << 6) | (1 << 7))
 
 struct exfat_directory_info {
     struct block_device *bd;
@@ -98,7 +92,7 @@ struct __attribute__((packed)) exfat_dirent_upcase_chunk {
 
 struct __attribute__((packed)) exfat_dirent_vollab_chunk {
     uint8_t len;
-    char label[22];
+    char label[12];
 };
 
 struct __attribute__((packed)) exfat_dirent_file_chunk {
@@ -152,23 +146,53 @@ struct __attribute__((packed)) exfat_dirent_vendor_alloc_chunk {
     uint8_t vendor_defined[2];
 }; // cluster/data-size associated with this dirent type
 
+
+#define ENTRYTYPE_USE_MASK 0x80
+
+enum EXFAT_DIRENT_TYPE {
+    DIRENT_INVALID,
+    DIRENT_EOD,
+    DIRENT_ALLOC_BMP,
+    DIRENT_UPCASE_TABLE,
+    DIRENT_VOLUME_LABEL,
+    DIRENT_FILE,
+    DIRENT_VOLUME_GUID,
+    DIRENT_STREAM_EXT,
+    DIRENT_FILE_NAME,
+    DIRENT_VENDOR_EXT,
+    DIRENT_VENDOR_ALLOC,
+    DIRENT_TEXFAT_PADDING,
+};
+
+#define EXFAT_TYPECODE_ALLOCATION_BITMAP 1
+#define EXFAT_TYPECODE_UPCASE_TABLE 2
+#define EXFAT_TYPECODE_VOLUME_LABEL 3
+#define EXFAT_TYPECODE_FILE 5
+#define EXFAT_TYPECODE_VOLUME_GUID 0
+#define EXFAT_TYPECODE_STREAM_EXTENSION 0
+#define EXFAT_TYPECODE_FILE_NAME 1
+#define EXFAT_TYPECODE_VENDOR_EXTENSION 0
+#define EXFAT_TYPECODE_VENDOR_ALLOC 1
+#define EXFAT_TYPECODE_TEXFAT_PADDING 1
+
 struct exfat_dirent_info {
     struct exfat_directory_info *parent;
     uint32_t direntset_idx;  // Index into the "Directory"
-    enum {
-        DIRENT_ALLOC_BMP = ENTRYTYPE_CP(1),
-        DIRENT_UPCASE_TABLE = ENTRYTYPE_CP(2),
-        DIRENT_VOLUME_LABEL = ENTRYTYPE_CP(3),
-        DIRENT_FILE = ENTRYTYPE_CP(5),
-        DIRENT_VOLUME_GUID = ENTRYTYPE_BP(0),
-        DIRENT_STREAM_EXT = ENTRYTYPE_CS(0),
-        DIRENT_FILE_NAME = ENTRYTYPE_CS(1),
-        DIRENT_VENDOR_EXT = ENTRYTYPE_BS(0),
-        DIRENT_VENDOR_ALLOC = ENTRYTYPE_BS(1),
-        DIRENT_TEXFAT_PADDING = ENTRYTYPE_BP(1),
-    } type;
-    // TODO: union of extra data structs for different types of directory
-    // entries.
+    // The importance, category, and type code represented in the same way as
+    // on disk.
+    enum EXFAT_DIRENT_TYPE type;
+    bool in_use;  // The in_use bit of the entrytype field can change
+    union {
+        struct exfat_dirent_bitmap_chunk bitmap;
+        struct exfat_dirent_upcase_chunk upcase_table;
+        struct exfat_dirent_vollab_chunk volume_label;
+        struct exfat_dirent_file_chunk file_metadata;
+        struct exfat_dirent_volguid_chunk volume_guid;
+        struct exfat_dirent_strext_chunk stream_extension;
+        struct exfat_dirent_fname_chunk filename;
+        struct exfat_dirent_vendor_guid_chunk vendor_guid;
+        struct exfat_dirent_vendor_alloc_chunk vendor_alloc;
+    } entry_data;
     // If the dirent doesn't point to another cluster chain, then data_length
     // will be 0.
     uint32_t first_cluster;
@@ -176,5 +200,6 @@ struct exfat_dirent_info {
 };
 
 int exfat_read_boot_block(struct block_device *, struct exfat_superblock *);
+int exfat_read_directory_entry(struct exfat_dirent_info *dirent);
 
 #endif /* fs_fat_h */

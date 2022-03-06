@@ -36,6 +36,26 @@ void delay(size_t time)
     for (i = 0; i < time; i++) __asm volatile("nop");
 }
 
+// TODO: remove this when I'm done debugging exfat dirent stuff.
+char *dbg_exfat_dirent_str(uint8_t x)
+{
+    switch (x) {
+        case DIRENT_EOD: return "End of directory";
+        case DIRENT_INVALID: return "Invalid directory entry type";
+        case DIRENT_ALLOC_BMP: return "Allocation Bitmap";
+        case DIRENT_UPCASE_TABLE: return "Up-case table";
+        case DIRENT_VOLUME_LABEL: return "Volume label";
+        case DIRENT_FILE: return "File";
+        case DIRENT_VOLUME_GUID: return "Volume GUID";
+        case DIRENT_STREAM_EXT: return "Stream extension";
+        case DIRENT_FILE_NAME: return "File name";
+        case DIRENT_VENDOR_EXT: return "Vendor extension";
+        case DIRENT_VENDOR_ALLOC: return "Vendor allocation";
+        case DIRENT_TEXFAT_PADDING: return "TexFAT padding";
+        default: return "Unknown directory entry type";
+    }
+}
+
 void kernel_main()
 {
     // TODO: re-organise variable declarations
@@ -336,6 +356,86 @@ void kernel_main()
 //    bool clear_to_zero;
 //    printf("");
 
+    struct exfat_directory_info rootdir;
+    rootdir.bd = dev;
+    rootdir.super = &exfat_info;
+    rootdir.start_cluster = exfat_info.rootdir_start;
+    struct exfat_dirent_info dirent;
+    dirent.parent = &rootdir;
+    dirent.type = DIRENT_INVALID;  // Initial value is invalid
+
+    while (dirent.type != DIRENT_EOD) {  // Read the whole directory
+        err = exfat_read_directory_entry(&dirent);
+        if (err) {
+            printf("Error reading directory entry idx %d: errno %d - '%s'\n",
+                    dirent.direntset_idx, errno, strerror(errno));
+            while (1) {}
+        }
+        printf("Read directory entry - %s", dbg_exfat_dirent_str(dirent.type));
+        char label[12] = {0};
+        char filename[16] = {0};
+        size_t set_size;
+        uintptr_t file_start;
+        size_t file_size;
+        switch (dirent.type) {
+            case DIRENT_VOLUME_LABEL:
+                memcpy(label, dirent.entry_data.volume_label.label,
+                        dirent.entry_data.volume_label.len);
+                printf(" ('%s')\n", label);
+                break;
+            case DIRENT_FILE:
+                set_size = dirent.entry_data.file_metadata.secondary_count;
+                printf(" (%lu secondaries)\n", set_size);
+                // TODO: Store file metadata from the file entry (VFS stuff - struct vfs_file?)
+                // Read the stream entry to get the start cluster of the file data
+                dirent.direntset_idx++;
+                err = exfat_read_directory_entry(&dirent);
+                if (err) {
+                    printf("Error reading directory entry idx %d: errno %d - "
+                            "'%s'\n",
+                            dirent.direntset_idx, errno, strerror(errno));
+                    while (1) {}
+                }
+                if (dirent.type != DIRENT_STREAM_EXT) {
+                    printf("Error: invalid file structure: expected stream "
+                            "extension, got '%s'\n",
+                            dbg_exfat_dirent_str(dirent.type));
+                    while (1) {}
+                }
+                file_start = dirent.first_cluster;
+                file_size = dirent.data_length;
+                printf("  File start: %#lx, file size: %lu bytes\n",
+                        file_start, file_size);
+                // Read the file name entry/entries
+                printf("  Filename: '");
+                for (int i = 0; i < set_size-1; i++) {
+                    dirent.direntset_idx++;
+                    err = exfat_read_directory_entry(&dirent);
+                    if (err) {
+                        printf("Error reading directory entry idx %d: errno %d - "
+                                "'%s'\n",
+                                dirent.direntset_idx, errno, strerror(errno));
+                        while (1) {}
+                    }
+                    if (dirent.type != DIRENT_FILE_NAME) {
+                        printf("Error: invalid file structure: expected "
+                                "filename, got '%s'\n",
+                                dbg_exfat_dirent_str(dirent.type));
+                        while (1) {}
+                    }
+                    memset(filename, 0, 15);
+                    str_from_wchar(filename, dirent.entry_data.filename.filename_part, 15);
+                    printf("%s", filename);
+                }
+                printf("'\n");
+                break;
+            default:
+                printf("\n");
+                break;
+        }
+        dirent.direntset_idx++;
+    }
+
     // echo everything back
     while (1) {
         c = uart0_getc();
@@ -343,6 +443,7 @@ void kernel_main()
         console_putc(c);
     }
     // TODO: reading from keyboard - USB?
+    // TODO: Basic shell
 }
 
 /*

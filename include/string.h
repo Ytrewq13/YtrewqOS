@@ -42,4 +42,6 @@ char    *strtok(char *restrict, const char *restrict); // TODO
 char    *strtok_r(char *restrict, const char *restrict, char **restrict); // TODO
 size_t   strxfrm(char *restrict, const char *restrict, size_t); // TODO
 
+size_t str_from_wchar(char *restrict, const uint16_t *restrict, size_t);
+
 #endif /* string_h */

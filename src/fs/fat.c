@@ -4,6 +4,7 @@
  */
 
 #include "fs/fat.h"
+#include "printf.h"
 
 int exfat_read_boot_block(struct block_device *dev, struct exfat_superblock
         *fat_info)
@@ -46,6 +47,8 @@ int exfat_read_boot_block(struct block_device *dev, struct exfat_superblock
 }
 
 /* Returns 1 on error. */
+// FIXME: this function gets the *NEXT* cluster in the cluster chain, not the
+// current cluster. The current cluster is just the fat index.
 static uint32_t fat_idx_to_cluster_idx(struct block_device *dev, struct
         exfat_superblock sb, uint32_t fat_idx)
 {
@@ -95,16 +98,161 @@ struct exfat_cluster exfat_interpret_fat_entry(struct exfat_block_device
     return cluster;
 }
 
-static size_t cluster_to_block(uint32_t cluster_idx, struct exfat_superblock *sb)
-{ return cluster_idx * sb->clustersize + sb->clusterheap_offset; }
+static int exfat_dirent_interpret_entrytype(uint8_t entrytype, enum EXFAT_DIRENT_TYPE
+        *type, bool *use)
+{
+    *use = entrytype & ENTRYTYPE_USE_MASK;
+#define CRITICAL    (0 << 5)
+#define BENIGN      (1 << 5)
+#define PRIMARY     (0 << 6)
+#define SECONDARY   (1 << 6)
+    switch (entrytype & ~ENTRYTYPE_USE_MASK) {
+        case 0x00:
+            if (*use) *type = DIRENT_INVALID;
+            else *type = DIRENT_EOD;
+            break;
+        case (CRITICAL | PRIMARY   | EXFAT_TYPECODE_ALLOCATION_BITMAP):
+            *type = DIRENT_ALLOC_BMP; break;
+        case (CRITICAL | PRIMARY   | EXFAT_TYPECODE_UPCASE_TABLE):
+            *type = DIRENT_UPCASE_TABLE; break;
+        case (CRITICAL | PRIMARY   | EXFAT_TYPECODE_VOLUME_LABEL):
+            *type = DIRENT_VOLUME_LABEL; break;
+        case (CRITICAL | PRIMARY   | EXFAT_TYPECODE_FILE):
+            *type = DIRENT_FILE; break;
+        case (BENIGN   | PRIMARY   | EXFAT_TYPECODE_VOLUME_GUID):
+            *type = DIRENT_VOLUME_GUID; break;
+        case (CRITICAL | SECONDARY | EXFAT_TYPECODE_STREAM_EXTENSION):
+            *type = DIRENT_STREAM_EXT; break;
+        case (CRITICAL | SECONDARY | EXFAT_TYPECODE_FILE_NAME):
+            *type = DIRENT_FILE_NAME; break;
+        case (BENIGN   | SECONDARY | EXFAT_TYPECODE_VENDOR_EXTENSION):
+            *type = DIRENT_VENDOR_EXT; break;
+        case (BENIGN   | SECONDARY | EXFAT_TYPECODE_VENDOR_ALLOC):
+            *type = DIRENT_VENDOR_ALLOC; break;
+        case (BENIGN   | PRIMARY   | EXFAT_TYPECODE_TEXFAT_PADDING):
+            *type = DIRENT_TEXFAT_PADDING; break;
+        default:
+            return -1;
+    }
+#undef CRITICAL
+#undef BENIGN
+#undef PRIMARY
+#undef SECONDARY
+    return 0;
+}
+
+static size_t cluster_to_block(uint32_t cluster_idx, struct exfat_superblock
+        *sb)
+{ return (cluster_idx-2) * sb->clustersize + sb->clusterheap_offset; }
 
 static size_t directory_start_block(struct exfat_directory_info *dir)
 { return cluster_to_block(dir->start_cluster, dir->super); }
 
-/* Read an exFAT DirectoryEntry */
-int exfat_read_directory_entry(struct exfat_dirent_info dirent)
+static int exfat_read_directory_entry_data(struct exfat_dirent_info *dirent,
+        uint8_t *dirent_contents)
 {
-    struct block_device *dev = dirent.parent->bd;
+    struct exfat_dirent_bitmap_chunk bitmap = {0};
+    struct exfat_dirent_upcase_chunk upcase = {0};
+    struct exfat_dirent_vollab_chunk volume_label = {0};
+    struct exfat_dirent_file_chunk file = {0};
+    struct exfat_dirent_volguid_chunk vguid = {0};
+    struct exfat_dirent_strext_chunk stream_extension = {0};
+    struct exfat_dirent_fname_chunk filename = {0};
+    struct exfat_dirent_vendor_guid_chunk vend_guid = {0};
+    struct exfat_dirent_vendor_alloc_chunk vend_alloc = {0};
+    int err;
+    err = exfat_dirent_interpret_entrytype(dirent_contents[0], &dirent->type,
+            &dirent->in_use);
+    if (err) {
+        // Invalid type code - maybe corrupt FS or just wrong offset?
+        errno = EINVAL;
+        return -1;
+    }
+    switch ((dirent->type)) {
+        case DIRENT_EOD: break;
+        case DIRENT_ALLOC_BMP:
+            bitmap.bitmap_flags = dirent_contents[1];
+            dirent->entry_data.bitmap = bitmap;
+            memcpy(&dirent->first_cluster, dirent_contents+20, 4);
+            memcpy(&dirent->data_length, dirent_contents+24, 8);
+            break;
+        case DIRENT_UPCASE_TABLE:
+            upcase.table_checksum = dirent_contents[2];
+            dirent->entry_data.upcase_table = upcase;
+            memcpy(&dirent->first_cluster, dirent_contents+20, 4);
+            memcpy(&dirent->data_length, dirent_contents+24, 8);
+            break;
+        case DIRENT_VOLUME_LABEL:
+            volume_label.len = dirent_contents[1];
+            if (volume_label.len > 11) {
+                errno = EINVAL;
+                return -1;
+            }
+            // Copy the LSB of each unicode (UTF-16) character. TODO: Add
+            // support for UTF-16 characters (Windows WCHARs)
+            for (uint_fast8_t i = 0; i < volume_label.len; i++)
+                volume_label.label[i] = dirent_contents[2+i*2];
+            dirent->entry_data.volume_label = volume_label;
+            break;
+        case DIRENT_FILE:
+            file.secondary_count = dirent_contents[1];
+            memcpy(&file.set_checksum, dirent_contents+2, 2);
+            memcpy(&file.file_attributes, dirent_contents+4, 2);
+            memcpy(&file.create_timestamp, dirent_contents+8, 4);
+            memcpy(&file.modified_timestamp, dirent_contents+12, 4);
+            memcpy(&file.accessed_timestamp, dirent_contents+16, 4);
+            file.create_10ms_increment = dirent_contents[20];
+            file.modified_10ms_increment = dirent_contents[21];
+            file.create_utc_offset = dirent_contents[22];
+            file.modified_utc_offset = dirent_contents[23];
+            file.accessed_utc_offset = dirent_contents[24];
+            dirent->entry_data.file_metadata = file;
+            break;
+        case DIRENT_VOLUME_GUID:
+            vguid.secondary_count = dirent_contents[1];
+            memcpy(&vguid.set_checksum, dirent_contents+2, 2);
+            memcpy(&vguid.general_primary_flags, dirent_contents+4, 2);
+            memcpy(&vguid.volume_guid, dirent_contents+6, 16);
+            dirent->entry_data.volume_guid = vguid;
+            break;
+        case DIRENT_STREAM_EXT:
+            stream_extension.general_secondary_flags = dirent_contents[1];
+            stream_extension.name_length = dirent_contents[3];
+            memcpy(&stream_extension.name_hash, dirent_contents+4, 2);
+            memcpy(&stream_extension.valid_data_length, dirent_contents+8, 8);
+            dirent->entry_data.stream_extension = stream_extension;
+            break;
+        case DIRENT_FILE_NAME:
+            filename.general_secondary_flags = dirent_contents[1];
+            memcpy(&filename.filename_part, dirent_contents+2, 30);
+            dirent->entry_data.filename = filename;
+            break;
+        case DIRENT_VENDOR_EXT:
+            vend_guid.general_secondary_flags = dirent_contents[1];
+            memcpy(&vend_guid.vendor_guid, dirent_contents+2, 16);
+            memcpy(&vend_guid.vendor_defined, dirent_contents+18, 14);
+            break;
+        case DIRENT_VENDOR_ALLOC:
+            vend_alloc.general_secondary_flags = dirent_contents[1];
+            memcpy(&vend_alloc.vendor_guid, dirent_contents+2, 16);
+            memcpy(&vend_alloc.vendor_defined, dirent_contents+18, 2);
+            break;
+        case DIRENT_TEXFAT_PADDING:
+            // TexFAT Padding Directory Entry is not implemented/supported
+            errno = ENOSYS;
+            return -1;
+            break;
+        case DIRENT_INVALID:
+            errno = EIO;
+            return -1;
+    }
+    return 0;
+}
+
+/* Read an exFAT DirectoryEntry */
+int exfat_read_directory_entry(struct exfat_dirent_info *dirent)
+{
+    struct block_device *dev = dirent->parent->bd;
     size_t block_size = dev->block_size;
     int read_cnt;
     uint8_t *buf;
@@ -113,9 +261,10 @@ int exfat_read_directory_entry(struct exfat_dirent_info dirent)
     size_t dirent_blk;
     uint32_t dirent_offset;  // Offset into the block
     uint8_t dirent_contents[EXFAT_DIRECTORY_ENTRY_SIZE];
+    int err;
 
-    dir_start = directory_start_block(dirent.parent);
-    dirent_addr = dir_start * block_size + 4 * dirent.direntset_idx;
+    dir_start = directory_start_block(dirent->parent);
+    dirent_addr = dir_start * block_size + EXFAT_DIRECTORY_ENTRY_SIZE * dirent->direntset_idx;
     dirent_blk = dirent_addr / block_size;
     dirent_offset = dirent_addr % block_size;
 
@@ -131,27 +280,18 @@ int exfat_read_directory_entry(struct exfat_dirent_info dirent)
         return -1;
     }
     memcpy(dirent_contents, buf+dirent_offset, EXFAT_DIRECTORY_ENTRY_SIZE);
-    free(buf);  // Free the block buffer - we have read the DirectoryEntry
-    // TODO: parse the directory entry that is now in dirent_contents[] and
-    // read the information into the struct `dirent`.
-    errno = ENOSYS;  // Function not implemented
-    return -1;
-}
-
-// TODO: work out the correct function signature (and implement any needed
-// structs)
-// - global variable to store allocation bitmap? <- this is a bad idea:
-// requires 4k for a 1GB HDD, scales linearly. Too much RAM.
-// - Store allocation changes in memory and flush multiple at once?
-int exfat_read_allocation_bitmap()
-{
-    errno = ENOSYS;
-    return -1;
+    /* Free the block buffer - we have read the DirectoryEntry */
+    free(buf);
+    /* Parse the directory entry that is now in dirent_contents[] and read the
+     * information into the struct `dirent`. */
+    err = exfat_read_directory_entry_data(dirent, dirent_contents);
+    if (err != 0) return err; // errno is already set
+    return 0;
 }
 
 /* TODO:
  * - When reading files, do we want to only read one cluster at a time to save
- *   memory?
+ *   memory? (Or one block at a time - read clusters block-by block?)
  */
 
 /* Reads a cluster's data into a buffer of the correct size. Sets errno and
@@ -178,6 +318,23 @@ int exfat_read_cluster_to_buf(struct block_device *dev, struct
     }
     errno = 0;
     return 0;
+}
+
+/* Returns the exfat hash of a filename. Filename argument is given as a wide
+ * character string (2 bytes per character) and should be up-cased prior to
+ * calling this function. */
+static uint16_t exfat_name_hash(int16_t *filename, uint8_t namelength)
+{
+    uint16_t *buffer = (uint16_t *)filename;
+    uint16_t number_of_bytes = (uint16_t)namelength * 2;
+    uint16_t hash = 0;
+    uint16_t index;
+
+    for (index = 0; index < number_of_bytes; index++) {
+        hash = ((hash & 1) ? 0x8000 : 0) + (hash >> 1) +
+            (uint16_t)buffer[index];
+    }
+    return hash;
 }
 
 int exfat_read_dir(struct block_device *dev, struct exfat_superblock *fat_info,

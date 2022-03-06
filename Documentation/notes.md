@@ -32,3 +32,20 @@
 ## FAT
 
 * [FAT specification](https://wiki.osdev.org/FAT)
+* [ExFAT official specification](https://docs.microsoft.com/en-us/windows/win32/fileio/exfat-specification)
+
+# Executable file formats
+
+* ELF vs PE
+  * ELF is better documented
+  * PE has too many Windows-specific details
+* Raw binary?
+  * Everything statically compiled
+  * Larger binary sizes (not really important)
+  * Easy to extract from statically linked ELF binaries (`objcopy`)
+    * Tools exist to convert dynamically linked ELF binaries into statically
+    linked ones (at least for Linux)
+    * All binaries would be compiled from source, so just compile statically to
+    start with
+  * Implement raw binary loading first (i.e. a stopgap solution until ELF is
+  supported in a future update)

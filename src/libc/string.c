@@ -405,3 +405,14 @@ size_t strxfrm(char *restrict dest, const char *restrict src, size_t n)
     return 0;
 }
 
+/* Get a string from a wide character string. Just throws away the high bytes. */
+size_t str_from_wchar(char *restrict dest, const uint16_t *restrict src, size_t n)
+{
+    size_t x = 0;
+    char *ptr = (char *)src;
+    while (*ptr != 0 && x++ < n) {
+        *dest++ = *ptr;
+        ptr += 2;
+    }
+    return x;
+}
