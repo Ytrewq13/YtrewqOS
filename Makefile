@@ -207,10 +207,9 @@ $(KERNEL_IMG): $(KERNEL_ELF)
 	@$(OBJCOPY) $(KERNEL_ELF) $(KERNEL_IMG)
 
 # Create the SD card image and format it to exFAT
-$(SD_IMG): $(BINDIR)
-	@echo "IMG      $@"
-	@qemu-img create -f raw -q "$@" 1024M
-	@mkfs.exfat "$@" &> /dev/null
+$(SD_IMG): $(TEMPLATE_IMG)
+	@echo "CP       $@"
+	@cp "$(TEMPLATE_IMG)" "$(SD_IMG)"
 
 $(TEMPLATE_IMG): $(BINDIR)
 	@echo "IMG      $@"
@@ -230,6 +229,7 @@ clean:
 distclean: clean
 	@rm -f  $(KERNEL_IMG)
 	@rm -f  $(SD_IMG)
+	@rm -f  $(TEMPLATE_IMG)
 	@rm -df $(BINDIR)
 	@rm -df $(OUTDIR)
 
