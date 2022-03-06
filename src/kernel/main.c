@@ -386,6 +386,11 @@ void kernel_main()
             case DIRENT_FILE:
                 set_size = dirent.entry_data.file_metadata.secondary_count;
                 printf(" (%lu secondaries)\n", set_size);
+                printf("  File type: ");
+                if (dirent.entry_data.file_metadata.file_attributes.directory)
+                    printf("directory\n");
+                else
+                    printf("file\n");
                 // TODO: Store file metadata from the file entry (VFS stuff - struct vfs_file?)
                 // Read the stream entry to get the start cluster of the file data
                 dirent.direntset_idx++;

@@ -21,6 +21,9 @@ TAGS = tags
 KERNEL_ELF = $(BINDIR)/kernel8.elf
 KERNEL_IMG = $(BINDIR)/kernel8.img
 SD_IMG = $(BINDIR)/sd.img
+SKEL_DIR = $(TOOLSDIR)/fat/skel
+FORMAT_FS = $(TOOLSDIR)/fat/setup-fs.sh
+TEMPLATE_IMG = $(BINDIR)/template.img
 LINK_SCRIPT = $(LDDIR)/linker.ld
 GDB_CMDFILE = $(TOOLSDIR)/debug/commands.gdb
 DEBUG_PIDFILE = $(BINDIR)/vm.pid
@@ -209,6 +212,14 @@ $(SD_IMG): $(BINDIR)
 	@qemu-img create -f raw -q "$@" 1024M
 	@mkfs.exfat "$@" &> /dev/null
 
+$(TEMPLATE_IMG): $(BINDIR)
+	@echo "IMG      $@"
+	@qemu-img create -f raw -q "$@" 1024M
+	@mkfs.exfat "$@" &> /dev/null
+	@exfatlabel "$@" "mysdcard"
+	@echo "CP       $@"
+	@sh "$(FORMAT_FS)" "$(SKEL_DIR)" "$(TEMPLATE_IMG)"
+
 # Clean all intermediate files
 clean:
 	@rm -f  $(KERNEL_ELF)
@@ -227,9 +238,10 @@ reset: distclean
 	@rm -f $(CCDB)
 	@rm -f $(TAGS)
 
-sd: $(BINDIR)
+sd: $(BINDIR) $(TEMPLATE_IMG)
+	@echo "CP       $(SD_IMG)"
 	@rm -f $(SD_IMG)
-	@$(MAKE) --no-print-directory $(SD_IMG)
+	@cp $(TEMPLATE_IMG) $(SD_IMG)
 
 $(OUTDIR) $(BINDIR) $(OBJDIR):
 	mkdir -p $@

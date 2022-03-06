@@ -221,6 +221,8 @@ static int exfat_read_directory_entry_data(struct exfat_dirent_info *dirent,
             memcpy(&stream_extension.name_hash, dirent_contents+4, 2);
             memcpy(&stream_extension.valid_data_length, dirent_contents+8, 8);
             dirent->entry_data.stream_extension = stream_extension;
+            memcpy(&dirent->first_cluster, dirent_contents+20, 4);
+            memcpy(&dirent->data_length, dirent_contents+24, 8);
             break;
         case DIRENT_FILE_NAME:
             filename.general_secondary_flags = dirent_contents[1];
@@ -236,6 +238,8 @@ static int exfat_read_directory_entry_data(struct exfat_dirent_info *dirent,
             vend_alloc.general_secondary_flags = dirent_contents[1];
             memcpy(&vend_alloc.vendor_guid, dirent_contents+2, 16);
             memcpy(&vend_alloc.vendor_defined, dirent_contents+18, 2);
+            memcpy(&dirent->first_cluster, dirent_contents+20, 4);
+            memcpy(&dirent->data_length, dirent_contents+24, 8);
             break;
         case DIRENT_TEXFAT_PADDING:
             // TexFAT Padding Directory Entry is not implemented/supported

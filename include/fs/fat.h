@@ -98,7 +98,15 @@ struct __attribute__((packed)) exfat_dirent_vollab_chunk {
 struct __attribute__((packed)) exfat_dirent_file_chunk {
     uint8_t secondary_count;
     uint16_t set_checksum;
-    uint16_t file_attributes;
+    struct __attribute__((__packed__)) {
+        unsigned int read_only : 1;
+        unsigned int hidden : 1;
+        unsigned int system : 1;
+        unsigned int reserved1 : 1;
+        unsigned int directory : 1;
+        unsigned int archive : 1;
+        unsigned int reserved2 : 10;
+    } file_attributes;
     uint16_t reserved1;
     uint32_t create_timestamp;
     uint32_t modified_timestamp;
