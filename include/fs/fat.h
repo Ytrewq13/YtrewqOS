@@ -7,6 +7,7 @@
 #include "errno.h"
 #include "error_types.h"
 #include "fs/block.h"
+#include "fs/dirent.h"
 #include "drivers/hw/eMMC.h"
 #include "stdlib.h"
 #include "string.h"
@@ -58,7 +59,7 @@ struct exfat_superblock {
 };
 
 struct exfat_block_device {
-    struct block_device bd;
+    struct block_device *bd;
     struct exfat_superblock sb;
 };
 
@@ -72,13 +73,12 @@ struct exfat_cluster {
 
 struct exfat_directory_info {
     struct block_device *bd;
-    struct exfat_superblock *super;
+    struct exfat_superblock super;
     uint32_t start_cluster; // First cluster of the directory
 };
 
 #define EXFAT_DIRECTORY_ENTRY_SIZE 32
 
-// TODO: just use a union of each data type?
 struct __attribute__((packed)) exfat_dirent_bitmap_chunk {
     uint8_t bitmap_flags;
     uint8_t reserved[18];
@@ -98,7 +98,7 @@ struct __attribute__((packed)) exfat_dirent_vollab_chunk {
 struct __attribute__((packed)) exfat_dirent_file_chunk {
     uint8_t secondary_count;
     uint16_t set_checksum;
-    struct __attribute__((__packed__)) {
+    struct __attribute__((packed)) {
         unsigned int read_only : 1;
         unsigned int hidden : 1;
         unsigned int system : 1;
@@ -183,6 +183,12 @@ enum EXFAT_DIRENT_TYPE {
 #define EXFAT_TYPECODE_VENDOR_ALLOC 1
 #define EXFAT_TYPECODE_TEXFAT_PADDING 1
 
+struct exfat_file_contents {
+    struct exfat_block_device ebd;
+    uint32_t start_cluster;
+    uint64_t data_length;
+};
+
 struct exfat_dirent_info {
     struct exfat_directory_info *parent;
     uint32_t direntset_idx;  // Index into the "Directory"
@@ -209,5 +215,7 @@ struct exfat_dirent_info {
 
 int exfat_read_boot_block(struct block_device *, struct exfat_superblock *);
 int exfat_read_directory_entry(struct exfat_dirent_info *dirent);
+
+struct dirent *exfat_readdir_fromblock(struct exfat_block_device *, uintptr_t);
 
 #endif /* fs_fat_h */

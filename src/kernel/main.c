@@ -30,6 +30,58 @@ extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int syscall(long nr, ...);
 
+struct dirent_chain {
+    struct dirent_chain *next;
+    struct dirent *d;
+};
+
+// TODO:
+// - Move this function into a utility that is shipped with the OS and can be invoked from the shell
+// - Add path parsing
+// - Improve directory formatting
+void test_printtree(struct exfat_superblock exfat_info, struct block_device *dev)
+{
+    uintptr_t rootdir_block = (exfat_info.rootdir_start - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset;
+    struct exfat_block_device ebd = { .bd = dev, .sb = exfat_info };
+    struct dirent *d, *dirent_it;
+    struct dirent_chain *chain = NULL, *tmpchain;
+    d = exfat_readdir_fromblock(&ebd, rootdir_block);
+
+    size_t tree_depth = 0;
+    dirent_it = d;
+    while (dirent_it != NULL || chain != NULL) {
+        for (int i = 0; i < tree_depth; i++) {
+            printf("| ");
+        }
+        if (dirent_it->is_dir) console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
+        printf("%s", dirent_it->name);
+        if (dirent_it->is_dir) {
+            console_reset_colors();
+            printf("/");
+            // Save the dirent iterator so we can pick up where we left off
+            tmpchain = malloc(sizeof(struct dirent_chain));
+            if (tmpchain == NULL) {
+                errno = ENOMEM;
+                return;
+            }
+            tmpchain->next = chain;
+            tmpchain->d = dirent_it;
+            chain = tmpchain;
+            tree_depth++;
+            dirent_it = exfat_readdir_fromblock(&ebd, (((struct exfat_file_contents*)dirent_it->opaque)->start_cluster - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset);
+        } else {
+            dirent_it = dirent_it->next;
+        }
+        printf("\n");
+        while (dirent_it == NULL && chain != NULL) {
+            tree_depth--;
+            tmpchain = chain->next;
+            dirent_it = chain->d->next;
+            chain = tmpchain;
+        }
+    }
+}
+
 void delay(size_t time)
 {
     size_t i;
@@ -347,99 +399,14 @@ void kernel_main()
     printf("Root directory cluster  %d\n", exfat_info.rootdir_start);
     printf("FATs count              %hhd\n", exfat_info.fat_cnt);
     printf("Allocated space         %hhd%%\n", exfat_info.use_percent);
-//    u8 active_fat;  // Which fat is active
-//    printf("");
-//    bool volume_dirty;
-//    printf("");
-//    bool media_failure;
-//    printf("");
-//    bool clear_to_zero;
-//    printf("");
 
-    struct exfat_directory_info rootdir;
-    rootdir.bd = dev;
-    rootdir.super = &exfat_info;
-    rootdir.start_cluster = exfat_info.rootdir_start;
-    struct exfat_dirent_info dirent;
-    dirent.parent = &rootdir;
-    dirent.type = DIRENT_INVALID;  // Initial value is invalid
 
-    while (dirent.type != DIRENT_EOD) {  // Read the whole directory
-        err = exfat_read_directory_entry(&dirent);
-        if (err) {
-            printf("Error reading directory entry idx %d: errno %d - '%s'\n",
-                    dirent.direntset_idx, errno, strerror(errno));
-            while (1) {}
-        }
-        printf("Read directory entry - %s", dbg_exfat_dirent_str(dirent.type));
-        char label[12] = {0};
-        char filename[16] = {0};
-        size_t set_size;
-        uintptr_t file_start;
-        size_t file_size;
-        switch (dirent.type) {
-            case DIRENT_VOLUME_LABEL:
-                memcpy(label, dirent.entry_data.volume_label.label,
-                        dirent.entry_data.volume_label.len);
-                printf(" ('%s')\n", label);
-                break;
-            case DIRENT_FILE:
-                set_size = dirent.entry_data.file_metadata.secondary_count;
-                printf(" (%lu secondaries)\n", set_size);
-                printf("  File type: ");
-                if (dirent.entry_data.file_metadata.file_attributes.directory)
-                    printf("directory\n");
-                else
-                    printf("file\n");
-                // TODO: Store file metadata from the file entry (VFS stuff - struct vfs_file?)
-                // Read the stream entry to get the start cluster of the file data
-                dirent.direntset_idx++;
-                err = exfat_read_directory_entry(&dirent);
-                if (err) {
-                    printf("Error reading directory entry idx %d: errno %d - "
-                            "'%s'\n",
-                            dirent.direntset_idx, errno, strerror(errno));
-                    while (1) {}
-                }
-                if (dirent.type != DIRENT_STREAM_EXT) {
-                    printf("Error: invalid file structure: expected stream "
-                            "extension, got '%s'\n",
-                            dbg_exfat_dirent_str(dirent.type));
-                    while (1) {}
-                }
-                file_start = dirent.first_cluster;
-                file_size = dirent.data_length;
-                printf("  File start: %#lx, file size: %lu bytes\n",
-                        file_start, file_size);
-                // Read the file name entry/entries
-                printf("  Filename: '");
-                for (int i = 0; i < set_size-1; i++) {
-                    dirent.direntset_idx++;
-                    err = exfat_read_directory_entry(&dirent);
-                    if (err) {
-                        printf("Error reading directory entry idx %d: errno %d - "
-                                "'%s'\n",
-                                dirent.direntset_idx, errno, strerror(errno));
-                        while (1) {}
-                    }
-                    if (dirent.type != DIRENT_FILE_NAME) {
-                        printf("Error: invalid file structure: expected "
-                                "filename, got '%s'\n",
-                                dbg_exfat_dirent_str(dirent.type));
-                        while (1) {}
-                    }
-                    memset(filename, 0, 15);
-                    str_from_wchar(filename, dirent.entry_data.filename.filename_part, 15);
-                    printf("%s", filename);
-                }
-                printf("'\n");
-                break;
-            default:
-                printf("\n");
-                break;
-        }
-        dirent.direntset_idx++;
-    }
+    printf("\n");
+    // FIXME: some filenames don't print correctly
+    // - Could be an issue with str_from_wchar function?
+    // - certain length filenames?
+    test_printtree(exfat_info, dev);
+    printf("\n");
 
     // echo everything back
     while (1) {

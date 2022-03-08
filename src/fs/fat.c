@@ -91,7 +91,7 @@ struct exfat_cluster exfat_interpret_fat_entry(struct exfat_block_device
     cluster.cluster_bad = false;
     cluster.end_of_chain = false;
     /* NOTE: fat_idx_to_cluster_idx() sets errno on error */
-    cluster.idx = fat_idx_to_cluster_idx(&exdev->bd, exdev->sb, fat_idx);
+    cluster.idx = fat_idx_to_cluster_idx(exdev->bd, exdev->sb, fat_idx);
     cluster.cluster_bad = (cluster.idx == 0xFFFFFFF7);
     cluster.end_of_chain = (cluster.idx == 0xFFFFFFFF);
 
@@ -142,8 +142,8 @@ static int exfat_dirent_interpret_entrytype(uint8_t entrytype, enum EXFAT_DIRENT
 }
 
 static size_t cluster_to_block(uint32_t cluster_idx, struct exfat_superblock
-        *sb)
-{ return (cluster_idx-2) * sb->clustersize + sb->clusterheap_offset; }
+        sb)
+{ return (cluster_idx-2) * sb.clustersize + sb.clusterheap_offset; }
 
 static size_t directory_start_block(struct exfat_directory_info *dir)
 { return cluster_to_block(dir->start_cluster, dir->super); }
@@ -188,10 +188,7 @@ static int exfat_read_directory_entry_data(struct exfat_dirent_info *dirent,
                 errno = EINVAL;
                 return -1;
             }
-            // Copy the LSB of each unicode (UTF-16) character. TODO: Add
-            // support for UTF-16 characters (Windows WCHARs)
-            for (uint_fast8_t i = 0; i < volume_label.len; i++)
-                volume_label.label[i] = dirent_contents[2+i*2];
+            str_from_wchar(volume_label.label, (uint16_t*)dirent_contents+1, volume_label.len);
             dirent->entry_data.volume_label = volume_label;
             break;
         case DIRENT_FILE:
@@ -341,10 +338,94 @@ static uint16_t exfat_name_hash(int16_t *filename, uint8_t namelength)
     return hash;
 }
 
-int exfat_read_dir(struct block_device *dev, struct exfat_superblock *fat_info,
-        char *dir)
+/* Read the directory set of one whole file into a dirent struct */
+static int read_file_direntset(struct exfat_dirent_info first_edirent, struct dirent *dirent)
 {
-    // TODO
-    errno = ENOSYS;  // Function not implemented
-    return -1;
+    int err;
+    struct exfat_dirent_info ed;
+    struct exfat_file_contents *file_contents;
+    size_t name_cnt = first_edirent.entry_data.file_metadata\
+                      .secondary_count - 1;
+    char *name_ptr;
+
+    dirent->is_dir = first_edirent.entry_data.file_metadata.file_attributes\
+                     .directory;
+
+    ed.parent = first_edirent.parent;
+    ed.direntset_idx = first_edirent.direntset_idx + 1;
+    err = exfat_read_directory_entry(&ed);
+    if (err) return -1;
+    if (ed.type != DIRENT_STREAM_EXT) {
+        errno = EINVAL;
+        return -1;
+    }
+//    printf("-- READ FILE STREAM EXT\n");
+    dirent->byte_size = ed.data_length;
+    file_contents = malloc(sizeof(struct exfat_file_contents));
+    if (file_contents == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    file_contents->ebd.bd = ed.parent->bd;
+    file_contents->ebd.sb = ed.parent->super;
+    file_contents->start_cluster = ed.first_cluster;
+    file_contents->data_length = ed.data_length;
+    dirent->opaque = file_contents;
+    dirent->name = malloc(ed.entry_data.stream_extension.name_length + 1);
+    name_ptr = dirent->name;
+    for (int i = 0; i < name_cnt; i++) {
+        ed.direntset_idx++;
+        err = exfat_read_directory_entry(&ed);
+        if (err) {
+            errno = EINVAL;
+            return -1;
+        }
+//        char filenamepart[16] = {0};
+//        str_from_wchar(filenamepart, ed.entry_data.filename.filename_part, 15);
+//        printf("-- READ FILENAME PART: '%s'\n", filenamepart);
+        name_ptr += str_from_wchar(name_ptr, ed.entry_data.filename.filename_part, 15);
+    }
+    return 0;
+}
+
+struct dirent *exfat_readdir_fromblock(struct exfat_block_device *edev,
+        uintptr_t dir_start_block)
+{
+    struct block_device *dev = edev->bd;
+    struct exfat_dirent_info edirent;
+    struct exfat_directory_info edirectory;
+    int err;
+
+    struct dirent *res = NULL, *cur, *prev = NULL;
+
+    edirectory.bd = dev;
+    edirectory.super = edev->sb;
+    edirectory.start_cluster = (dir_start_block - edev->sb.clusterheap_offset)
+        / edev->sb.clustersize + 2;
+    edirent.parent = &edirectory;
+    edirent.direntset_idx = 0;
+    edirent.type = DIRENT_INVALID;
+    while (edirent.type != DIRENT_EOD) {
+        // TODO: function that only parses the type of a dirent
+        err = exfat_read_directory_entry(&edirent);
+        if (err) return NULL;
+        switch (edirent.type) {
+            case DIRENT_FILE:
+                cur = malloc(sizeof(struct dirent));
+                cur->next = NULL;
+                if (prev != NULL) prev->next = cur;
+                err = read_file_direntset(edirent, cur);
+                if (err) return NULL;
+                prev = cur;
+                if (res == NULL) res = prev;
+                // Skip to after the file directory entry set
+                edirent.direntset_idx += edirent.entry_data.file_metadata\
+                                         .secondary_count;
+                break;
+            default:
+                break;
+        }
+        edirent.direntset_idx++;
+    }
+    return res;
 }
