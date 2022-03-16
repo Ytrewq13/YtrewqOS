@@ -442,6 +442,7 @@ void kernel_main()
  *   - implement basic syscalls
  *   - implement/port more obscure syscalls
  * - Memory management:
+ *   - Page tables (MMU)
  *   - Track memory usage?
  * - USB drivers?
  */
