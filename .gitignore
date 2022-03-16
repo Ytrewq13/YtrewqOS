@@ -5,6 +5,7 @@
 
 Documentation/dissertation/*/build/*
 !Documentation/dissertation/*/build/*.pdf
+Documentation/misc-notes
 
 # Vim swapfiles
 *.swp

@@ -1,0 +1,84 @@
+\documentclass[interim-report.tex]{subfiles}
+
+\begin{document}
+\ganttset{calendar week text={\startday}}
+
+\begin{figure}[tbp]
+\begin{center}
+\begin{ganttchart}[hgrid,
+    vgrid={*2{draw=none}, dotted, *4{draw=none}},
+    y unit title=0.6cm,
+    y unit chart=0.6cm,
+    expand chart=\textwidth,
+%    progress=today,
+    today=2021-12-06,
+    today offset=3.5,
+    today label=Current Week,
+    today label node/.append style={anchor=north west},
+    today rule/.append style={draw=red},
+    today label font=\itshape\color{red},
+    milestone/.append style={fill=red},
+    bar label font=\footnotesize,
+    time slot format=isodate
+    ]{2021-10-01}{2022-05-31}
+    \setganttlinklabel{f-s}{}
+    \gantttitlecalendar{year, month=shortname} \\
+    \gantttitlecalendar*[title left shift=3, title right shift=3]{2021-10-04}{2022-05-29}{week} \\
+
+    % Kernel
+    \ganttgroup[name=kernel, group/.append style={draw=black, fill=blue}]{Kernel}{2021-10-11}{2022-02-13} \\
+    \ganttbar[name=bootloader, bar/.append style={fill=blue}]{Bootloader}{2021-10-11}{2021-10-17} \\
+    \ganttbar[name=graphics, bar/.append style={fill=blue}]{Graphics driver}{2021-10-18}{2021-10-31} \\
+    \ganttbar[bar/.append style={fill=blue}]{Syscalls}{2021-11-01}{2021-12-19} \\
+    \ganttbar[bar/.append style={fill=blue}]{Memory management}{2021-11-22}{2021-12-26} \\
+    \ganttbar[name=filesystem, bar/.append style={fill=blue}]{Filesystem}{2021-12-13}{2022-01-09} \\
+    \ganttbar[name=elf, bar/.append style={fill=blue}]{Statically linked ELF loader (ABI)}{2022-01-10}{2022-01-23} \\
+    \ganttbar[bar/.append style={fill=blue}]{Process control}{2021-12-20}{2022-02-13} \\
+
+    % Shell
+    \ganttgroup[name=shell, group/.append style={draw=black, fill=green!25}]{Shell}{2021-11-01}{2022-03-20} \\
+    \ganttbar[name=debugshell, bar/.append style={fill=green!25}]{Debug terminal}{2021-11-01}{2021-11-14} \\
+    \ganttbar[name=shellfs, bar/.append style={fill=green!25}]{\texttt{pwd, stat, cd,} etc.}{2022-01-10}{2022-01-16} \\
+    \ganttbar[bar/.append style={fill=green!25}]{\texttt{export,} variables, \texttt{set,} etc}{2022-01-17}{2022-01-30} \\
+    \ganttbar[bar/.append style={fill=green!25}]{\texttt{if, while, for, case,} globs, etc.}{2022-01-24}{2022-02-13} \\
+    \ganttbar[bar/.append style={fill=green!25}]{Command substitution}{2022-02-14}{2022-03-13} \\
+    \ganttbar[name=pipes, bar/.append style={fill=green!25}]{IO pipes \& output redirection}{2022-03-14}{2022-03-20} \\
+
+    % Misc (tools & libs)
+    \ganttgroup[name=misc, group/.append style={draw=black, fill=orange}]{Tools and libraries}{2021-10-04}{2022-01-09} \\
+    \ganttbar[name=setup, bar/.append style={fill=orange}]{Setup build environment}{2021-10-04}{2021-10-10} \\
+    \ganttbar[bar/.append style={fill=orange}]{IO \& strings libraries}{2021-10-11}{2021-10-24} \\
+    \ganttbar[bar/.append style={fill=orange}]{libc (ABI)}{2021-10-25}{2022-01-09} \\
+
+    % Programs
+    \ganttgroup[name=programs, group/.append style={draw=black, fill=blue!25}]{Programs}{2022-01-24}{2022-03-27} \\
+    \ganttbar[name=str_progs, bar/.append style={fill=blue!25}]{\texttt{cat, head, less,} etc.}{2022-01-24}{2022-02-06} \\
+    \ganttbar[bar/.append style={fill=blue!25}]{\texttt{roff}}{2022-02-07}{2022-02-20} \\
+    \ganttbar[name=man, bar/.append style={fill=blue!25}]{\texttt{man}}{2022-03-21}{2022-03-27} \\
+
+    % Documents
+    \ganttgroup[name=docs, group/.append style={draw=black, fill=green!50!black}]{Documents}{2021-11-22}{2022-04-10} \\
+    \ganttbar[bar/.append style={fill=green!50!black}]{Interim report}{2021-11-22}{2021-12-05}
+    \ganttmilestone[milestone left shift=-1.0, milestone right shift=2.0]{}{2021-12-13} \\
+    \ganttbar[bar/.append style={fill=green!50!black}]{Documentation}{2021-12-27}{2022-01-02}
+    \ganttlinkedbar[bar/.append style={fill=green!50!black}]{}{2022-01-24}{2022-01-30}
+    \ganttlinkedbar[bar/.append style={fill=green!50!black}]{}{2022-02-21}{2022-02-27}
+    \ganttlinkedbar[bar/.append style={fill=green!50!black}]{}{2022-03-21}{2022-03-27} \\
+    \ganttbar[bar/.append style={fill=green!50!black}]{Dissertation}{2022-02-21}{2022-04-10}
+    \ganttmilestone[milestone left shift=-1.0, milestone right shift=2.0]{}{2022-04-25} \\
+
+    \ganttmilestone[milestone left shift=-1.0, milestone right shift=2.0]{Project demonstration}{2022-05-22}
+
+    \ganttlink{setup}{bootloader}
+%    \ganttlink{graphics}{debugshell}
+    \ganttlink{filesystem}{elf}
+    \ganttlink{filesystem}{shellfs}
+    \ganttlink{elf}{str_progs}
+    \ganttlink{pipes}{man}
+\end{ganttchart}
+\caption{A Gantt chart breaking down the proposed schedule of work for this
+project.}
+\label{fig:gantt-chart}
+\end{center}
+\end{figure}
+\end{document}

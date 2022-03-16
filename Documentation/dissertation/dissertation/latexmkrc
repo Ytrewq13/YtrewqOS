@@ -1,0 +1,38 @@
+$pdf_mode = 5;
+
+$latex = 'xelatex -interaction=nonstopmode -shell-escape %O %S';
+$pdflatex = 'xelatex -interaction=nonstopmode -shell-escape %O %S';
+$xelatex = 'xelatex -interaction=nonstopmode -shell-escape %O %S';
+
+$out_dir = 'build';
+
+$clean_ext = "toc log aux out nav snm blg bbl xdv cut";
+
+push @generated_exts, "cb";
+push @generated_exts, "cb2";
+push @generated_exts, "spl";
+push @generated_exts, "nav";
+push @generated_exts, "snm";
+push @generated_exts, "tdo";
+push @generated_exts, "nmo";
+push @generated_exts, "brf";
+push @generated_exts, "nlg";
+push @generated_exts, "nlo";
+push @generated_exts, "nls";
+push @generated_exts, "synctex.gz";
+push @generated_exts, "run.xml";
+push @generated_exts, "acn";
+push @generated_exts, "acr";
+push @generated_exts, "alg";
+push @generated_exts, "ist";
+
+@default_files = ('AArch64-RaspberryPI-OS-14325283.tex', 'gantt.tex');
+
+add_cus_dep('glo', 'gls', 0, 'makeglo2gls');
+sub makeglo2gls {
+    system("makeindex -s '$_[0]'.ist -t '$_[0]'.glg -o '$_[0]'.gls '$_[0]'.glo");
+}
+add_cus_dep('acn', 'acr', 0, 'makeacn2acr');
+sub makeacn2acr {
+    system("makeindex -s '$_[0]'.ist -t '$_[0]'.alg -o '$_[0]'.acr '$_[0]'.acn");
+}

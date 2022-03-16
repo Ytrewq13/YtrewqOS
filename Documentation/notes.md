@@ -49,3 +49,51 @@
     start with
   * Implement raw binary loading first (i.e. a stopgap solution until ELF is
   supported in a future update)
+
+# 2022-03-10 supervisor update
+
+## My progress
+
+* Implemented the base for reading `dirent`s from the SD card (or any `exfat`
+file system)
+  * `dirent` structure was taken from one of the rpi bootloader projects I
+  copied code from
+
+## Plans for the project
+
+* I will start writing the dissertation this weekend
+  * Copy the structure of the document from the interim report
+  * I will work on it for a few hours every week (Friday afternoons)
+* I will use the FS code to implement a `getdents` syscall
+* I will write a basic "shell" which will run as part of the kernel
+  * Not truly a shell, just a command-line interface to functions which will
+  implement some basic programs (e.g. `ls`, `cat`, `tree`, `pwd`, `cd`, maybe
+  `ed`)
+* Maybe try to implement a binary file loader (or port an ELF loader?)
+  * Then move the shell functions into their own executables
+  * Create an executable shell which handles user interaction and calling
+  executables (create a `/bin/` directory)
+
+## What I won't implement (and I'll explain why not in the dissertation)
+
+* Virtual memory
+  * Memory "ownership"
+  * Page tables & MMU
+* Context switching
+  * Timer interrupts
+  * Multi-tasking
+* File ownership
+  * Exfat doesn't support this anyway
+
+## Notes
+
+* Bootstrapping through various stages of OS dev
+  * Batch processing OSes (skipped)
+  * Single-tasking OS with built-in shell and utilities
+  * Single-tasking OS with binary shell and utilities (binary loader built-in
+  to kernel)
+  * Single-tasking OS with static ELF shell and utilities (static ELF loader as
+  raw binary, binary loader in kernel)
+  * Multi-tasking OS (probably won't reach this stage)
+* Rename dissertation - historically informed approach to OS dev
+  * Maybe use this as a subtitle
