@@ -6,7 +6,7 @@
  * Last updated 2021-11-15
  */
 
-int errno;
+int64_t errno;
 
 void abort(void)
 {
