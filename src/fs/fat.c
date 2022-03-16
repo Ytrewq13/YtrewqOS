@@ -359,7 +359,6 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
         errno = EINVAL;
         return -1;
     }
-//    printf("-- READ FILE STREAM EXT\n");
     dirent->byte_size = ed.data_length;
     file_contents = malloc(sizeof(struct exfat_file_contents));
     if (file_contents == NULL) {
@@ -372,7 +371,11 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
     file_contents->data_length = ed.data_length;
     dirent->opaque = file_contents;
     dirent->name = malloc(ed.entry_data.stream_extension.name_length + 1);
-    memset(dirent->name, 0, ed.entry_data.stream_extension.name_length + 1);
+    // This memset is left out to speed up the process. Our malloc doesn't zero
+    // the memory it gives us, so we have to dispose of any sensitive data such
+    // as encryption keys in memory we free to the system, as previous data IS
+    // leaked to anyone who calls malloc() next.
+//    memset(dirent->name, 0, ed.entry_data.stream_extension.name_length + 1);
     name_ptr = dirent->name;
     for (int i = 0; i < name_cnt; i++) {
         ed.direntset_idx++;
@@ -381,10 +384,8 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
             errno = EINVAL;
             return -1;
         }
-//        char filenamepart[16] = {0};
-//        str_from_wchar(filenamepart, ed.entry_data.filename.filename_part, 15);
-//        printf("-- READ FILENAME PART: '%s'\n", filenamepart);
-        name_ptr += str_from_wchar(name_ptr, ed.entry_data.filename.filename_part, 15);
+        name_ptr += str_from_wchar(name_ptr,
+                ed.entry_data.filename.filename_part, 15);
     }
     return 0;
 }

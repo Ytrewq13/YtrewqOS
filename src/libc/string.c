@@ -405,7 +405,9 @@ size_t strxfrm(char *restrict dest, const char *restrict src, size_t n)
     return 0;
 }
 
-/* Get a string from a wide character string. Just throws away the high bytes. */
+/* Get a string from a wide character string. Just throws away the high bytes.
+ * Writes one additional byte for the NULL terminator at the end of the copied
+ * string. */
 size_t str_from_wchar(char *restrict dest, const uint16_t *restrict src, size_t n)
 {
     size_t x = 0;
@@ -414,5 +416,6 @@ size_t str_from_wchar(char *restrict dest, const uint16_t *restrict src, size_t 
         *dest++ = *ptr;
         ptr += 2;
     }
+    *dest = 0;  /* Copy the null terminating byte. */
     return x;
 }
