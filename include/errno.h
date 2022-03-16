@@ -22,6 +22,8 @@
 #ifndef ERRNO_H
 #define ERRNO_H
 
+#include "stdint.h"
+
 enum {
     EPERM = 1, // Operation not permitted
     ENOENT = 2, // No such file or directory
@@ -159,7 +161,7 @@ enum {
     ENOTSUP = 95, // Operation not supported
 };
 
-extern int errno;
+extern int64_t errno;
 
 #include "asm/errno.h"
 
