@@ -372,6 +372,7 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
     file_contents->data_length = ed.data_length;
     dirent->opaque = file_contents;
     dirent->name = malloc(ed.entry_data.stream_extension.name_length + 1);
+    memset(dirent->name, 0, ed.entry_data.stream_extension.name_length + 1);
     name_ptr = dirent->name;
     for (int i = 0; i < name_cnt; i++) {
         ed.direntset_idx++;
