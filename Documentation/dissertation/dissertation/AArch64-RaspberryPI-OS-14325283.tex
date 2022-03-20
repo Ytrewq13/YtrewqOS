@@ -1,27 +1,62 @@
 \documentclass{article}
 
-\usepackage[margin=1in]{geometry}
+
+\usepackage[margin=0.55in,bottom=0.75in]{geometry}
+%\usepackage[margin=0.75in]{geometry}
 \usepackage{titlesec}
 \usepackage{datetime}
-
 \usepackage{graphicx}
-
+\usepackage{array}
+\usepackage{tabularx}
 \usepackage{amssymb}
 \usepackage{amsmath}
-
+\usepackage{amsfonts}
+\usepackage{makecell}
+% Format footnotes (bottom of page, reset counter at every page break, use
+% symbols instead of numbers)
+\usepackage[bottom,perpage,symbol*]{footmisc}
 \usepackage{csquotes}
-\usepackage[english]{babel}
-\usepackage[backend=biber]{biblatex}
-\addbibresource{~/Documents/books/bibliobraphy/uni.bib}
+\usepackage[british]{babel}
+\usepackage[backend=biber,defernumbers=true,urldate=iso,date=iso,seconds=true]{biblatex}
+\usepackage{xcolor}
+\usepackage{pgfgantt}
+\usepackage[acronym,nonumberlist,nomain,automake]{glossaries-extra}
+\usepackage[nottoc]{tocbibind}
+\usepackage{nameref}
+\usepackage{hyperref}
+\usepackage{subfiles}
 
-\usepackage{titling}
-\renewcommand\maketitlehooka{\null\mbox{}\vfill}
-\renewcommand\maketitlehookd{\vfill\null}
 
-\usepackage{parskip}
+%\usepackage{titling}
+%\renewcommand\maketitlehooka{\null\mbox{}\vfill}
+%\renewcommand\maketitlehookd{\vfill\null}
+%
+%\usepackage{parskip}
+
+
+\hypersetup{colorlinks=true,
+        linkcolor={red!60!blue},
+        citecolor={green!65!black},
+        urlcolor=blue}
+
+\setabbreviationstyle[acronym]{long-short}
+\makeglossaries
+
+\loadglsentries[acronym]{acronyms}
+\preto\section{\glsresetall}
 
 \newdateformat{mydate}{\dayofweekname{\THEDAY}{\THEMONTH}{\THEYEAR}, \ordinal{DAY} \monthname[\THEMONTH], \THEYEAR}
+\renewcommand{\baselinestretch}{0.85}
 
+\addbibresource{refs.bib}
+\DeclareRefcontext{default}{}
+\DeclareRefcontext{relatedworks}{labelprefix=Rw}
+\DeclareRefcontext{appendix}{labelprefix=A}
+
+\emergencystretch=3em
+\hbadness=10000
+
+% TODO: Add a subtitle relating to the "historical approach"
 \title{AArch64 (ARM 64-bit) based Unix-like Operating System for the Raspberry
 Pi 3b}
 \author{Sam Whitehead}
@@ -118,5 +153,14 @@ the same time. This section will discuss the new challenges we can encounter as
 we try to get this working.
 \subsection{Starting the CPUs in order to run processes on them}
 \subsection{Scheduling processes in a multicore world}
+
+\clearpage
+\section{Gantt chart}
+
+\subfile{gantt.tex}
+
+% End of main document - print glossaries, references, etc.
+\printglossaries
+
 
 \end{document}
