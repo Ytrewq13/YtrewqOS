@@ -70,12 +70,14 @@ _SRCS_C = calls/calls.c \
 		  drivers/SD/emmc.c \
 		  drivers/graphics/console.c \
 		  drivers/graphics/fb_pixels.c \
+		  drivers/power/power.c \
 		  drivers/mbox.c \
 		  fonts/bizcat_font.c \
 		  fs/fat.c \
 		  kernel/framebuf.c \
 		  kernel/main.c \
 		  kernel/printf.c \
+		  kernel/shell.c \
 		  kernel/sys.c \
 		  lib/io/printf.c \
 		  libc/stdlib.c \
@@ -106,6 +108,7 @@ _DEPS_H = asm/errno.h \
 		  drivers/hw/mbox.h \
 		  drivers/hw/mem.h \
 		  drivers/hw/mmio.h \
+		  drivers/hw/power.h \
 		  drivers/hw/uart.h \
 		  fs/block.h \
 		  fs/dirent.h \
@@ -114,10 +117,12 @@ _DEPS_H = asm/errno.h \
 		  fs/fs.h \
 		  fs/vfs.h \
 		  io/printf.h \
+		  kernel/shell.h \
 		  kernel/test.h \
 		  kernel/timer.h \
 		  kernel/util.h \
 		  printf.h \
+		  process/env.h \
 		  ptrace.h \
 		  stdlib.h \
 		  string.h \

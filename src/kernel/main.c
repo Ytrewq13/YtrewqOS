@@ -1,6 +1,6 @@
 /* kernel/main.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2022-01-01
+ * Last updated 2022-03-20
  */
 #include <stdint.h>
 
@@ -17,8 +17,10 @@
 #include "drivers/hw/eMMC.h"
 #include "drivers/hw/mbox.h"
 #include "drivers/hw/mem.h"
+#include "drivers/hw/power.h"
 #include "drivers/hw/uart.h"
 #include "fs/fat.h"
+#include "kernel/shell.h"
 #include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
@@ -31,49 +33,6 @@ extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int syscall(long nr, ...);
 
-// Power management (TODO: move somewhere else)
-void power_off()
-{
-    /* https://github.com/bztsrc/raspi3-tutorial/blob/master/08_power/power.c */
-#define PM_RSTC         ((volatile unsigned int*)(MMIO_BASE+0x0010001c))
-#define PM_RSTS         ((volatile unsigned int*)(MMIO_BASE+0x00100020))
-#define PM_WDOG         ((volatile unsigned int*)(MMIO_BASE+0x00100024))
-#define PM_WDOG_MAGIC   0x5a000000
-#define PM_RSTC_FULLRST 0x00000020
-    unsigned long r;
-    uint32_t box[8];
-
-    // power off devices one by one
-    for(r = 0; r < 16; r++) {
-        box[0] = 8*4;
-        box[1] = MBOX_REQUEST;
-        box[2] = MBOX_TAG_SET_POWER_STATE; // set power state
-        box[3] = 8;
-        box[4] = 8;
-        box[5] = (unsigned int)r;   // device id
-        box[6] = 0;                 // bit 0: off, bit 1: no wait
-        box[7] = MBOX_TAG_LAST;
-        mbox_call_raw((void*)box);
-    }
-
-    // power off gpio pins (but not VCC pins)
-    *(uint32_t*)GPFSEL0 = 0; *(uint32_t*)GPFSEL1 = 0; *(uint32_t*)GPFSEL2 = 0; *(uint32_t*)GPFSEL3 = 0; *(uint32_t*)GPFSEL4 = 0; *(uint32_t*)GPFSEL5 = 0;
-    *(uint32_t*)GPPUD = 0;
-//    wait_cycles(150);
-    for (int i = 0; i < 150; i++) __asm volatile("nop");
-    *(uint32_t*)GPPUDCLK0 = 0xffffffff; *(uint32_t*)GPPUDCLK1 = 0xffffffff;
-//    wait_cycles(150);
-    for (int i = 0; i < 150; i++) __asm volatile("nop");
-    *(uint32_t*)GPPUDCLK0 = 0; *(uint32_t*)GPPUDCLK1 = 0;        // flush GPIO setup
-
-    // power off the SoC (GPU + CPU)
-    r = *PM_RSTS; r &= ~0xfffffaaa;
-    r |= 0x555;    // partition 63 used to indicate halt
-    *PM_RSTS = PM_WDOG_MAGIC | r;
-    *PM_WDOG = PM_WDOG_MAGIC | 10;
-    *PM_RSTC = PM_WDOG_MAGIC | PM_RSTC_FULLRST;
-}
-
 // TODO: Move this to another file
 struct dirent_chain {
     struct dirent_chain *next;
@@ -81,7 +40,7 @@ struct dirent_chain {
 };
 
 // TODO:
-// - Move this function into a utility that is shipped with the OS and can be invoked from the shell
+// - Move this function into the filesystem code
 // - Add path parsing
 // - Improve directory formatting
 void test_printtree(struct exfat_superblock exfat_info, struct block_device *dev)
@@ -352,7 +311,6 @@ void kernel_main()
     printf("\n");
 
     // TODO: refactor all of this into unit tests
-    uint8_t c;
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
@@ -447,66 +405,25 @@ void kernel_main()
 
 
     printf("\n");
-    // FIXME: some filenames don't print correctly
-    // - Could be an issue with str_from_wchar function?
-    // - certain length filenames?
-//    test_printtree(exfat_info, dev);
-//    printf("\n");
+
+    struct process_env kprocess_env = {.pid = 0, .process_state = PROC_STATE_RUNNING, .wdir = "/"};
+
+    struct shell_command shell_cmd_t_tree = {.fun = shell_cmd_tree, .cmd_str = "tree"};
+    struct shell_command shell_cmd_t_shutdown = {.fun = shell_cmd_shutdown, .cmd_str = "shutdown"};
+    struct shell_command shell_cmd_t_ls = {.fun = shell_cmd_ls, .cmd_str = "ls"};
+
+    struct shell_cmdlist shell_all_cmds = {.cmd = &shell_cmd_t_tree,
+    .next = &(struct shell_cmdlist){.cmd = &shell_cmd_t_shutdown,
+    .next = &(struct shell_cmdlist){.cmd = &shell_cmd_t_ls, .next = NULL}}};
 
     // Basic built-in [s]hell
-#define SHELLBUF_SZ 32  // FIXME: increase the size of the shell input buffer - this WILL cause problems
-    char shell_input_buf[SHELLBUF_SZ];
-    memset(shell_input_buf, 0, SHELLBUF_SZ);
-    size_t shell_input_i = 0;
+    char shell_input_buf[SHELL_LINE_CAPACITY];
     // Print an input prompt (TODO: add cwd to prompt)
-    printf("/# ");
     while (1) {
-        c = uart0_getc();
-        if (c == '\n') {
-            printf("\n");
-            /* TODO:
-             * - Process the contents of the buffer
-             * - If the input is a valid command, perform the action
-             * - Else, print a warning
-             * - Print the input prompt
-             */
-            // What is the best way to compare the buffer against a set of
-            // string literals? Just strcmp?
-            // TODO:
-            // struct shell_command {
-            //      int (*func)(void);
-            //      char keyword[];
-            // }
-            // - Put these structures in a trie, compare against them
-            // incrementally as the user inputs the command
-            if (strcmp(shell_input_buf, "shutdown") == 0) {
-                // TODO: implement a function that halts the CPU
-                power_off();
-                while (1) __asm volatile("nop");
-            } else if (strcmp(shell_input_buf, "tree") == 0) {
-                test_printtree(exfat_info, dev);
-            } else if (shell_input_buf[0] == 'a') printf("AAAA\n");
-            else if (shell_input_buf[0] == 'b') printf("BBBB\n");
-            else printf("%s\n", shell_input_buf);
-            memset(shell_input_buf, 0, sizeof(shell_input_buf));
-            shell_input_i = 0;
-            printf("/# ");  // Temporary input prompt
-        } else {
-            if (shell_input_i >= SHELLBUF_SZ-1) {
-                /* TODO: tell the user that the buffer has overflowed.
-                 * For now, just empty and reset the buffer. */
-                printf("\nBUF OVERFLOW\n");
-                memset(shell_input_buf, 0, sizeof(shell_input_buf));
-                shell_input_i = 0;
-            }
-            shell_input_buf[shell_input_i++] = c; // Put the character into the buffer
-            // Put the character onto the screen
-            uart0_putc(c);
-            console_putc(c);
-        }
+        shell_getline("/# ", shell_input_buf, SHELL_LINE_CAPACITY);
+        shell_execute_command(shell_input_buf, &shell_all_cmds, &kprocess_env);
     }
     // TODO: reading from keyboard - USB?
-    // TODO: Basic shell
 }
 
 /*
@@ -521,13 +438,13 @@ void kernel_main()
  *   screen
  * - Filesystem:
  *   - SD card
+ *   - FAT filesystem
  * - System calls:
  *   - syscall interface
  * - Memory management:
  *   - malloc, etc.
  *   TODO:
  * - Filesystem:
- *   - FAT filesystem
  *   - Virtual FS
  * - System calls:
  *   - implement basic syscalls
@@ -536,4 +453,5 @@ void kernel_main()
  *   - Page tables (MMU)
  *   - Track memory usage?
  * - USB drivers?
+ * - Keyboard character maps (escaped characters, backspace, tabs, etc.)
  */

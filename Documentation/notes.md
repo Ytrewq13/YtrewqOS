@@ -97,3 +97,15 @@ file system)
   * Multi-tasking OS (probably won't reach this stage)
 * Rename dissertation - historically informed approach to OS dev
   * Maybe use this as a subtitle
+
+# USB Keyboard input thoughts
+
+* Need USB keyboard to enable `readline`-style line editing
+  * Otherwise no backspace, arrow keys, or any other special keys, only raw
+  characters are input from serial
+* [USPi - A bare metal USB driver for Raspberry Pi 1-3 written in
+C](https://github.com/rsta2/uspi)
+  * A reference USB driver, including a USB keyboard driver
+* Don't need USB - the serial input uses escape key sequences to encode special
+keys (arrow keys) and non-printable ASCII keys will just be passed as ASCII
+(e.g. Escape, backspace, tab)
