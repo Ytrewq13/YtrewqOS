@@ -1,20 +1,6 @@
-*.bin
-*.elf
-*.o
-*.img
-
 Documentation/dissertation/*/build/*
 !Documentation/dissertation/*/build/*.pdf
 Documentation/misc-notes
 
 # Vim swapfiles
 *.swp
-
-# Clangd language server files
-.cache/clangd
-
-# ctags file
-tags
-
-# JSON Compilation Database
-compile_commands.json
