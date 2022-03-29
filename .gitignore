@@ -1,5 +1,6 @@
 */build/*
 !*/build/*.pdf
+!*/build/*.bbl
 misc-notes
 
 # Vim swapfiles
