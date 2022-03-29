@@ -1,7 +1,11 @@
+Documentation/*.pdf
 Documentation/*/build/*
 !Documentation/*/build/*.pdf
 !Documentation/*/build/*.bbl
 Documentation/misc-notes
+
+.cache
+compile_commands.json
 
 # Vim swapfiles
 *.swp
