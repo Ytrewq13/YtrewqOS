@@ -1,7 +1,7 @@
-*/build/*
-!*/build/*.pdf
-!*/build/*.bbl
-misc-notes
+Documentation/*/build/*
+!Documentation/*/build/*.pdf
+!Documentation/*/build/*.bbl
+Documentation/misc-notes
 
 # Vim swapfiles
 *.swp
