@@ -33,59 +33,6 @@ extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int syscall(long nr, ...);
 
-// TODO: Move this to another file
-struct dirent_chain {
-    struct dirent_chain *next;
-    struct dirent *d;
-};
-
-// TODO:
-// - Move this function into the filesystem code
-// - Add path parsing
-// - Improve directory formatting
-void test_printtree(struct exfat_superblock exfat_info, struct block_device *dev)
-{
-    uintptr_t rootdir_block = (exfat_info.rootdir_start - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset;
-    struct exfat_block_device ebd = { .bd = dev, .sb = exfat_info };
-    struct dirent *d, *dirent_it;
-    struct dirent_chain *chain = NULL, *tmpchain;
-    d = exfat_readdir_fromblock(&ebd, rootdir_block);
-
-    size_t tree_depth = 0;
-    dirent_it = d;
-    while (dirent_it != NULL || chain != NULL) {
-        for (int i = 0; i < tree_depth; i++) {
-            printf("| ");
-        }
-        if (dirent_it->is_dir) console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
-        printf("%s", dirent_it->name);
-        if (dirent_it->is_dir) {
-            console_reset_colors();
-            printf("/");
-            // Save the dirent iterator so we can pick up where we left off
-            tmpchain = malloc(sizeof(struct dirent_chain));
-            if (tmpchain == NULL) {
-                errno = ENOMEM;
-                return;
-            }
-            tmpchain->next = chain;
-            tmpchain->d = dirent_it;
-            chain = tmpchain;
-            tree_depth++;
-            dirent_it = exfat_readdir_fromblock(&ebd, (((struct exfat_file_contents*)dirent_it->opaque)->start_cluster - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset);
-        } else {
-            dirent_it = dirent_it->next;
-        }
-        printf("\n");
-        while (dirent_it == NULL && chain != NULL) {
-            tree_depth--;
-            tmpchain = chain->next;
-            dirent_it = chain->d->next;
-            chain = tmpchain;
-        }
-    }
-}
-
 void delay(size_t time)
 {
     size_t i;
@@ -406,22 +353,21 @@ void kernel_main()
 
     printf("\n");
 
-    struct process_env kprocess_env = {.pid = 0, .process_state = PROC_STATE_RUNNING, .wdir = "/"};
+    struct process_env kprocess_env;
+    kprocess_env.pid = 0;
+    kprocess_env.process_state = PROC_STATE_RUNNING;
+    kprocess_env.wdir = "/";
+    kprocess_env.sd_dev = dev;
 
-    struct shell_command shell_cmd_t_tree = {.fun = shell_cmd_tree, .cmd_str = "tree"};
-    struct shell_command shell_cmd_t_shutdown = {.fun = shell_cmd_shutdown, .cmd_str = "shutdown"};
-    struct shell_command shell_cmd_t_ls = {.fun = shell_cmd_ls, .cmd_str = "ls"};
-
-    struct shell_cmdlist shell_all_cmds = {.cmd = &shell_cmd_t_tree,
-    .next = &(struct shell_cmdlist){.cmd = &shell_cmd_t_shutdown,
-    .next = &(struct shell_cmdlist){.cmd = &shell_cmd_t_ls, .next = NULL}}};
+    // Initialise the shell with all of the valid commands (uses malloc)
+    shell_init();
 
     // Basic built-in [s]hell
-    char shell_input_buf[SHELL_LINE_CAPACITY];
-    // Print an input prompt (TODO: add cwd to prompt)
+    // Print an input prompt (TODO: add cwd to prompt - add a '$PS1' to
+    // environment?)
     while (1) {
-        shell_getline("/# ", shell_input_buf, SHELL_LINE_CAPACITY);
-        shell_execute_command(shell_input_buf, &shell_all_cmds, &kprocess_env);
+        shell_getline(&kprocess_env, "# ");
+        shell_execute_command(&kprocess_env);
     }
     // TODO: reading from keyboard - USB?
 }

@@ -140,7 +140,7 @@ char *strchr(const char *s, int c)
 /* Compare two strings */
 int strcmp(const char *s1, const char *s2)
 {
-    while (*s1 != 0) {
+    while (*s1 != 0 || *s2 != 0) {
         if (*s1 < *s2) return -1;
         if (*s1 > *s2) return 1;
         s1++; s2++;
@@ -386,16 +386,50 @@ char *strstr(const char *haystack, const char *needle)
 /* Extract tokens from strings */
 char *strtok(char *restrict str, const char *restrict delim)
 {
-    // TODO
-    return NULL;
+    static char *strtok_last_call = NULL;
+    int i;
+    if (str == NULL) str = strtok_last_call;
+    if (str == NULL) return NULL;
+    char *tok = str;
+    while (1) {
+        if (*tok == 0) return NULL;
+        i = 0;
+        while (tok[i] == delim[i]) i++;
+        if (delim[i] == 0) break;
+        tok++;
+    }
+    i = 0;
+    while (delim[i] != 0) {
+        tok[i] = 0;
+        i++;
+    }
+    strtok_last_call = tok+i;
+    return str;
 }
 
 /* Extract tokens from strings */
 char* strtok_r(char* restrict str, const char* restrict delim,
                char** restrict saveptr)
 {
-    // TODO
-    return NULL;
+    int i;
+    if (NULL == saveptr) return NULL;
+    if (NULL == str) str = *saveptr;
+    if (NULL == str) return NULL;
+    char *tok = str;
+    while (1) {
+        if (*tok == 0) return NULL;
+        i = 0;
+        while (tok[i] == delim[i]) i++;
+        if (delim[i] == 0) break;
+        tok++;
+    }
+    i = 0;
+    while (delim[i] != 0) {
+        tok[i] = 0;
+        i++;
+    }
+    *saveptr = tok+i;
+    return str;
 }
 
 /* String transformation */

@@ -74,6 +74,7 @@ _SRCS_C = calls/calls.c \
 		  drivers/mbox.c \
 		  fonts/bizcat_font.c \
 		  fs/fat.c \
+		  fs/util.c \
 		  kernel/framebuf.c \
 		  kernel/main.c \
 		  kernel/printf.c \
@@ -115,6 +116,7 @@ _DEPS_H = asm/errno.h \
 		  fs/fat.h \
 		  fs/file.h \
 		  fs/fs.h \
+		  fs/util.h \
 		  fs/vfs.h \
 		  io/printf.h \
 		  kernel/shell.h \

@@ -5,28 +5,38 @@
 
 #include "kernel/shell.h"
 
-/* TODO: implement some input-line editing (i.e. backspace) */
-int shell_getline(char *prompt, char *buf, size_t buf_cap)
+static char shell_input_buf[SHELL_LINE_CAPACITY];
+static struct shell_cmdlist *shell_all_cmds = NULL;
+
+int shell_cmd_tree(struct command_args);
+int shell_cmd_shutdown(struct command_args);
+int shell_cmd_ls(struct command_args); // TODO
+int shell_cmd_pwd(struct command_args);
+int shell_cmd_cd(struct command_args);
+int shell_cmd_cat(struct command_args);
+
+/* TODO: implement some input-line editing (i.e. backspace) - look at VT100 */
+int shell_getline(struct process_env *env, char *prompt)
 {
-    if (prompt == NULL || buf == NULL) {
+    if (prompt == NULL) {
         errno = EINVAL;
         return -1;
     }
     // Print the prompt
-    printf("%s", prompt);
+    printf("%s%s", env->wdir, prompt);
     // Read the input
-    for (size_t i = 0; i < buf_cap; i++) {
+    for (size_t i = 0; i < SHELL_LINE_CAPACITY; i++) {
         // Read a character
         char c = uart0_getc();
         // If the character was a newline, put a null-terminator and return
         if (c == '\n') {
-            buf[i] = 0;
+            shell_input_buf[i] = 0;
             uart0_putc(c);
             console_putc(c);
             return 0;
         }
         // Put the character into the buffer
-        buf[i] = c;
+        shell_input_buf[i] = c;
         uart0_putc(c);
         console_putc(c);
     }
@@ -35,46 +45,160 @@ int shell_getline(char *prompt, char *buf, size_t buf_cap)
     return -1;
 }
 
-int shell_execute_command(char *line, struct shell_cmdlist *commands, struct
-        process_env *env)
+int shell_execute_command(struct process_env *env)
 {
+    int ret = 0;
     // Allow blank lines
-    if (strlen(line) == 0) return 0;
+    if (strlen(shell_input_buf) == 0) return ret;
 
+    char *cmdline = malloc(SHELL_LINE_CAPACITY);
+    char *argv0;
+    strcpy(cmdline, shell_input_buf);
+    struct command_args args;
+    args.argc = 0;
+    int argcap = 1;
+    args.argv = malloc(sizeof(*args.argv) * argcap);
+    // Tokenize the input buffer into argv
+    char *next_arg = shell_input_buf;
+    char *arg = strtok_r(shell_input_buf, " ", &next_arg);
+    while (NULL != arg) {
+        args.argv[args.argc] = arg;
+        arg = strtok_r(NULL, " ", &next_arg);
+        args.argc++;
+        if (args.argc == argcap) {
+            argcap *= 2;
+            args.argv = realloc(args.argv, sizeof(*args.argv) * argcap);
+        }
+    }
+    args.argv[args.argc] = next_arg;
+    args.argc++;
+    args.envp = env;
+//    printf("argc is %d\n", args.argc);
+//    for (int i = 0; i < args.argc; i++)
+//        printf("argv[%d] is '%s'\n", i, args.argv[i]);
+    /* TODO: Tokenize the command line on any whitespace (not just spaces) */
+    if ((argv0 = strtok(shell_input_buf, " ")) == NULL) argv0 = shell_input_buf;
     // Iterate through the list of available commands
-    struct shell_cmdlist *cmds = commands;
+    struct shell_cmdlist *cmds = shell_all_cmds;
     while (cmds != NULL) {
         // TODO: use strstr() or similar to detect if the command string is a
-        // prefix substring of the line
-        if (cmds->cmd != NULL && strcmp(line, cmds->cmd->cmd_str) == 0) {
-            return cmds->cmd->fun(line, env);
+        // prefix substring of the line (or strtok())
+        if (cmds->cmd != NULL && strcmp(argv0, cmds->cmd->cmd_str) == 0) {
+            ret = cmds->cmd->fun(args);
+            free(cmdline);
+            return ret;
         }
         cmds = cmds->next;
     }
     // No command was matched
-    printf("Error: '%s' does not match any known commands\n", line);
+    printf("Error: '%s' is not a known command\n", argv0);
+    free(cmdline);
     return 0;
 }
 
-
-
-int shell_cmd_tree(char *line, struct process_env *env)
+int add_command(const char *cmd_str, int (*fun)(struct command_args))
 {
-    printf("TODO: Implement a wrapper for tree\n");
-    errno = ENOSYS;
-    return -1;
+    struct shell_command *cmd = malloc(sizeof(struct shell_command));
+    if (cmd == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    cmd->cmd_str = (char*)cmd_str;
+    cmd->fun = fun;
+    struct shell_cmdlist *ptr, *this;
+    this = malloc(sizeof(struct shell_cmdlist));
+    this->cmd = cmd;
+    this->next = NULL;
+    if (shell_all_cmds == NULL) {
+        shell_all_cmds = this;
+        return 0;
+    }
+    ptr = shell_all_cmds;
+    while (ptr->next != NULL) ptr = ptr->next;
+    ptr->next = this;
+    return 0;
 }
 
-int shell_cmd_shutdown(char *line, struct process_env *env)
+/* Initialise the shell with all of the valid commands (uses malloc) */
+int shell_init()
+{
+    add_command("shutdown", shell_cmd_shutdown);
+    add_command("exit", shell_cmd_shutdown);
+    add_command("tree", shell_cmd_tree);
+    add_command("cd", shell_cmd_cd);
+    add_command("ls", shell_cmd_ls);
+    add_command("pwd", shell_cmd_pwd);
+
+    return 0;
+}
+
+void shell_destroy()
+{
+    struct shell_cmdlist *next = shell_all_cmds;
+    while (NULL != shell_all_cmds) {
+        next = shell_all_cmds->next;
+        if (NULL != shell_all_cmds->cmd) free(shell_all_cmds->cmd);
+        free(shell_all_cmds);
+        shell_all_cmds = next;
+    }
+}
+
+
+
+int shell_cmd_tree(struct command_args args)
+{
+    // FIXME: Use a version of tree which interprets paths
+    test_printtree(args.envp->sd_dev);
+    return 0;
+}
+
+int shell_cmd_shutdown(struct command_args args)
 {
     power_off();
     errno = EPERM;  // FIXME: this may not be a permission error
     return -1;  // Power_off has always failed if we continue to execute code
 }
 
-int shell_cmd_ls(char *line, struct process_env *env)
+int shell_cmd_ls(struct command_args args)
 {
-    printf("ERROR: this command is not yet implemented!\n");
+    int ret;
+    int wdirlen = strlen(args.envp->wdir);
+    char *relpath = "";
+    if (args.argc > 1) relpath = args.argv[1];
+    int relpathlen = strlen(relpath);
+    char *path = malloc(wdirlen + relpathlen + 1);
+    strcpy(path, args.envp->wdir);
+    strcpy(path+wdirlen, relpath);
+    memset(path+wdirlen+relpathlen, 0, 1);
+    // TODO: change the ls() function to take an absolute path as its argument.
+    // This function can format the path based on the command line, the FS
+    // function can handle the filesystem stuff.
+    ret = ls(args.envp, path);
+    free(path);
+    return ret;
+}
+
+int shell_cmd_pwd(struct command_args args)
+{
+    printf("%s\n", args.envp->wdir);
+    return 0;
+}
+
+int shell_cmd_cd(struct command_args args)
+{
+    if (args.argc == 1) {
+        args.envp->wdir = "/";
+        return 0;
+    } else if (args.argc > 2) {
+        errno = E2BIG;
+        return -1;
+    }
+    args.envp->wdir = args.argv[1];
+    return 0;
+}
+
+int shell_cmd_cat(struct command_args args)
+{
     errno = ENOSYS;
     return -1;
 }

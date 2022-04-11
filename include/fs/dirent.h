@@ -41,6 +41,11 @@ struct dir_info {
 	struct dirent *next;
 };
 
+struct dirent_chain {
+    struct dirent_chain *next;
+    struct dirent *d;
+};
+
 #ifdef DIR
 #undef DIR
 #endif
