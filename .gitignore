@@ -9,3 +9,7 @@ compile_commands.json
 
 # Vim swapfiles
 *.swp
+
+# Files from other branches
+build/*
+tags
