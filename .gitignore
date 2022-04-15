@@ -1,7 +1,10 @@
 Documentation/*.pdf
 Documentation/*/build/*
+Documentation/*/*/build/*
 !Documentation/*/build/*.pdf
+!Documentation/*/*/build/*.pdf
 !Documentation/*/build/*.bbl
+!Documentation/*/*/build/*.bbl
 Documentation/misc-notes
 
 .cache
