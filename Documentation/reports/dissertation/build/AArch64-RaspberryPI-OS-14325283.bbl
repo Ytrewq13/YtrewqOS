@@ -366,6 +366,22 @@
       \verb https://github.com/Ytrewq13/YtrewqOS/tree/master/Documentation/dissertation/interim-report
       \endverb
     \endentry
+    \entry{unix-like}{online}{}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labeltitlesource}{title}
+      \field{title}{Unix-like}
+      \field{urlday}{15}
+      \field{urlmonth}{4}
+      \field{urlyear}{2022}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/w/index.php?title=Unix-like&oldid=1074888381
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/w/index.php?title=Unix-like&oldid=1074888381
+      \endverb
+    \endentry
     \entry{vim}{online}{}
       \field{sortinit}{V}
       \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}

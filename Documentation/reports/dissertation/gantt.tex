@@ -1,18 +1,26 @@
-\documentclass[AArch64-RaspberryPI-OS-14325283.tex]{subfiles}
+\documentclass{standalone}
 
 % TODO: get standalone compilation working without the following line
-\printglossaries
+%\printglossaries
+
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{xcolor}
+\usepackage{pgfgantt}
 
 \begin{document}
+\pagestyle{empty}
 \ganttset{calendar week text={\startday}}
 
-\begin{figure}[tbp]
-\begin{center}
 \begin{ganttchart}[hgrid,
     vgrid={*2{draw=none}, dotted, *4{draw=none}},
     y unit title=0.6cm,
     y unit chart=0.6cm,
-    expand chart=\textwidth,
+    expand chart=20cm,
+%    expand chart=\textwidth,
 %    progress=today,
     today={\the\year-\the\month-\the\day},
     today offset=3.5,
@@ -81,9 +89,4 @@
 %    \ganttlink{bin}{str_progs}
 %    \ganttlink{pipes}{man}
 \end{ganttchart}
-\caption{A Gantt chart breaking down the proposed schedule of work for this
-project.}
-\label{fig:gantt-chart}
-\end{center}
-\end{figure}
 \end{document}

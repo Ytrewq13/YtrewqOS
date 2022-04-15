@@ -1,12 +1,10 @@
-\documentclass[AArch64-RaspberryPI-OS-14325283.tex]{subfiles}
+\documentclass{standalone}
 
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 \usetikzlibrary{arrows.meta}
 
 \begin{document}
-\begin{figure}[htpb]
-\centering
 \begin{tikzpicture}[every node/.append style={line width=1pt, font=\bfseries\ttfamily\large},
                     itlabel/.style={font=\ttfamily\large\itshape},
                     box/.style={rectangle, draw, minimum size=1cm, align=center},
@@ -64,13 +62,5 @@
     \draw [<->] (sd.south)                          -- (sd.south|-hw_interface.north);
     \draw [<->] (pcs matrix.south)                  -- (pcs matrix.south|-hw_interface.north);
 \end{tikzpicture}
-\caption{A diagram of how the components of the operating system will interact
-with each other. Inspired by a diagram from a book on
-Unix (Figure~2.1 from~\cite{design-of-unix-os}). The versions of this diagram
-which are available online are low-resolution, so the version provided here is
-in a vector format, and this document's source code is available
-online~\cite{this-document}.}
-\label{fig:os-block-diagram}
-\end{figure}
 \end{document}
 

@@ -1,15 +1,23 @@
-\documentclass[AArch64-RaspberryPI-OS-14325283.tex]{subfiles}
+\documentclass{standalone}
+
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{xcolor}
+\usepackage{pgfgantt}
 
 \begin{document}
+\pagestyle{empty}
 \ganttset{calendar week text={\startday}}
 
-\begin{figure}[tbp]
-\begin{center}
 \begin{ganttchart}[hgrid,
     vgrid={*2{draw=none}, dotted, *4{draw=none}},
     y unit title=0.6cm,
     y unit chart=0.6cm,
-    expand chart=\textwidth,
+    expand chart=20cm,
+%    expand chart=\textwidth,
 %    progress=today,
 %    today=2021-11-28,
     milestone/.append style={fill=red},
@@ -65,9 +73,7 @@
     \ganttlink{graphics}{debugshell}
     \ganttlink{filesystem}{shellfs}
 \end{ganttchart}
-\caption{A Gantt chart breaking down the proposed schedule of work for this
-project.}
-\label{fig:original-gantt-chart}
-\end{center}
-\end{figure}
+%\caption{A Gantt chart breaking down the proposed schedule of work for this
+%project.}
+%\label{fig:original-gantt-chart}
 \end{document}

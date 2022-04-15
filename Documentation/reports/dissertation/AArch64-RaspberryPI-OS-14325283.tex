@@ -1,5 +1,10 @@
 \documentclass{article}
 
+% Word count progress (only counting the content, not the copy of the interim
+% report)
+% 2022-04-14, 1200 words, 2.5 pages
+% 2022-04-15, 1900 words, 4 pages
+
 \usepackage[margin=0.55in,bottom=0.75in]{geometry}
 %\usepackage[margin=0.75in]{geometry}
 \usepackage{titlesec}
@@ -18,12 +23,11 @@
 \usepackage[british]{babel}
 \usepackage[backend=biber,defernumbers=true,urldate=iso,date=iso,seconds=true]{biblatex}
 \usepackage{xcolor}
-\usepackage{pgfgantt}
 \usepackage[acronym,nonumberlist,nomain,automake]{glossaries-extra}
 \usepackage[nottoc]{tocbibind}
 \usepackage{nameref}
 \usepackage{hyperref}
-\usepackage{subfiles}
+\usepackage{float}
 
 \hypersetup{colorlinks=true,
         linkcolor={red!60!blue},
@@ -47,6 +51,19 @@
 \emergencystretch=3em
 \hbadness=10000
 
+% A command to change the page numbering style while maintaining the page
+% number
+\newcommand{\mypagenumbering}[1]{%
+    % Define the temporary counter only the first time this command is used
+    \ifcsname c@pagetmp\endcsname
+    \else
+        \newcounter{pagetmp}
+    \fi
+    \setcounter{pagetmp}{\value{page}}
+    \pagenumbering{#1}
+    \setcounter{page}{\value{pagetmp}}
+}
+
 \begin{document}
 \newrefcontext{default}
 \begin{titlepage}
@@ -61,8 +78,8 @@
 
         \vspace{0.5cm}
         \Large
-        A Kernel and simple Shell for the 64-bit Raspberry Pi 3b, developed
-        from an historical perspective on early Operating System structures.
+        A Kernel and simple Shell for the 64-bit Raspberry Pi 3, developed
+        from an historical perspective on early \glsxtrlong{os} structures.
 
         \Large
 
@@ -80,124 +97,66 @@
         Project Supervisor: Steve Bagley\\
         University of Nottingham
 
+        \vfill
+
+        \begin{abstract}
+            % TODO: finalise (reword) this
+            In this project I aimed to create an \gls{os} for the \gls{rpi} 3.
+            I originally intended to follow the design of the Unix system from
+            the beginning, but at the start my work did not seem to be heading
+            in that direction.
+
+            Over the course of developing this \gls{os}, I learned a lot about
+            which \gls{os} components are needed at which stages of
+            development. This project has followed a logical ``first
+            discovery'' journey into \gls{os} development, which shadowed the
+            historic major advances in \gls{os} technology.
+
+            The \gls{os} I have created provides a kernel, with a system call
+            interface, most of the infrastructure for a multiple-process
+            execution model, an implementation of the exFAT \gls{fs}, and a
+            basic shell which allows users to run several different basic
+            commands.
+
+            The final \gls{os} is not intended for daily use, but rather it is
+            an example of a typical project for those wanting to learn about
+            \gls{os} development. The source code for the project is made
+            freely available online as a learning tool.
+        \end{abstract}
+
         \vfill\null
     \end{center}
     \thispagestyle{empty}
 \end{titlepage}
+\addtocounter{page}{1}
 
-{\hypersetup{hidelinks} \tableofcontents}
+{\mypagenumbering{roman}\hypersetup{hidelinks} \tableofcontents}
 \clearpage
+\mypagenumbering{arabic}
 
 \section{Introduction}
-%\subsection{What is ARM64?}
-%\subsection{What is an Operating System?}
-%\subsection{Why the Raspberry Pi?}
-\section{Motivation}
-\section{Related work}
-\section{Description of the work}
-\section{Methodology}
-\section{Design}
-\section{Implementation}
-\section{Evaluation and External Aspects}
-\section{Summary and Reflections}
+TODO: Introduction setting out the aims and objectives of your project,
+\textbf{explaining the overall intention of the project and specific steps that
+will be taken to achieve that intention.}
 
-\clearpage
-\section{Getting Started}
-\subsection{Setting up the build system}
-For this project, I could not use a traditional compilation setup. Normally, a
-program runs in a hosted environment, which means that it can use a standard
-library for some basic functions. In the case of C code, this is \texttt{libc}.
-My Operating System runs on ``bare metal'', so it cannot use any of the
-standard header files provided by \texttt{libc}, which means that the entire C
-standard library is unavailable. I still have access to some header files,
-including \texttt{stddef.h} and \texttt{stdint.h}, as these are provided as
-part of the compiler. There are other header files available in this
-``freestanding'' environment, but these two were the main ones for the first
-stages of development, since they define types such as \texttt{uint32\_t} and
-\texttt{size\_t}.
+My aim for this project was to produce a Unix-like \gls{os} for the \gls{rpi} 3
+which would be capable of being used as a general purpose hobbyist \gls{os}.
+The result of the project was not what I originally had hoped to achieve, but
+the development of the \gls{os} provided more education than I expected about
+the many components required for an \gls{os} to function. I believe that this
+educational experience will prove valuable to others, and so I consider this
+project to have been a success.
+% FIXME: move this to evaluation at the end? Reword the intro part?
 
-In addition to the compiler flags needed for freestanding development, I also
-needed a completely different compiler. This relates to the
-\textbf{Architecture} of the system running the compiler. The Raspberry Pi I
-used for this project has an architecture of \texttt{Aarch64}, or 64-bit ARM,
-whereas desktop PCs are usually \texttt{x86} or \texttt{x86\_64} architecture
-computers. This means I needed a compiler that generates machine code for
-\texttt{Aarch64} based systems. Such a compiler would be called a
-\textbf{Cross-compiler} if it runs on a different architecture compared with
-the machine code it produces.
-\subsubsection{Cross-compilation terminology and tools}
+% TODO: reword this
+First, an introduction to some of the concepts on which this project relies.
+
+\subsection{What is ARM64?}
 \begin{itemize}
-    \item \textbf{Build}: The architecture of the computer used to compile the
-        program.
-    \item \textbf{Host}: The architecture of the computer the program will run
-        on.
-    \item \textbf{Target}: The architecture the program builds for (only used
-        when the program is or contains a compiler).
+    \item ARM64 (or more commonly Aarch64) is the name given to the 64 bit
+        architecture of \gls{arm} \glspl{cpu}.
 \end{itemize}
-For this project I used the LLVM suite of tools, as it was designed to be a
-cross-compiler first, so all of the tools (compiler, assembler, binary
-manipulation tools, etc.) are capable of handling the required Aarch64 host
-system. The compiler, ``clang'', takes a command-line argument which indicates
-the architecture of the host system (LLVM ignores the difference between host
-and target, calling them both ``target'').
-\subsubsection{The build process - Make and Makefile}
-\subsection{How I will debug the OS}
-\subsubsection{GDB as a remote debugger}
-\subsection{Developing on hardware, or why I won't be}
-
-\clearpage
-\section{The Kernel}
-\subsection{The early boot process}
-\subsection{Memory allocation}
-\subsection{The filesystem}
-\subsection{System calls}
-\subsection{Process handling and environments}
-
-\clearpage
-\section{The Shell}
-\subsection{Design of the built-in kernel shell}
-
-\clearpage
-\section{Interim: Introduction}
-I am aiming to produce a Unix-like \gls{os} for the \gls{rpi} 3 which is
-capable of being used as a general purpose hobbyist \gls{os}.
-
-The \gls{os} will provide a kernel, with a system call interface, process
-scheduler, and \gls{fs} abstraction layer, as well as a shell which it will
-boot into to run programs for the user
-\footnote{The details of the shell are not given here as I do not know them
-yet. The shell will probably be a port of an already-existing POSIX compliant
-shell.}.
-
-
-\section{Interim: Motivation and Background}
-\subsection{Motivation for this project}
-My motivation for choosing to create an \gls{os} for this project stems from my
-interest in low-level programming. I have an interest in understanding how
-computers work at the lowest level, and the best way to learn how an \gls{os}
-is implemented and the reasons for design decisions will be to implement my own
-\gls{os} at that low level.
-
-\subsection{Background: the \texorpdfstring{\glsxtrlong{rpi}}{Raspberry Pi} and
-\texorpdfstring{\glsxtrlongpl{os}}{Operating Systems}}
-The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
-project focuses on the \gls{rpi} 3, the first iteration of the \gls{rpi} to use
-a 64-bit \gls{cpu}. The \gls{rpi} is ideal for a project like this, as it is
-complex enough that creating an \gls{os} for it is a challenge, but also modern
-enough that no out-of-date technologies will be necessary to work with it. The
-\gls{rpi} board includes a number of different components that will require
-drivers to function, so there is plenty of room for additional features if the
-project moves faster than anticipated.
-
-The \gls{rpi} is popular among hobbyist \gls{os} developers, and its hardware
-schematics and technical manuals are made available, so there are plenty of
-resources available online for documentation of technical details. The \gls{os}
-I develop will be a learning resource for others who wish to discover more
-about \gls{os} design. The source code will be made available under an open
-source license, and I will create documentation of how each component of the
-final system
-works.
-
+\subsection{What is an Operating System?}
 \glspl{os} are programs which run directly on top of computer hardware and
 allow other software to run on the computer. They come in many different
 varieties, but this project will be based on the ``microkernel'' design. Unix
@@ -206,16 +165,50 @@ written in assembly language for the specific target machine, the PDP7, but for
 its 4th version it was rewritten in C, a new language at the time (also created
 at Bell Labs). Being written in C made the \gls{os} very portable, as only the
 compiler had to be ported for the entire system to run on a new machine. This
-made Unix very popular, and soon there were many Unix-like \glspl{os}. ``A
-Unix-like \gls{os} is one that behaves in a similar manner to a Unix
-system''
-\footnote{Wikipedia, `Unix-like': \url{en.wikipedia.org/wiki/Unix-like}}.
+made Unix very popular, and soon there were many Unix-like \glspl{os}.
+\blockquote[\cite{unix-like}]{A Unix-like \gls{os} is one that behaves in a
+similar manner to a Unix system}.
 There are many examples of Unix-like \glspl{os}, including some very popular
 ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs. The
 \gls{os} I am creating in this project aims to be Unix-like in its behaviour.
 
+\subsection{Why the Raspberry Pi?}
+The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
+project focuses on the \gls{rpi} 3, the first iteration of the \gls{rpi} to use
+a 64-bit \gls{cpu}. The \gls{rpi} is ideal for a project like this, as it is
+complex enough that creating an \gls{os} for it is a challenge, but also modern
+enough that no out-of-date technologies will be necessary to work with it. The
+\gls{rpi} board includes a number of different components that would require
+drivers to function, so there would be plenty of room for additional features
+if the project moved faster than anticipated.
 
-\section{Interim: Related works}
+The \gls{rpi} is popular among hobbyist \gls{os} developers, and its hardware
+schematics and technical manuals are made available, so there are plenty of
+resources available online for documentation of technical details. The \gls{os}
+I have developed is intended to be a learning resource for others who wish to
+discover more about \gls{os} design. The source code will be made available
+under an open source license.
+
+\section{Motivation}
+TODO: Motivation explaining the problem being solved and its importance or need
+for it.
+
+\subsection{My personal motivation for this project}
+My motivation for choosing to create an \gls{os} for this project stems from my
+interest in low-level programming. I have an interest in understanding how
+computers work at the lowest level, and the best way to learn how an \gls{os}
+is implemented and the reasons for design decisions will be to implement my own
+\gls{os} at that low level.
+
+\begin{itemize}
+    \item Why things are done the way they are done - did \gls{os} design
+        follow a natural path from batch \glspl{os} to current multi-user
+        simultaneous multi-processing \glspl{os}?
+\end{itemize}
+
+TODO: The importance or need for this project
+
+\section{Related work}
 \label{sec:related-works}
 \begin{refsection}
 \newrefcontext{relatedworks}
@@ -277,6 +270,230 @@ a look at its implementation of any components I get particularly stuck on.
 
 \newrefcontext{default}
 \end{refsection}
+\section{Description of the work}
+TODO: Description of the work explaining what your project is meant to achieve,
+how it is meant to function, e.g., perhaps even a functional specification for
+a software-oriented project.
+\section{Methodology}
+TODO: Methodology describing the (theoretical / experimental / analytical /
+numerical / software development-based / research-based, etc.) methodologies /
+techniques / tools / algorithms / technologies / etc. that are relevant to the
+project topic justifying the choices made for the project, where possible with
+supporting evidence derived from the existing work.
+
+\subsection{Setting up the build system}
+For this project, I could not use a traditional compilation setup. Normally, a
+program runs in a hosted environment, which means that it can use a standard
+library for some basic functions. In the case of C code, this is \texttt{libc}.
+My \gls{os} runs on ``bare metal'', so it cannot use any of the standard header
+files provided by \texttt{libc}, which means that the entire C standard library
+is unavailable. I still have access to some header files, including
+\texttt{stddef.h} and \texttt{stdint.h}, as these are provided as part of the
+compiler. There are other header files available in this ``freestanding''
+environment, but these two were the main ones for the first stages of
+development, since they define types such as \texttt{uint32\_t} and
+\texttt{size\_t}.
+
+In addition to the compiler flags needed for freestanding development, I also
+needed a completely different compiler. This relates to the
+\textbf{Architecture} of the system running the compiler. The Raspberry Pi I
+used for this project has an architecture of \texttt{Aarch64}, or 64-bit ARM,
+whereas desktop PCs are usually \texttt{x86} or \texttt{x86\_64} architecture
+computers. This means I needed a compiler that generates machine code for
+\texttt{Aarch64} based systems. Such a compiler would be called a
+\textbf{Cross-compiler} if it runs on a different architecture compared with
+the machine code it produces.
+\subsubsection{Cross-compilation terminology and tools}
+\begin{itemize}
+    \item \textbf{Build}: The architecture of the computer used to compile the
+        program.
+    \item \textbf{Host}: The architecture of the computer the program will run
+        on.
+    \item \textbf{Target}: The architecture the program builds for (only used
+        when the program is or contains a compiler).
+\end{itemize}
+For this project I used the LLVM suite of tools, as it was designed to be a
+cross-compiler first, so all of the tools (compiler, assembler, binary
+manipulation tools, etc.) are capable of handling the required Aarch64 host
+system. The compiler, ``clang'', takes a command-line argument which indicates
+the architecture of the host system (LLVM ignores the difference between host
+and target, calling them both ``target'').
+\subsection{The build process - Make and Makefile}
+
+\section{Components of the \texorpdfstring{\glsxtrlong{os}}{Operating System}}
+TODO: create a section for general \textbf{design} and \textbf{implementation}
+details (before this section talks about the specific details of the kernel and
+shell).
+
+\subsection{The Kernel}
+TODO
+\subsubsection{Design}
+TODO: Design containing a comprehensive description of the design chosen, how
+it addresses the problem, and \textbf{why it is designed the way it is}.
+
+Kernel contains several components
+\begin{itemize}
+    \item Graphics driver
+    \item Hardware interface:
+        \begin{itemize}
+            \item Mailbox library (using MMIO)
+            \item Other MMIO operations (including GPIO and a power off
+                function)
+        \end{itemize}
+    \item Memory allocation with \texttt{malloc, realloc, free}
+    \item A basic unit test system
+    \item exFAT \gls{fs} implementation and SD card eMMC driver
+    \item Process environment structure
+    \item System call infrastructure - currently no system calls are
+        implemented (TODO)
+\end{itemize}
+\subsubsection{Implementation}
+TODO: Implementation containing a comprehensive description of the
+implementation of your software, including the language(s) and platform chosen,
+problems encountered, any changes made to the design as a result of the
+implementation, etc.
+\subsubsection{Evaluation}
+TODO: Evaluation and External Aspects explaining how your software/approach was
+tested (using different datasets or in different environments), statistical
+evaluation of performance, results of user evaluation questionnaires, etc. You
+should explicitly address how your project fulfilled (or not) its original
+intentions with regard to its `external aspect'.
+
+Bad:
+\begin{itemize}
+    \item No syscalls implemented yet
+    \item Test coverage is very limited
+    \item Most functions in \texttt{string.h} are missing implementations
+        (TODO: not really a kernel issue?)
+    \item No kernel / user space separation: all code runs in Exception Level 1
+        (everything is Kernel code)
+    \item Virtual filesystem abstraction is missing: all file code directly
+        calls exFAT-specific functions
+    \item No multi-processing or scheduler
+\end{itemize}
+
+\subsection{The Shell}
+TODO
+\subsubsection{Design}
+\begin{itemize}
+    \item Shell as a part of the kernel
+    \item Read, evaluate, print, loop
+    \item All shell commands are functions (with a standard signature)
+    \item Each shell command is defined with a simple structure containing the
+        command string (e.g. ``tree'') and a pointer to the function for that
+        command
+\end{itemize}
+\subsubsection{Implementation}
+TODO
+\subsubsection{Evaluation}
+Good:
+\begin{itemize}
+    \item Modular system for creating new shell commands: only need to define a
+        function \texttt{int fun(struct command\_args*)}
+    \item The structure passed to the shell functions contains the three
+        arguments that would be passed to the \texttt{main()} function of a
+        binary file (\texttt{int argv, char **argv, char *envp[]}). The
+        environment argument is not exactly the same and is actually a pointer
+        to a struct containing all the important information about the kernel
+        process, such as the current working directory and the (currently
+        unused) process ID (PID). The vector of environment variables could be
+        extracted from this struct with some easy pre-processing.
+\end{itemize}
+Bad:
+\begin{itemize}
+    \item No text editor: line-based editor (based on \texttt{ed})
+\end{itemize}
+Future:
+\begin{itemize}
+    \item Create a binary file loader (Maybe ELF)
+    \item Make the shell a separate binary
+    \item Make each shell command a separate binary
+\end{itemize}
+
+\section{External Aspects}
+TODO
+\section{Summary and Reflections}
+TODO: Summary and Reflections including a discussion of results in a wider
+context (considering other work).
+
+\subsection{Project management}
+TODO: Project management covering the tasks as a part of your work plan and
+progress as well as how time and resources are managed. For a COMP4028 project,
+role of each individual should be explicitly discussed.
+
+\subsection{Contributions and reflections}
+TODO: Contributions and reflections providing the details of your achievements
+and contributions including innovation, creativity and novelty (if there is
+any) as well as a personal reflection on the plan and your experience of the
+project (a critical appraisal of how the project went).
+
+
+% End of content
+% Start of stuff I haven't integrated into the content yet
+\clearpage
+\section{Getting Started}
+\subsection{How I will debug the OS}
+\subsubsection{GDB as a remote debugger}
+\subsection{Developing on hardware, or why I won't be}
+
+\clearpage
+\section{The Kernel}
+\subsection{The early boot process}
+\subsection{Memory allocation}
+\subsection{The filesystem}
+\subsection{System calls}
+\subsection{Process handling and environments}
+
+\clearpage
+\section{The Shell}
+\subsection{Design of the built-in kernel shell}
+
+\clearpage
+\section{Interim: Motivation and Background}
+\subsection{Motivation for this project}
+My motivation for choosing to create an \gls{os} for this project stems from my
+interest in low-level programming. I have an interest in understanding how
+computers work at the lowest level, and the best way to learn how an \gls{os}
+is implemented and the reasons for design decisions will be to implement my own
+\gls{os} at that low level.
+
+\subsection{Background: the \texorpdfstring{\glsxtrlong{rpi}}{Raspberry Pi} and
+\texorpdfstring{\glsxtrlongpl{os}}{Operating Systems}}
+The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
+project focuses on the \gls{rpi} 3, the first iteration of the \gls{rpi} to use
+a 64-bit \gls{cpu}. The \gls{rpi} is ideal for a project like this, as it is
+complex enough that creating an \gls{os} for it is a challenge, but also modern
+enough that no out-of-date technologies will be necessary to work with it. The
+\gls{rpi} board includes a number of different components that will require
+drivers to function, so there is plenty of room for additional features if the
+project moves faster than anticipated.
+
+The \gls{rpi} is popular among hobbyist \gls{os} developers, and its hardware
+schematics and technical manuals are made available, so there are plenty of
+resources available online for documentation of technical details. The \gls{os}
+I develop will be a learning resource for others who wish to discover more
+about \gls{os} design. The source code will be made available under an open
+source license, and I will create documentation of how each component of the
+final system
+works.
+
+\glspl{os} are programs which run directly on top of computer hardware and
+allow other software to run on the computer. They come in many different
+varieties, but this project will be based on the ``microkernel'' design. Unix
+was an \gls{os} developed at Bell Labs of AT\&T in the 1970s. It was originally
+written in assembly language for the specific target machine, the PDP7, but for
+its 4th version it was rewritten in C, a new language at the time (also created
+at Bell Labs). Being written in C made the \gls{os} very portable, as only the
+compiler had to be ported for the entire system to run on a new machine. This
+made Unix very popular, and soon there were many Unix-like \glspl{os}. ``A
+Unix-like \gls{os} is one that behaves in a similar manner to a Unix
+system''
+\footnote{Wikipedia, `Unix-like': \url{en.wikipedia.org/wiki/Unix-like}}.
+There are many examples of Unix-like \glspl{os}, including some very popular
+ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs. The
+\gls{os} I am creating in this project aims to be Unix-like in its behaviour.
+
+
 \section{Interim: Description of the work}
 I have split the description of work into two main parts, the
 \nameref{sec:tasks} of the \gls{os}, and a selection of
@@ -287,8 +504,8 @@ I have split the description of work into two main parts, the
 Tasks are the individual components of the project, separated into the
 components of the Kernel and Shell, the miscellaneous parts, and the documents
 I will need to produce for the project. These tasks are enumerated in
-\autoref{tab:interim-work-plan} on page~\pageref*{tab:interim-work-plan} and then assembled into
-a Gantt chart in \autoref{fig:interim-gantt-chart}.
+\autoref{tab:interim-work-plan} on page~\pageref*{tab:interim-work-plan} and
+then assembled into a Gantt chart in \autoref{fig:interim-gantt-chart}.
 
 Some of the tasks are different to the ones in the original table from the
 project proposal, which can be found in the Appendix
@@ -413,7 +630,11 @@ and will not need to run any services.
 \end{center}
 \end{table}
 
-\subfile{interim-gantt.tex}
+\begin{figure}[htbp]
+    \includegraphics[scale=0.9]{build/interim-gantt.pdf}
+    \caption{Gantt chart from the interim report}
+    \label{fig:interim-gantt-chart}
+\end{figure}
 
 
 \clearpage
@@ -621,7 +842,17 @@ control subsystem'' does not currently have any implementation, but it will be
 made up of the parts of the kernel which control the processes that run on the
 \gls{cpu} at any particular time.
 
-\subfile{os-block-diagram.tex}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{build/os-block-diagram.pdf}
+    \caption{A diagram of how the components of the operating system will
+        interact with each other. Inspired by a diagram from a book on Unix
+        (Figure~2.1 from~\cite{design-of-unix-os}). The versions of this
+        diagram which are available online are low-resolution, so the version
+        provided here is in a vector format, and this document's source code is
+        available online~\cite{this-document}.}
+    \label{fig:os-block-diagram}
+\end{figure}
 
 \subsection{Design of the shell and user interface}
 \subsubsection{Shell}
@@ -888,12 +1119,17 @@ as I can, so that I can stay ahead of the new plan.
 % FIXME: Appendices should NOT be a part of this file
 \clearpage
 \appendix
+\pagenumbering{Roman}
 \newrefcontext{appendix}
 \newrefsection
-\section*{Interim: Appendices}
 \addcontentsline{toc}{section}{Appendices}
 \renewcommand{\thesubsection}{\Alph{subsection}}
-\subsection{The original project plan}
+\renewcommand{\thesubsubsection}{\thesubsection.\alph{subsubsection}}
+
+{\Large\bfseries Appendices\vspace{2ex}}
+
+\subsection{Interim: Appendices}
+\subsubsection{The original project plan}
 This appendix contains all of the tables, figures, and diagrams from the
 original project proposal, laying out my initial beliefs about what the project
 entailed, and how much work each part of the project would take.
@@ -910,7 +1146,7 @@ I will need to produce for the project. These tasks are enumerated in
 \autoref{tab:original-work-plan} and then assembled into a Gantt chart in
 \autoref{fig:original-gantt-chart}.
 
-\begin{table}[tbp]
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{|l|r|}
     \hline
@@ -952,7 +1188,12 @@ thought each component would take.}
 \end{table}
 
 \subsubsection{Gantt chart}
-\subfile{original-gantt.tex}
+\begin{figure}[H]
+    \includegraphics[scale=0.9]{build/original-gantt.pdf}
+    \caption{A Gantt chart breaking down the proposed schedule of work for this
+    project.}
+    \label{fig:original-gantt-chart}
+\end{figure}
 
 \subsubsection{Work Packages}
 A ``Work Package'' is a collection of tasks with a well-defined deliverable.
@@ -960,7 +1201,7 @@ Not every task will be part of a work package, and some tasks will be work
 packages on their own. \autoref{tab:original-work-packages} contains all of the
 work packages for this project.
 
-\begin{table}[tbp]
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{|p{45mm}|p{125mm}|}
     \hline
@@ -1021,9 +1262,27 @@ work packages for this project.
 \end{table}
 
 \clearpage
-\section{Gantt chart}
+\subsection{Gantt chart}
 
-\subfile{gantt.tex}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.9]{build/gantt.pdf}
+    \caption{A Gantt chart breaking down the proposed schedule of work for this
+    project.}
+    \label{fig:gantt-chart}
+\end{figure}
+
+\subsection{Future plans block diagrams}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.32\textwidth]{build/finished-block-diagram.pdf}
+    \includegraphics[width=0.32\textwidth]{build/nextstep-block-diagram.pdf}
+    \includegraphics[width=0.32\textwidth]{build/os-block-diagram.pdf}
+    \caption{My current estimation for how future development would work on
+        this project. On the left is the current state of the Operating System.
+        On the right is the diagram of how the Unix system was structured.}
+\end{figure}
 
 % End of main document - print glossaries, references, etc.
 \printglossaries
