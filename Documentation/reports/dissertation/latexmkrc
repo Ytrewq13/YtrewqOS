@@ -26,7 +26,7 @@ push @generated_exts, "acr";
 push @generated_exts, "alg";
 push @generated_exts, "ist";
 
-#@default_files = ('original-gantt.tex', 'interim-gantt.tex', 'gantt.tex', 'os-block-diagram.tex', 'AArch64-RaspberryPI-OS-14325283.tex');
+@default_files = ('original-gantt.tex', 'interim-gantt.tex', 'gantt.tex', 'finished-block-diagram.tex', 'nextstep-block-diagram.tex', 'os-block-diagram.tex', 'AArch64-RaspberryPI-OS-14325283.tex');
 
 add_cus_dep('glo', 'gls', 0, 'makeglo2gls');
 sub makeglo2gls {
