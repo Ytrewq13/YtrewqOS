@@ -10,8 +10,18 @@
 % 2022-04-16T03:30, 3900 words, 10 pages
 % 2022-04-16T04:30, 5200 words, 11 pages
 % 2022-04-16T05:00, 5600 words, 11.5 pages
+% 2022-04-17T04:30, 6000 words, 12 pages
+% 2022-04-17T16:30, 6100 words, 12 pages
+% 2022-04-18T03:00, 6250 words, 13.5 pages (changed to 1in margins)
+% 2022-04-19T03:00, 6650 words, 14.5 pages
+% 2022-04-19T23:00, 7000 words, 14 pages
+% 2022-04-20T01:30, 7400 words, 14.5 pages
+% 2022-04-20T02:30, 7650 words, 15 pages
+% 2022-04-20T03:00, 7850 words, 15 pages
+% 2022-04-20T22:00, 8200 words, 15 pages
 
-\usepackage[margin=0.55in,bottom=0.75in]{geometry}
+\usepackage[margin=1in]{geometry}
+%\usepackage[margin=0.55in,bottom=0.75in]{geometry}
 %\usepackage[margin=0.75in]{geometry}
 \usepackage{titlesec}
 \usepackage{datetime}
@@ -192,26 +202,40 @@ under an open source license.
 TODO: Motivation explaining the problem being solved and its importance or need
 for it.
 
-\subsection{My personal motivation for this project}
-My motivation for choosing to create an \gls{os} for this project stems from my
-interest in low-level programming. I have an interest in understanding how
-computers work at the lowest level, and the best way to learn how an \gls{os}
-is implemented and the reasons for design decisions will be to implement my own
-\gls{os} at that low level.
+TODO: explain the problem being solved
 
+My personal motivation for choosing to create an \gls{os} for this project
+stems from my interest in low-level programming. I have an interest in
+understanding how computers work at the lowest level, and the best way to learn
+how an \gls{os} is implemented and the reasons for design decisions will be to
+implement my own \gls{os} at that low level.
+
+With this project, I wanted to develop a deeper understanding of the inner
+workings of \glspl{os} and how the programs I run on my computer interact with
+the hardware they run on. I wanted to understand the entire software stack, and
+one large gap in my knowledge was the internals of the \glsfmtlong{os}. It is a
+black box to most students of Computer Science, and I was determined to fill
+that gap in my own understanding. I wanted to know how system calls work, and
+how they relate to the concept of a ``secure monitor''. I already knew how
+filesystems work in theory, but I wanted to experience implementing one to gain
+a practical appreciation of the topic.
+
+TODO: why is this project ``needed'' or ``important''?
 \begin{itemize}
-    \item Why things are done the way they are done - did \gls{os} design
-        follow a natural path from batch \glspl{os} to current multi-user
-        simultaneous multi-processing \glspl{os}?
+    \item Understanding common OS choices from an historical perspective by
+        analyzing original OS methods
 \end{itemize}
 
-\subsection{The importance of and need for this project (TODO: reword this
-heading)}
-TODO
-\begin{itemize}
-    \item No \gls{os} development project has aimed to show clearly the reasons
-        why \gls{os} development as a field followed the direction that it did
-\end{itemize}
+I believe that this project is needed because although \glspl{os} are a common
+hobby project, there are no \gls{os} development projects which have aimed to
+highlight the motivation behind the choices that have been made by the largest
+\glspl{os}. No project exists which shows clearly the reasons behind why
+\gls{os} development as a field has taken the direction that it has. Why does
+every major \gls{os} use a software interrupt based system call architecture to
+distinguish between user-level code and privileged kernel operations? What are
+some of the reasons for choosing to include hardware drivers in the kernel of
+an \gls{os} instead of running those drivers as user code? These questions, and
+others like them, have not been answered to a suitable level by other projects.
 
 \section{Related work}
 \label{sec:related-works}
@@ -281,12 +305,37 @@ TODO: Description of the work explaining what your project is meant to achieve,
 how it is meant to function, e.g., perhaps even a functional specification for
 a software-oriented project.
 
+This project will produce a piece of software. The software will aim to achieve
+two main goals: to be an \gls{os} and to be a useful starting point for anyone
+wanting to teach themselves \gls{os} development.
 
-I have split the description of work into two main parts, the
-\nameref{sec:tasks} of the \gls{os}, and a selection of
-\nameref{sec:work_packages} I will work on.
+\subsection{The goals of the project}
+To meet the first goal, the software produced should qualify as an \gls{os}.
+For this, it should have its code organised into a ``kernel'' structure. There
+should be drivers for the essential hardware, such as the serial port (for a
+debug console), the framebuffer (for graphical output), and the eMMC chip,
+which controls access to SD cards on the \gls{rpi}. There should also be enough
+filesystem code to allow for reading and writing of files, and there should be
+implementations of familiar standard library file I/O wrapper functions,
+including \texttt{fread} and \texttt{fwrite}.
 
-\subsection{Tasks}
+For the second goal (being a useful starting point for someone learning about
+\gls{os} development), the \gls{os} I produce needs to be simple enough for a
+competent programmer to get a basic understanding of how all of the components
+fit together, within only a couple of hours of first studying the source code.
+As with the first goal, it will need to include all of the required features
+for a basic \gls{os}, and these were described previously. It should also have
+plenty of room for future development, as I believe that one of the best ways
+to understand a topic (and to become familiar with an existing project) is to
+try to develop a new feature involving the topic or extend the project.
+
+
+\subsection{Specification of the project}
+I specified the components of the project, and these components are described
+below. The components are split into two parts: the \nameref{sec:tasks} of the
+\gls{os}, and a selection of \nameref{sec:work_packages} I will work on.
+
+\subsubsection{Tasks}
 \label{sec:tasks}
 Tasks are the individual components of the project, separated into the
 components of the Kernel and Shell, the miscellaneous parts, and the documents
@@ -341,7 +390,7 @@ each component will take.}
 \end{center}
 \end{table}
 
-\subsection{Work Packages}
+\subsubsection{Work Packages}
 \label{sec:work_packages}
 A ``Work Package'' is a collection of tasks with a well-defined deliverable.
 Not every task will be part of a work package, and some tasks will be work
@@ -418,7 +467,7 @@ and will not need to run any services.
 \end{table}
 
 \begin{figure}[htbp]
-    \includegraphics[scale=0.9]{build/gantt.pdf}
+    \includegraphics[width=0.95\textwidth]{build/gantt.pdf}
     \caption{Gantt chart}
     \label{fig:gantt-chart}
 \end{figure}
@@ -557,45 +606,13 @@ order in this way would result in quickly becoming overwhelmed by the sheer
 number of files.
 
 \section{Design}
-\subsection{\texorpdfstring{\gls{os}}{OS} components}
-\subsubsection{Features I expect to complete}
-\begin{itemize}
-    \item Microkernel with UART serial output and graphics driver for the
-        \gls{rpi}'s HDMI video output. User interaction will use the display
-        and read from the keyboard.
-    \item Shell (hopefully POSIX-compliant) with scripting capabilities.
-        Depending on time constraints, this may be a port of
-        Dash~\cite{dash-shell}.
-    \item Multi-process system allowing multiple processes to time-share the
-        CPU with a process scheduler.
-    \item An implementation of the System V ABI for executable files
-        (statically compiled ELF files).
-    \item Suite of core utilities (like those provided by GNU) - these may be
-        partially or totally ported from the GNU
-        coreutils~\cite{gnu-coreutils}.
-    \item An init program for starting the \gls{os}'s essentials and for
-        starting the root\footnote{Here, ``root'' means PID 0, not a root user
-        (although if users are implemented, it would be both).} shell.
-\end{itemize}
+TODO: shell, kernel get their own sections (with design, implementation, and
+evaluation), the rest of the components are discussed in a section after that.
 
-\subsubsection{Nice-to-haves}
-\begin{itemize}
-    \item A service manager for starting services at boot and ensuring that
-        they remain running, restarting them if they fail. This may be bundled
-        with the init system, like with systemd on most Linux distributions, or
-        may be a separate program.
-    \item Runs on hardware (not just a VM/emulator).
-\end{itemize}
+FIXME: Write about how this diagram is from a book, the differences from the
+actual design.
 
-\subsubsection{Future possibilities}
-\begin{itemize}
-    \item A multi-user system with basic passwords and access control on files
-        (file/directory ownership).
-    \item A threads system with multithreading support (multiple threads owned
-        by one process).
-\end{itemize}
-
-\subsubsection{\texorpdfstring{\gls{os}}{OS} components block diagram}
+\subsection{\texorpdfstring{\gls{os}}{OS} components block diagram}
 \autoref{fig:os-block-diagram} is a diagram of how the different components of
 the \gls{os} will fit together. It shows how user programs running on the
 \gls{os} would be supported by the \gls{os} components. The components
@@ -641,7 +658,8 @@ white, but this would probably put strain on the users' eyes after using the
 implemented a program that can output a text file to the screen.
 
 
-\section{Implementation}
+\section{General implementation details}
+TODO: rename this section (`build system' or `compilation toolchain'?)
 \subsection{Programming languages used}
 From the beginning of this project, I had already decided to write the majority
 of the code for the \gls{os} in C~\cite{c-programming-language}. C is primarily
@@ -699,22 +717,141 @@ TODO
 TODO: Design containing a comprehensive description of the design chosen, how
 it addresses the problem, and \textbf{why it is designed the way it is}.
 
-Kernel contains several components
+TODO: stop saying `I will' - this should be a specification of the components,
+not a description of my plan
+
 \begin{itemize}
-    \item Graphics driver
-    \item Hardware interface:
-        \begin{itemize}
-            \item Mailbox library (using MMIO)
-            \item Other MMIO operations (including GPIO and a power off
-                function)
-        \end{itemize}
-    \item Memory allocation with \texttt{malloc, realloc, free}
-    \item A basic unit test system
-    \item exFAT \gls{fs} implementation and SD card eMMC driver
-    \item Process environment structure
-    \item System call infrastructure - currently no system calls are
-        implemented (TODO)
+    \item Some of these components are features I expect to finish, some would
+        be ``nice-to-have'' features which I will implement if I have enough
+        time, and some will be left as suggested future developments for other
+        programmers who want to extend the project.
+    \item I will specify which is which(?)
+    \item Future developments will be moved to the evaluation section
 \end{itemize}
+
+\subsubsection{Components I expect to complete}
+\paragraph{Bootloader}
+On the \gls{rpi} 3, the \gls{gpu} contains a first-stage bootloader which
+automatically does most of the required setup for booting into an \gls{os}
+kernel. However, the \gls{cpu} will not be setup completely, and so I will need
+to write some code to set register values and verify that everything is as it
+should be before we jump into the kernel \texttt{main} function. I will call
+this code the `second-stage' bootloader.
+
+\paragraph{\texorpdfstring{\glsxtrshort{uart}}{UART} driver for keyboard
+input and initial console output}
+\gls{uart} is used on the \gls{rpi} for serial communication, with two
+different \gls{uart} ports: a mini-UART and a full PL011
+\gls{uart}~\cite{rpi-uarts}. The PL011 \gls{uart} is faster and more reliable
+than the mini-UART, but it is disabled by default, enabling it disables
+bluetooth, and it is more complex to program for. I will use the mini-UART to
+debug the setup of the PL011 \gls{uart}, which will be used as the main serial
+connection once it is enabled and working. I won't be using bluetooth in this
+project, but future projects which expand on my code could switch back to the
+mini-UART if they wanted to use the \gls{rpi}'s bluetooth chip.
+
+Serial communication is used in this project as a means of interacting with the
+\gls{os}, as I will not be implementing support for USB peripherals. All
+keyboard input is expected to come through the serial port. I will also use the
+serial port for debugging as I develop the graphics driver (see
+\autoref{sec:design_graphics_driver}).
+
+For the initial console output, I will implement a \texttt{printf} function for
+formatted printing of characters, integers, hexadecimal numbers, and strings.
+This will allow me to easily print the values of registers, so that I can make
+sure that all values are as I expect during the boot process. The
+\texttt{printf} function will be generic, so that I can use the same
+\texttt{printf} function for both of the \glspl{uart} and also eventually for
+the graphical console.
+
+The \gls{os} will get keyboard input from the serial port, which will be
+provided by QEMU, the \gls{rpi} emulator. QEMU uses VT100 escape
+sequences~\cite{vt100} for its serial interface, so normal keys on the keyboard
+(and shifted keys) are passed to the \gls{os} as the ASCII value of the
+characters they represent.
+
+\paragraph{Graphics driver for displaying pixels on the screen}
+\label{sec:design_graphics_driver}
+Once I have a working serial terminal, I will implement a graphics driver for
+interacting with the \gls{rpi}'s framebuffer. This will include a function for
+setting individual pixels, a function for setting the entire screen to a
+colour, and a function to display a bitmap to the screen at a given location.
+With these functions, I will write functions for displaying characters to the
+screen, with variables for the current position on the screen. I will convert a
+bitmap font~\cite{bizcat-font} into a constant array of bitmap values, and the
+character printing function can use the character as an index into this array
+to get the bitmap to display to the screen.
+
+The screen blanking function will use a \texttt{memset} function to set the
+entire framebuffer to a given value, as this would be much faster than setting
+each pixel individually. The bitmap function will use the pixel setting
+function internally, and will use the bitmap to decide which pixels should be
+set. Each of these functions is very simple on its own, and will be relatively
+easy to implement, but once put together they will create the complex behaviour
+required for displaying characters to the screen.
+
+\paragraph{System call mechanism}
+The kernel will include a system call mechanism, which would eventually be the
+way for processes (at the user level) to escalate privileges temporarily to
+request that the kernel perform some action on their behalf. Processes and the
+user / kernel level split will not yet be implemented, but I will implement
+support for system calls to prepare for the time when they are needed.
+
+The \gls{os} will use software interrupts to trigger a system call, with an
+exception handler to interpret which system call function needs to be called.
+Each system call will be assigned a number, and I will copy these from Linux at
+the start. Most Linux system calls will not ever be implemented, but having
+some level of equivalence between this system and Linux system calls will
+ensure that developer will feel confident that the knowledge is transferable.
+
+The system call exception handler will use the system call number to determine
+which function to call. This will be done using a table in memory which maps
+system call numbers to function pointers. The exception handler will lookup the
+correct table entry and then call the function at the address it finds.
+
+\paragraph{SD card driver}
+In order to read data from the SD card on the \gls{rpi} (and write data back to
+it), the \gls{os} will need to implement a driver for the \gls{rpi}'s eMMC
+chip. The simplest way to do this will be to copy an existing driver for that
+chip. I will take code from one of the related works~\cite{rpi-boot-gh}.
+
+\paragraph{exFAT filesystem}
+The kernel will include an implementation of the exFAT filesystem. I chose this
+filesystem because it is simple to implement while also supporting very large
+disks.
+
+TODO:
+\begin{itemize}
+    \item exFAT filesystem implementation with support for reading file
+        contents
+        \begin{itemize}
+            \item Reading superblock
+            \item Interpret FAT table to follow cluster chains
+            \item Read directory entries
+            \item Search a directory for a file according to its name
+            \item Read the contents of a file
+        \end{itemize}
+\end{itemize}
+
+Nice-to-haves
+\begin{itemize}
+    \item Virtual filesystem abstraction
+    \item exFAT file creation, writing support
+    \item System call implementations for commonly used operations
+    \item Kernel / user mode separation
+\end{itemize}
+
+Future possibilities
+\begin{itemize}
+    \item Scheduler for multiprocessing (with a process control table / vector
+        in the kernel)
+    \item USB driver for keyboard input (a port of an existing USB driver
+        project)
+    \item Drivers for some other hardware on the \gls{rpi} (Ethernet /
+        Bluetooth)
+\end{itemize}
+
+
 \subsection{Implementation}
 TODO: Implementation containing a comprehensive description of the
 implementation of your software, including the language(s) and platform chosen,
@@ -804,19 +941,17 @@ Bad:
 \end{itemize}
 
 \section{The Shell}
-TODO
-\subsection{Design}
+TODO: reword this into an introduction to the shell
+
 \begin{itemize}
-    \item Shell as a part of the kernel
-    \item Read, evaluate, print, loop
-    \item All shell commands are functions (with a standard signature)
-    \item Each shell command is defined with a simple structure containing the
-        command string (e.g. ``tree'') and a pointer to the function for that
-        command
+    \item Design of the shell is important
+    \item If it is done well people will immediately feel comfortable using the
+        \gls{os}
+    \item A simple but intuitive shell will give a good first impression to the
+        project's code
 \end{itemize}
 
-TODO: finalise this paragraph - needs rewriting
-
+FIXME:
 The shell which I will include in the \gls{os} will be a port of a POSIX
 compliant, simple shell, such as Dash~\cite{dash-shell}. This shell will be the
 main way that users interact with the system, as it will allow them to execute
@@ -827,6 +962,143 @@ system call interface. This is the same way the Bourne Shell ran on Unix, and
 it is a known good way of allowing the user to control a computer. Anyone who
 has experience with a shell will immediately feel at home when they see the
 input prompt and a flashing cursor.
+
+\subsection{Design}
+
+TODO: write a specification for each component
+\subsubsection{Features I expect to complete}
+
+\paragraph{Commands as functions}
+In the initial implementation, I will develop the shell as a part of the
+kernel, and all of the commands will be functions built into the final compiled
+kernel. I will do it this way because it is simple, and my \gls{os} will not
+have a binary file loader at this stage, which would be needed for loading
+external versions of commands. The downside of using this method is that any
+new commands or changes to commands would require a recompile and rebuild of
+the entire kernel, but so far building the kernel from scratch is a relatively
+quick process.
+
+Commands in the shell will be functions in the shell source code files. The
+functions for commands will all share the same function signature, which will
+be the same as the function signature for a \texttt{main}
+function~\cite{c-main-func}. This will mean minimal changes would be needed to
+eventually turn each command into its own executable, with the binaries being
+stored on the filesystem (in a \texttt{/bin} directory). This change will be
+the natural next step from what I create, so I am designing my shell
+implementation with that in mind from the start.
+
+\paragraph{The shell loop}
+The logic of an interactive shell is quite simple. It consists of an infinite
+loop:
+
+\begin{itemize}
+    \item Read a line from the keyboard
+    \item Split the line into words by spaces
+    \item Determine which command, if any, the first word matches
+    \item Execute the correct command
+    \item Repeat this process forever
+\end{itemize}
+
+The shell needs to get user input on a line-by-line basis, since each command
+starts at the beginning of the line and ends at the newline character. In the
+first iteration, I will store the text input in a fixed-size buffer, meaning
+that there will be a maximum size for an input line. I will set this maximum
+size to a reasonable value such that it will not cause any problems, and I will
+leave this problem to fixed in a future update to the shell's user input
+functions.
+
+I will split the line by spaces and place the words into a `vector',
+passed to the commands as the argument \texttt{argv}.
+
+\paragraph{The commands}
+I will create several commands, starting with the simplest and most essential
+ones. The \gls{os} will need a way to shutdown the \gls{rpi}, so I will
+implement a \texttt{shutdown} command. I will write a \texttt{pwd} command to
+print the current working directory, as this will be a very simple (and also
+useful) operation. When I write the filesystem, I will create a function for
+printing the contents of files (\texttt{ls}), and also a recursive version of
+this, \texttt{tree}, shich shows an entire directory structure in context.
+
+Once I have implemented enough of the filesystem to get file contents from the
+SD card, I will create a \texttt{cat} command to print files to the screen.
+Finally, a command for getting file attributes, like \texttt{stat} on Linux
+systems. On Linux systems, \texttt{stat} is implemented via a system call
+(\texttt{fstatat}), so this command could be rewritten using that if a future
+development creates that system call.
+
+\subsubsection{Nice-to-haves}
+\paragraph{Executable file loader}
+One feature that would significantly improve the shell would be the inclusion
+of a binary file loader. This could either support only raw binary files, or
+statically compiled \gls{elf} files. A file loader would not be possible
+without first implementing file reading in the filesystem, so this would be a
+very late feature to start implementing if I put it into the \gls{os}.
+
+For loading \gls{elf} files, I would implement a basic \gls{elf} parser to
+extract the instructions from the file and put them into memory. The loader
+would then determine where the entry point is, setup the stack and \gls{cpu}
+registers, then finally jump to the entry point.
+
+The process would be the same for loading raw binary files, except that the
+entry point would be fixed. There would also be no need to extract the
+instructions from the \gls{elf} structure, just loading the instructions from
+the filesystem and then jumping into the loaded file contents.
+
+\paragraph{Rewrite commands using system calls}
+Many of the commands I will implement would benefit from using some standard
+system calls, but I will not have implemented any system calls by the time I
+create the commands. Rewriting these commands to use the system calls would be
+a nice-to-have feature. It would also give an incentive to implement the
+common system calls, as I would be developing system calls I need at the time.
+
+Some commands which would benefit from this would be \texttt{ls} (system call
+\texttt{getdents}), \texttt{stat} (\texttt{fstatat}), and \texttt{cat} (which
+would benefit from the system calls \texttt{open} and \texttt{read}). The
+\texttt{printf} function could also be rewritten to use the system call
+\texttt{write}, writing to a file descriptor which represents the graphical
+console.
+
+\paragraph{Replace the shell and all commands with separate executables}
+As a follow up to including a binary file loader in the shell, I could also
+completely separate the shell and kernel. This would allow me to modify the
+shell, which will be growing in size, without recompiling the kernel, which
+will also be growing in size. The individual compile-times of both the shell
+and the kernel would be effectively cut in half, allowing for much more rapid
+iteration and development of both.
+
+With the shell separated from the kernel, the kernel would load the shell from
+the filesystem on boot (using the binary file loader). The commands could also
+be moved to their own executables, and placed into some common directory,
+likely \texttt{/bin/}. The shell would search this directory for filenames when
+it is trying to find executables that match input lines. This hardcoded
+directory would eventually be replaced by an environment variable
+\texttt{PATH}.
+
+Doing this would allow modification of the commands available on the system
+without recompiling the kernel, restarting the \gls{os}, or even restarting the
+shell.
+
+\subsubsection{Ideas for next steps}
+TODO: Move this to evaluation - rename to just `Possibilities'?
+
+TODO:
+\begin{itemize}
+    \item Support for arrow-key navigation (and other special non-character
+        keys) in the console input line
+        \begin{itemize}
+            \item History of previous lines entered into the console with
+                up-arrow to get the previous line
+            \item Cursor position on the line (cursor is between two
+                characters)
+            \item Backspace to delete one character back, delete to delete one
+                character forwards
+        \end{itemize}
+    \item Line-based text editor (like \texttt{ed})
+    \item Text pager, like \texttt{less} or \texttt{more}
+    \item Shell scripting language (try to be POSIX compliant) interpreter - or
+        port dash~\cite{dash-shell}
+\end{itemize}
+
 
 \subsection{Implementation}
 TODO
@@ -878,8 +1150,8 @@ my experience developing the \gls{os} so far. Some of the later, more complex
 tasks have been removed from the plan, as I no longer believe I would be able
 to complete them, and some tasks have been given more time.
 \autoref{tab:interim-work-plan} shows the new plan for the project's tasks, and
-\autoref{fig:gantt-chart} is the Gantt chart which describes the dates on which
-I expect to start and finish each of the tasks.
+\autoref{fig:gantt-chart} is the Gantt chart which describes the dates
+on which I expect to start and finish each of the tasks.
 
 \subsubsection{Unexpected difficulties in development}
 I have encountered several issues during development which I did not account
@@ -1000,86 +1272,6 @@ project to have been a success.
 % End of content
 % Start of stuff I haven't integrated into the content yet
 \clearpage
-\section{Getting Started}
-\subsection{How I will debug the OS - GDB as a remote debugger}
-\subsection{Developing on hardware, or why I won't be}
-
-
-
-
-
-
-
-
-\clearpage
-\section{Interim: Methodology}
-
-\subsection{Software Development methodology}
-The methodology I am using for the development of this project borrows
-attributes from both \nameref{sec:cowboy_programming} and
-\nameref{sec:agile_sw_dev}.
-
-\subsubsection{Cowboy programming}
-\label{sec:cowboy_programming}
-Cowboy programming is a methodology categorised by being very free-form and not
-having a very well-defined structure. It is often used by novice programmers
-when they create solo projects, and it is the default when someone doesn't
-think they are using any kind of methodology.
-
-In cowboy programming, the developer has a lot of control over the project,
-and they can decide the order features are implemented in, and even add or
-remove features at will. The lack of planning causes development to follow the
-developer's natural preferences, often leading to unfinished projects as the
-developer gets to a stage where the only features left to implement are ones
-the developer doesn't want to work on.
-
-Cowboy programming is very well-suited to a solo development project, but it
-comes with a lot of downsides and pitfalls. The best way to avoid these
-development traps is to not completely rely on this methodology, but to also
-integrate some aspects of Agile development.
-
-\subsubsection{Agile software development}
-\label{sec:agile_sw_dev}
-Agile software development is a group of methodologies which all focus on
-several core ideas. These are: frequent reviews of the product, lots of
-planning and re-planning, a focus on good communication, and a very
-well-structured development process. Some of the more popular Agile
-methodologies include KanBan, SCRUM, Test Driven Development, and Extreme
-Programming.
-
-Agile development works best in situations with small development teams, and
-some Agile methodologies involve pair programming, which requires two
-programmers to work on the same code at the same time. I cannot use pair
-programming or host team meetings, this being an individual project, but I can
-still take inspiration from the techniques employed by different Agile
-methodologies.
-
-I will take inspiration from \gls{xp}~\cite{extreme-programming} and
-\gls{tdd}~\cite{test-driven-development}. I will work from a list
-of features which are organised by priority, which is an Extreme Programming
-method. From \gls{tdd}, I will be writing developer tests and following
-\gls{tdd} methods once the \gls{os} is mature enough to run tests in the
-kernel.
-
-\subsubsection{How I have been approaching the development until now}
-The way that I have been developing the \gls{os} so far has been closer to
-cowboy programming than to any agile software development methodologies. So
-far, I have not started writing any developer unit tests for \gls{tdd}, as the
-kernel has only just reached a stage where I could run tests on the emulator.
-
-I have been loosely following the plan laid out in the Gantt chart from the
-project proposal (\autoref{fig:original-gantt-chart} in the Appendix), but I
-have not been using any other elements of \gls{xp}. The order in which to
-develop the tasks has changed as I have been developing them, so I have been
-exercising the freedom and control over the project that comes with cowboy
-programming.
-
-\subsubsection{How I intend to develop moving forwards}
-Moving forwards in the development of the \gls{os}, I want to more closely
-follow the intentions of agile development. I will try to use \gls{tdd}
-wherever I can, writing developer tests at the start of each task in order to
-have a clearly defined set of behaviour requirements for every feature.
-
 
 
 % End of main document - print glossaries, references, etc.
@@ -1138,8 +1330,8 @@ have a clearly defined set of behaviour requirements for every feature.
 
 {\Large\bfseries Appendices\vspace{2ex}}
 
-\subsection{Interim: Appendices}
-\subsubsection{The original project plan}
+\section{Interim: Appendices}
+\subsection{The original project plan}
 This appendix contains all of the tables, figures, and diagrams from the
 original project proposal, laying out my initial beliefs about what the project
 entailed, and how much work each part of the project would take.
@@ -1149,7 +1341,7 @@ be incorrect (e.g. ``I think'' instead of the now more correct ``I thought''),
 but this is done intentionally as this section is included only as a reference
 to the content of the previous document.
 
-\subsubsection{Work tasks}
+\subsection{Work tasks}
 Tasks are the individual components of the project, separated into the
 components of the Kernel and Shell, the miscellaneous parts, and the documents
 I will need to produce for the project. These tasks are enumerated in
@@ -1197,15 +1389,15 @@ thought each component would take.}
 \end{center}
 \end{table}
 
-\subsubsection{Gantt chart}
+\subsection{Gantt chart}
 \begin{figure}[H]
-    \includegraphics[scale=0.9]{build/original-gantt.pdf}
+    \includegraphics[width=0.95\textwidth]{build/original-gantt.pdf}
     \caption{A Gantt chart breaking down the proposed schedule of work for this
     project.}
     \label{fig:original-gantt-chart}
 \end{figure}
 
-\subsubsection{Work Packages}
+\subsection{Work Packages}
 A ``Work Package'' is a collection of tasks with a well-defined deliverable.
 Not every task will be part of a work package, and some tasks will be work
 packages on their own. \autoref{tab:original-work-packages} contains all of the
@@ -1213,7 +1405,7 @@ work packages for this project.
 
 \begin{table}[H]
 \begin{center}
-\begin{tabular}{|p{45mm}|p{125mm}|}
+\begin{tabular}{|p{40mm}|p{115mm}|}
     \hline
     \textbf{Work package} & \textbf{Description of the deliverable} \\
     \hline
