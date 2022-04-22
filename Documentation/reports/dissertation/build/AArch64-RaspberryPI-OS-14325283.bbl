@@ -35,6 +35,22 @@
       \verb https://www.qemu.org
       \endverb
     \endentry
+    \entry{yaffs-fs}{online}{}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeltitlesource}{title}
+      \field{title}{A Robust Flash File System Since 2002}
+      \field{urlday}{21}
+      \field{urlmonth}{4}
+      \field{urlyear}{2022}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://yaffs.net/
+      \endverb
+      \verb{url}
+      \verb https://yaffs.net/
+      \endverb
+    \endentry
     \entry{arm-developer-regs}{online}{}
       \field{sortinit}{A}
       \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
@@ -155,6 +171,22 @@
       \endverb
       \verb{url}
       \verb https://git.kernel.org/pub/scm/utils/dash/dash.git/
+      \endverb
+    \endentry
+    \entry{exFAT-specs}{online}{}
+      \field{sortinit}{e}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{exFAT file system specification}
+      \field{urlday}{21}
+      \field{urlmonth}{4}
+      \field{urlyear}{2022}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://docs.microsoft.com/en-us/windows/win32/fileio/exfat-specification
+      \endverb
+      \verb{url}
+      \verb https://docs.microsoft.com/en-us/windows/win32/fileio/exfat-specification
       \endverb
     \endentry
     \entry{gdb}{online}{}
