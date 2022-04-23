@@ -23,6 +23,8 @@
 % 2022-04-21T04:00, 8450 words, 16 pages
 % 2022-04-21T21:00, 8550 words, 16 pages
 % 2022-04-22T04:30, 8800 words, 16.5 pages
+% 2022-04-23T04:00, 9100 words, 18 pages
+% 2022-04-24T00:00, 9500 words, 19.5 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -869,7 +871,7 @@ Nice-to-haves
     \item Kernel / user mode separation
 \end{itemize}
 
-Future possibilities
+Future possibilities - move to evaluation section
 \begin{itemize}
     \item Scheduler for multiprocessing (with a process control table / vector
         in the kernel)
@@ -923,12 +925,13 @@ I took an existing driver for interfacing with an SD card (via the \gls{rpi}'s
 eMMC controller) and integrated it into the kernel. This code defines a
 structure called a \verb!struct block_device!. I also copied some \gls{fs} code
 from the same related work~\cite{rpi-boot-gh}, but most of the code for the
-\gls{fs} I wrote by myself. I first created a function to read the `superblock'
-of an exFAT system. The superblock is the first block of the disk partition,
-and contains some critical information for interpreting the information on the
-rest of the disk. The structure used to store this information and the
-declaration for the function are both sown in
-\autoref{lst:exfat-read-superblock}. The function is called
+\gls{fs} I wrote by myself.
+
+I first created a function to read the `superblock' of an exFAT system. The
+superblock is the first block of the disk partition, and contains some critical
+information for interpreting the information on the rest of the disk. The
+structure used to store this information and the declaration for the function
+are both sown in \autoref{lst:exfat-read-superblock}. The function is called
 \verb!exfat_read_boot_block()! because sometimes the superblock is referred to
 as the `boot block' (although ususally only when talking about disks instead of
 \glspl{fs}).
@@ -936,7 +939,8 @@ as the `boot block' (although ususally only when talking about disks instead of
 \begin{lstlisting}[language=C,
                    caption={The structure used to represent the exFAT
                    superblock information, and the declaration of the function
-                   used to read it.},
+                   used to read it},
+                   float,
                    label={lst:exfat-read-superblock}]
 struct exfat_superblock {
     uint64_t partition_offset;
@@ -961,12 +965,99 @@ struct exfat_superblock {
 int exfat_read_boot_block(struct block_device *, struct exfat_superblock *);
 \end{lstlisting}
 
-\begin{itemize}
-    \item Reading the superblock
-    \item Function to get the next cluster address in a cluster chain (using
-        the FAT)
-    \item TODO
-\end{itemize}
+There is also a function which takes a cluster index and returns the index of
+the next cluster in that cluster's cluster chain. This information is retreived
+by reading the \gls{fat} section on the volume (see section 4.1
+in~\cite{exFAT-specs}). The function signature is shown in
+\autoref{lst:exfat-read-fat}.
+
+\begin{lstlisting}[language=C,
+                   caption={The function which is used to get the cluster index
+                   of the next cluster in a cluster chain},
+                   float,
+                   label={lst:exfat-read-fat}]
+static uint32_t fat_idx_to_cluster_idx(struct block_device *dev, struct
+        exfat_superblock sb, uint32_t fat_idx);
+\end{lstlisting}
+
+The next structure on an exFAT volume that needs to be interpreted is the
+directory. Directories primarily contain information about files, but can also
+contain some special entries. These are all stored in `directory entries' (see
+sections 6 and 7 in~\cite{exFAT-specs}). The information for a directory is
+stored in a \verb!struct exfat_directory_info!, and information describing a
+single directory entry is stored in a \verb!struct exfat_dirent_info!. These
+are both defined in \autoref{lst:exfat-dirent-structs}.
+
+\begin{lstlisting}[language=C,
+                   caption={The structures which describe directories and
+                   directory entries on an exFAT volume},
+                   float,
+                   label={lst:exfat-dirent-structs}]
+struct exfat_directory_info {
+    struct block_device *bd;
+    struct exfat_superblock super;
+    uint32_t start_cluster; // First cluster of the directory
+};
+
+struct exfat_dirent_info {
+    struct exfat_directory_info *parent;
+    uint32_t direntset_idx;  // Index into the "Directory"
+    // The importance, category, and type code represented in the same way as
+    // on disk.
+    enum EXFAT_DIRENT_TYPE type;
+    bool in_use;  // The in_use bit of the entrytype field can change
+    union {
+        struct exfat_dirent_bitmap_chunk bitmap;
+        struct exfat_dirent_upcase_chunk upcase_table;
+        struct exfat_dirent_vollab_chunk volume_label;
+        struct exfat_dirent_file_chunk file_metadata;
+        struct exfat_dirent_volguid_chunk volume_guid;
+        struct exfat_dirent_strext_chunk stream_extension;
+        struct exfat_dirent_fname_chunk filename;
+        struct exfat_dirent_vendor_guid_chunk vendor_guid;
+        struct exfat_dirent_vendor_alloc_chunk vendor_alloc;
+    } entry_data;
+    // If the dirent doesn't point to another cluster chain, then data_length
+    // will be 0.
+    uint32_t first_cluster;
+    uint64_t data_length;
+};
+\end{lstlisting}
+
+A function in the exFAT driver, \verb!exfat_read_directory_entry()!, is used to
+read and interpret a single directory entry. Its single argument is a pointer
+to a \verb!struct exfat_dirent_info!, which is already filled with the
+information that is needed to identify a single directory entry in a directory.
+The function fills the rest of the fields.
+
+Another function, \verb!exfat_readdir_fromblock()!, takes a block device (the
+SD card) and the address of a block which is the beginning of a directory, and
+reads the entire directory. It stores each file from the directory in a
+\verb!struct dirent!, partially defined in \autoref{lst:dirent-struct}. The
+\verb!dirent! structure contains a \verb!next! pointer, so the function joins
+all of the files into a linked list data structure, and returns the first file.
+
+\begin{lstlisting}[language=C, caption={The dirent struct, which stores
+                   information about files}, float, label={lst:dirent-struct}]
+// Struct representing a file
+struct dirent {
+    struct dirent *next;  // The next file in the directory
+    char *name;  // Filename
+    uint32_t byte_size;  // Size of the file
+    uint8_t is_dir;  // Is this file a directory?
+    ...
+};
+\end{lstlisting}
+
+A distinction is made between a directory entry and a file. A directory entry
+may not be associated with a file, and each file will have at least three
+directory entries associated with it. The \verb!exfat_dirent_info! structure
+refers to a single directory entry, whereas the \verb!dirent! structure
+describes a single file. The \verb!exfat_readdir_fromblock()! function reads
+directory entries in a loop, ignoring those not associated with files. It reads
+all of the entries for each file, then creates the \verb!struct dirent! and
+appends it to the linked list. When it reaches the `end of directory' directory
+entry the function returns.
 
 \subsubsection{Graphics driver}
 \label{sec:impl_graphics}
@@ -976,6 +1067,9 @@ font~\cite{bizcat-font} into a constant array definition in a C source file. I
 then wrote a function to print a character from this array onto the
 framebuffer, and I added global variables which keep track of the current
 character position on the screen.
+
+TODO: write about changes here (scrolling at the bottom of the screen - uses
+the swap rectangle function)
 
 When the console reaches the end of a line, it moves to the start of the next
 one. At the moment, when it reaches the end of the last line, it moves back to
@@ -991,17 +1085,58 @@ evaluation of performance, results of user evaluation questionnaires, etc. You
 should explicitly address how your project fulfilled (or not) its original
 intentions with regard to its `external aspect'.
 
+Good:
+\begin{itemize}
+    \item Bootloader is robust, correctly sets \gls{arm-el} for kernel
+        \begin{itemize}
+            \item TODO
+        \end{itemize}
+    \item System call mechanism works. Could run a system call from
+        \gls{arm-el} 0 and (if the function exists) the syscall would run in
+        \gls{arm-el} 1
+        \begin{itemize}
+            \item TODO
+        \end{itemize}
+    \item TODO
+\end{itemize}
+
 Bad:
 \begin{itemize}
     \item No syscalls implemented yet
     \item Test coverage is very limited
     \item Most functions in \texttt{string.h} are missing implementations
         (TODO: not really a kernel issue?)
-    \item No kernel / user space separation: all code runs in Exception Level 1
+    \item No kernel / user space separation: all code runs in \gls{arm-el} 1
         (everything is Kernel code)
+        \begin{itemize}
+            \item Would require syscall implementations before switching to
+                \gls{arm-el} 0 for user mode processing
+        \end{itemize}
     \item Virtual filesystem abstraction is missing: all file code directly
         calls exFAT-specific functions
-    \item No multi-processing or scheduler
+        \begin{itemize}
+            \item Should use the \verb!struct fs! member function pointers
+                (\verb!fopen()!, \verb!fread()!, \verb!fwrite()!,
+                \verb!fclose()!)
+            \item This would be a simple fix - create a \verb!struct fs! from
+                the exFAT filesystem
+            \item Make functions like \verb!exfat_fopen()!,
+                \verb!exfat_fread()!, etc. in the \verb!struct fs!
+        \end{itemize}
+\end{itemize}
+
+Future:
+\begin{itemize}
+    \item Implement syscall functions
+        \begin{itemize}
+            \item \texttt{getcwd}, \texttt{getpid}
+            \item \texttt{fstat}, \texttt{getdents}
+            \item \texttt{open}, \texttt{close}, \texttt{read}, \texttt{write}
+            \item \texttt{mkdir}, \texttt{chdir}, \texttt{rmdir}
+            \item \texttt{execve}
+        \end{itemize}
+    \item Multi-processing and a simple scheduler
+    \item TODO
 \end{itemize}
 
 \section{The Shell}
@@ -1174,10 +1309,8 @@ can buffer the current line as it is being typed. A buffer of a fixed size is
 created on the stack when the shell is started. The terminal uses a
 \texttt{getc()} function to get one character from the serial port. When
 \texttt{getc()} returns a newline character, the shell's input line buffer gets
-tokenised, splitting it by spaces. The function \texttt{strtok()} is used for
-this.
-
-TODO: create a diagram explaining \texttt{strtok()}.
+tokenised, splitting it by spaces. The function \texttt{strtok()} (from
+\texttt{string.h}) is used for this.
 
 The addresses of the strings containing the tokenised words from the line are
 placed into an array, which is the member `\texttt{argv}' of a \texttt{struct
@@ -1238,7 +1371,8 @@ TODO
 Good:
 \begin{itemize}
     \item Modular system for creating new shell commands: only need to define a
-        function \texttt{int fun(struct command\_args*)}
+        function \texttt{int fun(struct command\_args*)} and decide a string for
+        invoking the command
     \item The structure passed to the shell functions contains the three
         arguments that would be passed to the \texttt{main()} function of a
         binary file (\texttt{int argv, char **argv, char *envp[]}). The
@@ -1251,12 +1385,15 @@ Good:
 Bad:
 \begin{itemize}
     \item No text editor: line-based editor (based on \texttt{ed})
+    \item TODO
 \end{itemize}
 Future:
 \begin{itemize}
     \item Create a binary file loader (Maybe ELF)
     \item Make the shell a separate binary
     \item Make each shell command a separate binary
+    \item Implement some shell language features (make the shell an
+        interpreter)
 \end{itemize}
 
 \section{Evaluation and External Aspects}
@@ -1265,6 +1402,66 @@ tested (using different datasets or in different environments), statistical
 evaluation of performance, results of user evaluation questionnaires, etc. You
 should explicitly address how your project fulfilled (or not) its original
 intentions with regard to its 'external aspect'.
+
+\subsection{Overall evaluation of the results}
+TODO:
+\begin{itemize}
+    \item Inconsistent code style
+        \begin{itemize}
+            \item Started writing functions with return type \verb!ERROR_TYPE!,
+                an alias of \verb!size_t!. Each possible error was assigned a
+                value, and a return value of zero meant no error
+            \item Once \verb!errno.h! was created, I switched to using
+                \verb!errno! to represent errors
+            \item Later functions return \verb!int!, with zero meaning success
+                and a non-zero value meaning failure
+            \item On non-zero, the calling function should check \verb!errno!
+                to interpret what the error was
+        \end{itemize}
+    \item Test coverage was very limited
+        \begin{itemize}
+            \item I effectively gave up on writing tests after writing tests
+                for the \verb!malloc()! function and for the eMMC driver
+        \end{itemize}
+    \item Most of the functions in \verb!string.h! do not have definitions
+        \begin{itemize}
+            \item This is not a bad thing (although maybe they shouldn't be in
+                the header file if they are not implemented)
+            \item Functions are implemented as they are needed - most of the
+                functions are very simple and take less than half an hour to
+                write
+            \item Eventually I will reach a point where only a couple of the
+                functions in that header file are not implemented, and I will
+                either remove them or implement them
+        \end{itemize}
+\end{itemize}
+
+\subsection{Evaluation in relation to the external aspect}
+TODO:
+\begin{itemize}
+    \item The \gls{os} provides a familiar interface to anyone who has used a
+        Unix-like system in the past
+    \item The code is somewhat easy to understand
+        \begin{itemize}
+            \item Some source code is located in places that might not make
+                much sense - The shell should probably have its own top-level
+                directory \verb!src/shell/! instead of \verb!src/kernel/shell/!
+            \item I commented most of the complex logic and tried to explain it
+        \end{itemize}
+    \item There are plenty of possibilities for immediate improvement to the
+        project
+        \begin{itemize}
+            \item This provides options for developers who discover the project
+                to start working on an \gls{os} development project at whatever
+                level they feel comfortable with
+            \item They could provide implementations of the functions in
+                \verb!string.h!
+            \item They could write timer functions - the \verb!usleep()! and
+                similar functions are currently empty stub functions, and
+                accurate timers would be very useful for future development
+        \end{itemize}
+\end{itemize}
+
 \section{Summary and Reflections}
 TODO: Summary and Reflections including a discussion of results in a wider
 context (considering other work).
