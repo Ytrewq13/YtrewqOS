@@ -25,6 +25,7 @@
 % 2022-04-22T04:30, 8800 words, 16.5 pages
 % 2022-04-23T04:00, 9100 words, 18 pages
 % 2022-04-24T00:00, 9500 words, 19.5 pages
+% 2022-04-24T12:30, 9800 words, 20.5 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -726,6 +727,7 @@ which handles each subdirectory of the main \texttt{src/} directory.
 \section{The Kernel}
 TODO
 \subsection{Design}
+\label{sec:kernel_design}
 TODO: Design containing a comprehensive description of the design chosen, how
 it addresses the problem, and \textbf{why it is designed the way it is}.
 
@@ -887,6 +889,42 @@ TODO: Implementation containing a comprehensive description of the
 implementation of your software, including the language(s) and platform chosen,
 problems encountered, any changes made to the design as a result of the
 implementation, etc.
+
+\subsubsection{Bootloader}
+
+The second-stage bootloader is written in \gls{arm} assembly code. This is
+because the bootloader performs the necessary setup in order to get the
+\gls{cpu} and memory into a state in which code written in C can be run. Once
+the bootloader has finished this setup, it jumps into the kernel main function
+(written in C) straight away.
+
+First, the bootloader stops all but one of the \gls{cpu} cores. The current
+state of the \gls{os} does not support simultaneous multiprocessing with the
+multicore \gls{cpu} on the \gls{rpi}. This first step effectively converts the
+4-core \gls{cpu} into a single-core \gls{cpu} by putting cores 1, 2, and 3 into
+infinite `do-nothing' loops, leaving only core 0 to execute code.
+
+\begin{itemize}
+    \item Gets the current \gls{arm-el} (it will always be 2 on the \gls{rpi})
+        \begin{itemize}
+            \item The current \gls{arm-el} is stored in a special \gls{cpu}
+                register, called \verb!CurrentEL! - accessible from all but
+                \gls{arm-el} 0
+        \end{itemize}
+    \item Initialises \gls{cpu} registers
+        \begin{itemize}
+            \item Enables the floating point registers - these are used for
+                variadic functions like \texttt{int printf(const char *format,
+                ...)}
+        \end{itemize}
+    \item Switches from \gls{arm-el} 2 to \gls{arm-el} 1
+        \begin{itemize}
+            \item Sets registers (exception return address, parameters for
+                execution in \gls{arm-el} 1)
+            \item executes an exception return instruction (the only way to
+                change the \gls{arm-el})
+        \end{itemize}
+\end{itemize}
 
 \subsubsection{System Calls}
 \label{sec:impl_syscalls}
@@ -1084,6 +1122,10 @@ tested (using different datasets or in different environments), statistical
 evaluation of performance, results of user evaluation questionnaires, etc. You
 should explicitly address how your project fulfilled (or not) its original
 intentions with regard to its `external aspect'.
+
+Overall, the kernel met the requirements that I set out in
+\autoref{sec:kernel_design}. The bootloader is robust and reliable, starting
+the kernel main function every time the \gls{os} boots.
 
 Good:
 \begin{itemize}
