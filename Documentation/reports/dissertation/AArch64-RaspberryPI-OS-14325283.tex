@@ -27,6 +27,12 @@
 % 2022-04-24T00:00,  9500 words, 19.5 pages
 % 2022-04-24T12:30,  9800 words, 20.5 pages
 % 2022-04-24T13:00, 10150 words, 20.5 pages
+% 2022-04-24T14:00, 10300 words, 20.5 pages
+% 2022-04-24T14:30, 10400 words, 21 pages
+% 2022-04-24T15:00, 10200 words, 21 pages (removed TODO comments explaining each section)
+% 2022-04-24T18:30, 10400 words, 21 pages
+% 2022-04-24T19:00, 10650 words, 21 pages
+% 2022-04-24T22:00, 10650 words, 21.5 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -166,9 +172,9 @@
 \mypagenumbering{arabic}
 
 \section{Introduction}
-TODO: Introduction setting out the aims and objectives of your project,
-\textbf{explaining the overall intention of the project and specific steps that
-will be taken to achieve that intention.}
+%TODO: Introduction setting out the aims and objectives of your project,
+%\textbf{explaining the overall intention of the project and specific steps that
+%will be taken to achieve that intention.}
 
 
 % TODO: reword this
@@ -213,8 +219,8 @@ discover more about \gls{os} design. The source code will be made available
 under an open source license.
 
 \section{Motivation}
-TODO: Motivation explaining the problem being solved and its importance or need
-for it.
+%TODO: Motivation explaining the problem being solved and its importance or need
+%for it.
 
 TODO: explain the problem being solved
 
@@ -315,9 +321,9 @@ a look at its implementation of any components I get particularly stuck on.
 \end{refsection}
 
 \section{Description of the work}
-TODO: Description of the work explaining what your project is meant to achieve,
-how it is meant to function, e.g., perhaps even a functional specification for
-a software-oriented project.
+%TODO: Description of the work explaining what your project is meant to achieve,
+%how it is meant to function, e.g., perhaps even a functional specification for
+%a software-oriented project.
 
 This project will produce a piece of software. The software will aim to achieve
 two main goals: to be an \gls{os} and to be a useful starting point for anyone
@@ -488,11 +494,11 @@ and will not need to run any services.
 
 
 \section{Methodology}
-TODO: Methodology describing the (theoretical / experimental / analytical /
-numerical / software development-based / research-based, etc.) methodologies /
-techniques / tools / algorithms / technologies / etc. that are relevant to the
-project topic justifying the choices made for the project, where possible with
-supporting evidence derived from the existing work.
+%TODO: Methodology describing the (theoretical / experimental / analytical /
+%numerical / software development-based / research-based, etc.) methodologies /
+%techniques / tools / algorithms / technologies / etc. that are relevant to the
+%project topic justifying the choices made for the project, where possible with
+%supporting evidence derived from the existing work.
 
 \subsection{Setting up the build system}
 For this project, I could not use a traditional compilation setup. Normally, a
@@ -620,34 +626,56 @@ order in this way would result in quickly becoming overwhelmed by the sheer
 number of files.
 
 \section{Design}
-TODO: shell, kernel get their own sections (with design, implementation, and
-evaluation), the rest of the components are discussed in a section after that.
-
-FIXME: Write about how this diagram is from a book, the differences from the
-actual design.
-
 \subsection{\texorpdfstring{\gls{os}}{OS} components block diagram}
 \autoref{fig:os-block-diagram} is a diagram of how the different components of
-the \gls{os} will fit together. It shows how user programs running on the
-\gls{os} would be supported by the \gls{os} components. The components
-mentioned include user libraries (which would be included at
-\texttt{/usr/include/} in the \gls{fs}), as well as various parts of the
-kernel, such as system calls (see \autoref{sec:impl_syscalls}), the \gls{fs}
-(\autoref{sec:impl_fs}), and the ``process control subsystem''. The ``process
-control subsystem'' does not currently have any implementation, but it will be
-made up of the parts of the kernel which control the processes that run on the
-\gls{cpu} at any particular time.
+the Unix \gls{os} fit together. It shows how user programs running on the
+\gls{os} are supported by the \gls{os} components. The components mentioned
+include user libraries, as well as various parts of the kernel, such as system
+calls (see \autoref{sec:impl_syscalls}), the \gls{fs} (\autoref{sec:impl_fs}),
+and the \emph{process control subsystem}.
+
+\autoref{fig:os-block-diagram} is also a representation of one possible final
+goal state of the \gls{os}, specifically a final goal state that is very
+heavily influenced by Unix, but there will be different designs which the
+\gls{os} could follow moving on after this project's timescale. A diagram in
+the same style which more accurately represents the components that have been
+implemented during this project is shown in
+\autoref{fig:finished_block_diagram}.
+
+The differences between the two designs, as well as one proposed path from this
+project's result to the \emph{Unix structure}, can be seen in
+\autoref{fig:block_diagrams_progression}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{build/os-block-diagram.pdf}
-    \caption{A diagram of how the components of the operating system will
+    \caption{A diagram of how the components of the Unix operating system
         interact with each other. Inspired by a diagram from a book on Unix
         (Figure~2.1 from~\cite{design-of-unix-os}). The versions of this
         diagram which are available online are low-resolution, so the version
         provided here is in a vector format, and this document's source code is
         available online~\cite{this-document}.}
     \label{fig:os-block-diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{build/finished-block-diagram.pdf}
+    \caption{The structure of this project's \gls{os} at the end of the
+    project.}
+    \label{fig:finished_block_diagram}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.32\textwidth]{build/finished-block-diagram.pdf}
+    \includegraphics[width=0.32\textwidth]{build/nextstep-block-diagram.pdf}
+    \includegraphics[width=0.32\textwidth]{build/os-block-diagram.pdf}
+    \caption{Three diagrams showing a suggested development path the \gls{os}
+    could take after this project. The end goal of this path is the structure
+    of the Unix \gls{os}. The three diagrams are shown full-size in the
+    appendix.}
+    \label{fig:block_diagrams_progression}
 \end{figure}
 
 \subsection{User Interface and the graphics of the
@@ -664,13 +692,11 @@ an 8x16 bitmap font, and I converted it into a C source file as a constant
 array. The font is easy to read at a screen resolution of 640x480, which gives
 80 columns and 30 rows of text.
 
-The colorscheme of the console is something that will likely change many times
-during development, until I find something that I am completely happy with. At
-the moment, the background is completely black, and the text is completely
-white, but this would probably put strain on the users' eyes after using the
-\gls{os} for a long time. I will experiment with color schemes once I have
-implemented a program that can output a text file to the screen.
-
+The original colorscheme of the console was solid white text on a completely
+black background, but I found that this was too harsh to look at for long
+periods of time. I changed both the background and foreground colours to what I
+found more pleasant to read text from, with a very light grey text on a very
+dark grey background. A comparison of the colorschemes can be seen in (FIXME: make comparison images).
 
 \section{General implementation details}
 TODO: rename this section (`build system' or `compilation toolchain'?)
@@ -729,8 +755,8 @@ which handles each subdirectory of the main \texttt{src/} directory.
 TODO
 \subsection{Design}
 \label{sec:kernel_design}
-TODO: Design containing a comprehensive description of the design chosen, how
-it addresses the problem, and \textbf{why it is designed the way it is}.
+%TODO: Design containing a comprehensive description of the design chosen, how
+%it addresses the problem, and \textbf{why it is designed the way it is}.
 
 \subsubsection{Bootloader}
 On the \gls{rpi} 3, the \gls{gpu} contains a first-stage bootloader which
@@ -886,13 +912,12 @@ Future possibilities - move to evaluation section
 
 
 \subsection{Implementation}
-TODO: Implementation containing a comprehensive description of the
-implementation of your software, including the language(s) and platform chosen,
-problems encountered, any changes made to the design as a result of the
-implementation, etc.
+%TODO: Implementation containing a comprehensive description of the
+%implementation of your software, including the language(s) and platform chosen,
+%problems encountered, any changes made to the design as a result of the
+%implementation, etc.
 
 \subsubsection{Bootloader}
-
 The second-stage bootloader\footnote{The `bootloader' is more accurately
 described as boot code, since it does not do any loading of the kernel from
 disk, the traditional task of a bootloader.} is written in \gls{arm} assembly
@@ -954,20 +979,50 @@ and enabled the use of variadic functions in the C code.
 
 \subsubsection{System Calls}
 \label{sec:impl_syscalls}
-The system call interface requires writing an exception vector table. I created
-an exception handler for the software interrupt instruction I will use to
-trigger a system call (\texttt{svc \#0} in Aarch64 ARMv8 assembly). This is
-incomplete at the moment, as I haven't yet worked out how I will locate the
-correct function for a given system call.
+The system call interface required writing an exception handler and an
+\emph{Exception Vector Table} The \emph{Exception Vector Table} is a
+table in memory which gives the \gls{cpu} instructions to execute for each
+different type of exception that can occur while it is running. These could
+include hardware interrupts such as timers, software interrupts (like the
+system calls we are interested in), or more serious errors like invalid
+instructions or insufficient permissions for an operation. I originally wrote
+the Exception Vector Table using outdated documentation, so the padding between
+entries was incorrect. I fixed this issue, and placed a jump instruction in the
+software interrupt exception entry. This branched the \gls{cpu} to the
+exception handler that I wrote.
 
-I also wrote a basic exception vector table, but I was working from outdated
-documentation, so I will need to update the table to have the correct padding
-between the different exception types. I will also need to update the linker
-script to place the exception vector table at the correct address in the
-executable, or add code in the boot process to manually set addresses if
-linking doesn't correctly set the addresses (the table is in low address space,
-so it is possible that the bootloader will ignore anything so low in the kernel
-executable).
+I wrote the exception handler for software interrupts in \gls{arm} assembly
+code, the same as the Exception Vector Table. First, it checks that the
+instruction that generated the exception was the supervisor call instruction,
+\verb!svc!. Then it checks the argument of that instruction -- we only want
+exceptions where the argument was 0. After checking that the exception was
+indeed a system call, the exception handler gets the system call number and the
+(up to) 6 arguments and places them into the first 7 general purpose registers.
+It reads an index into a named table (\verb!sys_call_table!) and uses the
+address it reads as a function pointer, calling the function. This is the
+mechanism used to identify the correct system call function from just the
+system call number.
+
+Also in the assembly code for system calls is an indirect system call function
+(\verb!syscall!). This function is equivalent to the Linux function
+\verb!int syscall(long number, ...)!, and is the intended way for C code to
+invoke a system call. Eventually I would write named wrapper functions for the
+common system calls, but for now the way that C code would run the
+\texttt{read} system call, for example, would be as shown in
+\autoref{lst:syscall-example-read}.
+
+\begin{lstlisting}[language=C,
+                   caption={How some C code would invoke the system call
+                   \texttt{read} in the current implementation.},
+                   float,
+                   label={lst:syscall-example-read}]
+extern int syscall(long nr, ...);
+// read syscall is syscall number 0
+// fd is a file descriptor
+// buf is a void pointer to a buffer large enough to read to
+// count is the number of bytes to be read
+syscall(0, fd, buf, count);
+\end{lstlisting}
 
 \subsubsection{\texorpdfstring{\gls{cpu}}{CPU} setup}
 \label{sec:impl_cpu_setup}
@@ -1143,69 +1198,113 @@ to make space for the next line.
 
 
 \subsection{Evaluation}
-TODO: Evaluation and External Aspects explaining how your software/approach was
-tested (using different datasets or in different environments), statistical
-evaluation of performance, results of user evaluation questionnaires, etc. You
-should explicitly address how your project fulfilled (or not) its original
-intentions with regard to its `external aspect'.
+%TODO: Evaluation and External Aspects explaining how your software/approach was
+%tested (using different datasets or in different environments), statistical
+%evaluation of performance, results of user evaluation questionnaires, etc. You
+%should explicitly address how your project fulfilled (or not) its original
+%intentions with regard to its `external aspect'.
 
 Overall, the kernel met the requirements that I set out in
-\autoref{sec:kernel_design}. The bootloader is robust and reliable, starting
-the kernel main function every time the \gls{os} boots.
+\autoref{sec:kernel_design}. Most of the components designed for the kernel
+have been implemented. The ones which have not been fully implemented are
+either almost finished and lacking some other piece of the \gls{os}, or the
+groundwork has already been laid to make developing the features easier. This
+was done to help new developers to more easily understand the source code of
+the project.
 
-Good:
-\begin{itemize}
-    \item Bootloader is robust, correctly sets \gls{arm-el} for kernel
-        \begin{itemize}
-            \item TODO
-        \end{itemize}
-    \item System call mechanism works. Could run a system call from
-        \gls{arm-el} 0 and (if the function exists) the syscall would run in
-        \gls{arm-el} 1
-        \begin{itemize}
-            \item TODO
-        \end{itemize}
-    \item TODO
-\end{itemize}
+\subsubsection{Evaluation of the designed features}
+\paragraph{Bootloader}
+The bootloader is robust and reliable, starting the kernel main function every
+time the \gls{os} boots. It sets up the \gls{cpu} into the correct
+configuration, following the kernel's current requirements.
 
-Bad:
-\begin{itemize}
-    \item No syscalls implemented yet
-    \item Test coverage is very limited
-    \item Most functions in \texttt{string.h} are missing implementations
-        (TODO: not really a kernel issue?)
-    \item No kernel / user space separation: all code runs in \gls{arm-el} 1
-        (everything is Kernel code)
-        \begin{itemize}
-            \item Would require syscall implementations before switching to
-                \gls{arm-el} 0 for user mode processing
-        \end{itemize}
-    \item Virtual filesystem abstraction is missing: all file code directly
-        calls exFAT-specific functions
-        \begin{itemize}
-            \item Should use the \verb!struct fs! member function pointers
-                (\verb!fopen()!, \verb!fread()!, \verb!fwrite()!,
-                \verb!fclose()!)
-            \item This would be a simple fix - create a \verb!struct fs! from
-                the exFAT filesystem
-            \item Make functions like \verb!exfat_fopen()!,
-                \verb!exfat_fread()!, etc. in the \verb!struct fs!
-        \end{itemize}
-\end{itemize}
+\paragraph{System call mechanism}
+The interface to system calls is well-implemented. The wrapper function used to
+invoke a system call checks that the system call number is within the valid
+range of numbers, preventing unnecessary software interrupts from being
+generated. The complex mechanism required for properly managing system call
+generation and handling has been broken down into logical parts which are each
+small enough to be easily understood.
 
-Future:
-\begin{itemize}
-    \item Implement syscall functions
-        \begin{itemize}
-            \item \texttt{getcwd}, \texttt{getpid}
-            \item \texttt{fstat}, \texttt{getdents}
-            \item \texttt{open}, \texttt{close}, \texttt{read}, \texttt{write}
-            \item \texttt{mkdir}, \texttt{chdir}, \texttt{rmdir}
-            \item \texttt{execve}
-        \end{itemize}
-    \item Multi-processing and a simple scheduler
-    \item TODO
-\end{itemize}
+\paragraph{System call implementations}
+\label{sec:eval_no_syscalls}
+There are currently no system call functions in the \gls{os}. The table which
+is used by the system call exception handler is in place, so once the system
+call functions are written they can easily be dropped into the table and then
+immediately those system call numbers will start to function.
+
+TODO: refer back to second aim of the project.
+
+\paragraph{Filesystem}
+The exFAT \gls{fs} was only just implemented. Reading directory entries works,
+but there aren't many functions built on top of that to allow for more abstract
+access to the \gls{fs}. The virtual filesystem abstraction is severely lacking
+in the current version of the \gls{os}. All code which interacts with the
+\gls{fs} directly uses exFAT-specific functions. This limits both ease of
+programming with the \gls{fs}, and the overall usefulness of the \gls{fs}.
+
+I started to move towards having a simple virtual \gls{fs} abstraction in
+recent development by creating several of the functions presented by the
+\verb!struct fs! structure. These include a version of \texttt{fopen},
+\texttt{fread}, and \texttt{fclose}, which are functions needed for reading
+files.
+
+I started to write the exFAT-specific version of \texttt{fread} very recently
+in development. The function declaration is shown in \autoref{lst:exfat-fread},
+along with versions of \texttt{fopen} and \texttt{fclose}. The arguments of the
+functions are different from the standard arguments to these functions. This
+was changed to make the implementation of the functions easier, because the
+\verb!struct dirent! already points directly at a file, whereas a string
+representing a file path can be difficult to interpret. Unfortunately, this
+change just made it more difficult to write code which uses the functions,
+since the calling function now needs to do the job of converting a path into a
+\verb!dirent! structure.
+
+\begin{lstlisting}[language=C,
+                   caption={Function declarations of the exFAT versions of
+                   \texttt{fopen}, \texttt{fread}, and \texttt{fclose}.},
+                   float,
+                   label={lst:exfat-fread}]
+FILE *exfat_fopen(struct fs*, struct dirent*, const char *mode);
+size_t exfat_fread(struct fs *, void *ptr, size_t byte_size, FILE *stream);
+int exfat_fclose(struct fs *, FILE *fp);
+\end{lstlisting}
+
+\paragraph{Testing}
+The test coverage of the kernel is currently very limited. I wrote enough tests
+to determine that the testing system works and intended, then after that no
+more tests were written. I should have been writing unit tests for every kernel
+component, but instead most of them are effectively untested.
+
+The lack of testing provides a great opportunity for new developers to become
+familiar with the project. Writing tests for an existing component would give a
+new developer very good in-depth knowledge of how that component works. A
+developer who enjoys writing unit tests would be able to learn the entire
+kernel just from writing tests. The testing could even be expanded to
+components of the shell, which would allow a new developer to both improve the
+reliability of the \gls{os} and learn how it works, priming them to start
+creating new features.
+
+\paragraph{Kernel / user space}
+The \gls{os} features no separation between \emph{kernel space} and \emph{user
+space}. Everything that runs under the \gls{os} is effectively kernel code,
+including the shell. Ideally, the shell would run at a lower \gls{arm-el} than
+the kernel (i.e. \gls{arm-el} 0), giving it reduced permissions to access
+hardware and execute restricted instructions (such as stopping the \gls{cpu}).
+However, doing this would require system calls to be available to the user mode
+shell, and (as mentioned in \autoref{sec:eval_no_syscalls}) there are currently
+no system call functions implemented in a working state. Therefore, creating a
+separation between kernel code and user code is not currently possible. This
+will be a high priority feature once system calls are available.
+
+On the other hand, this feature could be used to drive the implementation of
+system call functions. A developer could start work on getting non-critical
+code to run in \gls{arm-el} 0, and then implement system calls as they are
+required. This would be possible because the system call mechanism is already
+implemented, and the only thing needed to get a given system call working is an
+implementation of the function. A small amount of experimentation will also be
+required to discover if any additional changes need to be made to the boot code
+to get the \gls{cpu} to run in \gls{arm-el} 0 correctly.
 
 \section{The Shell}
 TODO: reword this into an introduction to the shell
@@ -1465,11 +1564,11 @@ Future:
 \end{itemize}
 
 \section{Evaluation and External Aspects}
-TODO: Evaluation and External Aspects explaining how your software/approach was
-tested (using different datasets or in different environments), statistical
-evaluation of performance, results of user evaluation questionnaires, etc. You
-should explicitly address how your project fulfilled (or not) its original
-intentions with regard to its 'external aspect'.
+%TODO: Evaluation and External Aspects explaining how your software/approach was
+%tested (using different datasets or in different environments), statistical
+%evaluation of performance, results of user evaluation questionnaires, etc. You
+%should explicitly address how your project fulfilled (or not) its original
+%intentions with regard to its 'external aspect'.
 
 \subsection{Overall evaluation of the results}
 TODO:
@@ -1531,13 +1630,13 @@ TODO:
 \end{itemize}
 
 \section{Summary and Reflections}
-TODO: Summary and Reflections including a discussion of results in a wider
-context (considering other work).
+%TODO: Summary and Reflections including a discussion of results in a wider
+%context (considering other work).
 
 \subsection{Project management}
-TODO: Project management covering the tasks as a part of your work plan and
-progress as well as how time and resources are managed. For a COMP4028 project,
-role of each individual should be explicitly discussed.
+%TODO: Project management covering the tasks as a part of your work plan and
+%progress as well as how time and resources are managed. For a COMP4028 project,
+%role of each individual should be explicitly discussed.
 
 \subsubsection{Project management -- Re-planning the project}
 The original plan for the project was a little over-ambitious, which I
@@ -1619,10 +1718,10 @@ that way.
 
 
 \subsection{Contributions and reflections}
-TODO: Contributions and reflections providing the details of your achievements
-and contributions including innovation, creativity and novelty (if there is
-any) as well as a personal reflection on the plan and your experience of the
-project (a critical appraisal of how the project went).
+%TODO: Contributions and reflections providing the details of your achievements
+%and contributions including innovation, creativity and novelty (if there is
+%any) as well as a personal reflection on the plan and your experience of the
+%project (a critical appraisal of how the project went).
 
 The project's external sponsor (who is also my project supervisor), introduced
 me to several of the related works~\cite{netBSD-git, riscOS-source}. He also
@@ -1860,19 +1959,31 @@ work packages for this project.
 \end{center}
 \end{table}
 
-\clearpage
-\subsection{Future plans block diagrams}
+\section{Extra diagrams}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.32\textwidth]{build/finished-block-diagram.pdf}
-    \includegraphics[width=0.32\textwidth]{build/nextstep-block-diagram.pdf}
-    \includegraphics[width=0.32\textwidth]{build/os-block-diagram.pdf}
-    \caption{My current estimation for how future development would work on
-        this project. On the left is the current state of the Operating System.
-        On the right is the diagram of how the Unix system was structured.}
+    \includegraphics[width=0.8\textwidth]{build/finished-block-diagram.pdf}
+    \caption{The current structure of the \gls{os}.}
+    \label{fig:appendix_finished_block_diagram}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{build/nextstep-block-diagram.pdf}
+    \caption{The `next-step' for the \gls{os} if it was aiming to become Unix
+    after the end of this project.}
+    \label{fig:appendix_nextstep_block_diagram}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{build/os-block-diagram.pdf}
+    \caption{The structure of the Unix \gls{os}.}
+    \label{fig:appendix_os_block_diagram}
+\end{figure}
+
+\clearpage
 % End of main document - print glossaries, references, etc.
 \printglossaries
 
