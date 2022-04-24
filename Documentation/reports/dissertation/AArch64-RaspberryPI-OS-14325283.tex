@@ -2,30 +2,31 @@
 
 % Word count progress (only counting the content, not the copy of the interim
 % report)
-% 2022-04-15T02:00, 1200 words, 2.5 pages
-% 2022-04-15T18:00, 1900 words, 4 pages
-% 2022-04-15T23:00, 2200 words, 7 pages
-% 2022-04-16T00:00, 3000 words, 8 pages
-% 2022-04-16T02:00, 3500 words, 8.5 pages
-% 2022-04-16T03:30, 3900 words, 10 pages
-% 2022-04-16T04:30, 5200 words, 11 pages
-% 2022-04-16T05:00, 5600 words, 11.5 pages
-% 2022-04-17T04:30, 6000 words, 12 pages
-% 2022-04-17T16:30, 6100 words, 12 pages
-% 2022-04-18T03:00, 6250 words, 13.5 pages (changed to 1in margins)
-% 2022-04-19T03:00, 6650 words, 14.5 pages
-% 2022-04-19T23:00, 7000 words, 14 pages
-% 2022-04-20T01:30, 7400 words, 14.5 pages
-% 2022-04-20T02:30, 7650 words, 15 pages
-% 2022-04-20T03:00, 7850 words, 15 pages
-% 2022-04-20T22:00, 8200 words, 15 pages
-% 2022-04-21T02:00, 8350 words, 16 pages
-% 2022-04-21T04:00, 8450 words, 16 pages
-% 2022-04-21T21:00, 8550 words, 16 pages
-% 2022-04-22T04:30, 8800 words, 16.5 pages
-% 2022-04-23T04:00, 9100 words, 18 pages
-% 2022-04-24T00:00, 9500 words, 19.5 pages
-% 2022-04-24T12:30, 9800 words, 20.5 pages
+% 2022-04-15T02:00,  1200 words, 2.5 pages
+% 2022-04-15T18:00,  1900 words, 4 pages
+% 2022-04-15T23:00,  2200 words, 7 pages
+% 2022-04-16T00:00,  3000 words, 8 pages
+% 2022-04-16T02:00,  3500 words, 8.5 pages
+% 2022-04-16T03:30,  3900 words, 10 pages
+% 2022-04-16T04:30,  5200 words, 11 pages
+% 2022-04-16T05:00,  5600 words, 11.5 pages
+% 2022-04-17T04:30,  6000 words, 12 pages
+% 2022-04-17T16:30,  6100 words, 12 pages
+% 2022-04-18T03:00,  6250 words, 13.5 pages (changed to 1in margins)
+% 2022-04-19T03:00,  6650 words, 14.5 pages
+% 2022-04-19T23:00,  7000 words, 14 pages
+% 2022-04-20T01:30,  7400 words, 14.5 pages
+% 2022-04-20T02:30,  7650 words, 15 pages
+% 2022-04-20T03:00,  7850 words, 15 pages
+% 2022-04-20T22:00,  8200 words, 15 pages
+% 2022-04-21T02:00,  8350 words, 16 pages
+% 2022-04-21T04:00,  8450 words, 16 pages
+% 2022-04-21T21:00,  8550 words, 16 pages
+% 2022-04-22T04:30,  8800 words, 16.5 pages
+% 2022-04-23T04:00,  9100 words, 18 pages
+% 2022-04-24T00:00,  9500 words, 19.5 pages
+% 2022-04-24T12:30,  9800 words, 20.5 pages
+% 2022-04-24T13:00, 10150 words, 20.5 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -892,11 +893,13 @@ implementation, etc.
 
 \subsubsection{Bootloader}
 
-The second-stage bootloader is written in \gls{arm} assembly code. This is
-because the bootloader performs the necessary setup in order to get the
-\gls{cpu} and memory into a state in which code written in C can be run. Once
-the bootloader has finished this setup, it jumps into the kernel main function
-(written in C) straight away.
+The second-stage bootloader\footnote{The `bootloader' is more accurately
+described as boot code, since it does not do any loading of the kernel from
+disk, the traditional task of a bootloader.} is written in \gls{arm} assembly
+code. This is because the bootloader performs the necessary setup in order to
+get the \gls{cpu} and memory into a state in which code written in C can be
+run. Once the bootloader has finished this setup, it jumps into the kernel main
+function (written in C) straight away.
 
 First, the bootloader stops all but one of the \gls{cpu} cores. The current
 state of the \gls{os} does not support simultaneous multiprocessing with the
@@ -904,27 +907,50 @@ multicore \gls{cpu} on the \gls{rpi}. This first step effectively converts the
 4-core \gls{cpu} into a single-core \gls{cpu} by putting cores 1, 2, and 3 into
 infinite `do-nothing' loops, leaving only core 0 to execute code.
 
-\begin{itemize}
-    \item Gets the current \gls{arm-el} (it will always be 2 on the \gls{rpi})
-        \begin{itemize}
-            \item The current \gls{arm-el} is stored in a special \gls{cpu}
-                register, called \verb!CurrentEL! - accessible from all but
-                \gls{arm-el} 0
-        \end{itemize}
-    \item Initialises \gls{cpu} registers
-        \begin{itemize}
-            \item Enables the floating point registers - these are used for
-                variadic functions like \texttt{int printf(const char *format,
-                ...)}
-        \end{itemize}
-    \item Switches from \gls{arm-el} 2 to \gls{arm-el} 1
-        \begin{itemize}
-            \item Sets registers (exception return address, parameters for
-                execution in \gls{arm-el} 1)
-            \item executes an exception return instruction (the only way to
-                change the \gls{arm-el})
-        \end{itemize}
-\end{itemize}
+Next, the boot code gets the current \gls{arm-el} from the \gls{cpu}. The
+\gls{arm-el} is stored in a special \gls{cpu} register on \gls{arm}
+\glspl{cpu}, called \verb!CurrentEL!. On the \gls{rpi} this should always be 2,
+but I also wrote code to handle the case where it is 3. If the \gls{arm-el} is
+3 then the boot code sets the needed registers and safely transitions the
+\gls{cpu} into \gls{arm-el} 2 in the same way as described below.
+
+\paragraph{Changing the \texorpdfstring{\glsxtrlong{arm-el}}{Exception Level}}
+Once the boot code verifies that it is executing in \gls{arm-el} 2, it prepares
+to change to \gls{arm-el} 1, the level that the kernel code will run in. It
+sets important registers, such as the exception vector table (used by the
+system call mechanism) and the exception return address (the address of the
+code to execute once the \gls{cpu} switches to \gls{arm-el} 1). It also ensures
+that \gls{arm-el} 1 is executing in 64-bit mode.
+
+Once all the parameters are set correctly, the bootloader executes an exception
+return instruction (\verb!eret!). Exceptions are the only way to increase the
+\gls{arm-el} on an \gls{arm} \gls{cpu}, and returning from exceptions is the
+only way to reduce the \gls{arm-el}. The exception return instruction changes
+the \gls{cpu} into \gls{arm-el} 1 and resumes execution at the address of the
+\gls{arm-el} 1 code.
+
+\paragraph{The floating point / vector registers}
+Once I started to implement the function \verb!printf!, which is a
+\emph{variadic} function\footnote{A variadic function is one with a variable
+number of arguments}, I started to experience strange behaviour. I debugged the
+compiled kernel using remote debugging in GDB, and discovered that upon
+entering the \verb!printf! function, the executing kernel would jump to an
+address near \texttt{0x0}, the beginning of memory. This meant that an
+exception was occurring and the \gls{cpu} was going to a position in the
+\emph{Exception Vector Table}. I determined from the offset into the exception
+table that the exception was permission related.
+
+Looking at the first instructions in the disassembly of the \verb!printf!
+function, I saw that the function was accessing registers I did not recognise,
+labeled \texttt{Qn} instead of \texttt{Xn}. After some research I determined
+that the \verb!printf! function was trying to use the 32 floating point
+registers of the \gls{cpu} to store the variadic argument list, but the
+floating point registers were disabled by default.
+
+The solution was to enable the floating point registers after switching to
+\gls{arm-el} 1, by setting some bits in one of the system registers. Setting
+those bits enabled the floating point registers (also called vector registers)
+and enabled the use of variadic functions in the C code.
 
 \subsubsection{System Calls}
 \label{sec:impl_syscalls}
