@@ -19,6 +19,7 @@
 #include "drivers/hw/mem.h"
 #include "drivers/hw/power.h"
 #include "drivers/hw/uart.h"
+#include "fs/fs.h"
 #include "fs/fat.h"
 #include "kernel/shell.h"
 #include "kernel/test.h"
@@ -357,7 +358,24 @@ void kernel_main()
     kprocess_env.pid = 0;
     kprocess_env.process_state = PROC_STATE_RUNNING;
     kprocess_env.wdir = "/";
-    kprocess_env.sd_dev = dev;
+
+    // Create the exfat fs struct
+    struct fs exfat_fs;
+    exfat_fs.parent = dev;
+    exfat_fs.fs_name = "exFAT";
+    exfat_fs.flags = 0;
+    exfat_fs.block_size = dev->block_size;
+    exfat_fs.fopen = exfat_fopen;
+    exfat_fs.fread = exfat_fread;
+    exfat_fs.fwrite = NULL;
+    exfat_fs.fclose = exfat_fclose;
+    exfat_fs.fsize = NULL;
+    exfat_fs.fseek = NULL;
+    exfat_fs.ftell = NULL;
+    exfat_fs.fflush = NULL;
+    exfat_fs.read_directory = NULL;
+
+    kprocess_env.root_fs = &exfat_fs;
 
     // Initialise the shell with all of the valid commands (uses malloc)
     shell_init();

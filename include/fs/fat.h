@@ -8,6 +8,7 @@
 #include "error_types.h"
 #include "fs/block.h"
 #include "fs/dirent.h"
+#include "fs/file.h"
 #include "drivers/hw/eMMC.h"
 #include "stdlib.h"
 #include "string.h"
@@ -217,5 +218,9 @@ int exfat_read_boot_block(struct block_device *, struct exfat_superblock *);
 int exfat_read_directory_entry(struct exfat_dirent_info *dirent);
 
 struct dirent *exfat_readdir_fromblock(struct exfat_block_device *, uintptr_t);
+
+FILE *exfat_fopen(struct fs*, struct dirent*, const char *mode);
+size_t exfat_fread(struct fs *, void *ptr, size_t byte_size, FILE *stream);
+int exfat_fclose(struct fs *, FILE *fp);
 
 #endif /* fs_fat_h */

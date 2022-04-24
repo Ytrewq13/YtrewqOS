@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "fs/fs.h"
 #include "fs/block.h"
 
 // A struct which contains all the information needed for process control
@@ -22,7 +23,8 @@ struct process_env {
     } process_state; // Not yet used
     char *wdir;
     // Block device of the SD card
-    struct block_device *sd_dev;  // TODO: make this global to the kernel?
+//    struct block_device *sd_dev;  // TODO: make this global to the kernel?
+    struct fs *root_fs;
 };
 
 #endif

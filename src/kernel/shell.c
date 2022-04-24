@@ -148,7 +148,7 @@ void shell_destroy()
 int shell_cmd_tree(struct command_args args)
 {
     // FIXME: Use a version of tree which interprets paths
-    test_printtree(args.envp->sd_dev);
+    test_printtree(args.envp->root_fs->parent);
     return 0;
 }
 
@@ -197,8 +197,67 @@ int shell_cmd_cd(struct command_args args)
     return 0;
 }
 
+struct dirs_ll {
+    char *this_lvl;
+    int depth;
+    struct dirs_ll *next;
+};
+
+// FIXME: test for malloc errors
 int shell_cmd_cat(struct command_args args)
 {
+    if (args.argc < 2) {
+        errno = EINVAL;
+        return -1;
+    }
+    // Just read the first 4 bytes of the file for now
+    char *path = malloc(strlen(args.envp->wdir) + 1 + strlen(args.argv[1]) + 1);
+    size_t wdirlen = strlen(args.envp->wdir);
+    memcpy(path, args.envp->wdir, wdirlen);
+    memset(path+wdirlen, '/', 1);
+    strcpy(path+wdirlen+1, args.argv[1]);
+    char *pathtok = malloc(strlen(args.envp->wdir) + 1 + strlen(args.argv[1]) + 1);
+    strcpy(pathtok, path);
+    // Tokenise the path
+//    char *arg = strtok_r(shell_input_buf, " ", &next_arg);
+//        arg = strtok_r(NULL, " ", &next_arg);
+    char *next_lvl = pathtok;
+    char *tok = strtok_r(pathtok, "/", &next_lvl);
+    struct dirs_ll *top_lvl = NULL;
+    struct dirs_ll *prev = NULL;
+    size_t cur_depth = 0;
+    while (NULL != tok) {
+        struct dirs_ll *cur = malloc(sizeof(struct dirs_ll));
+        strcpy(cur->this_lvl, tok);
+        cur->depth = cur_depth;
+        if (NULL != prev) prev->next = cur;
+        else {
+            top_lvl = cur;
+            prev = cur;
+        }
+    }
+
+    // TODO: tidy up this setup - put all of these details somewhere out of the
+    // way in the environment
+    struct exfat_superblock super;
+    exfat_read_boot_block(args.envp->root_fs->parent, &super);
+    struct exfat_block_device ebd = {.bd = args.envp->root_fs->parent,
+        .sb = super};
+    uintptr_t this_dir_block = super.rootdir_start * super.clustersize;
+    struct dirent *the_dirent = NULL;
+    bool done = false;
+    while (!done) {  // FIXME
+        struct dirent *dirent_ll = exfat_readdir_fromblock(&ebd, this_dir_block);
+        struct dirent *the_dirent = dirent_ll;
+        while (strcmp(the_dirent->name, args.argv[1]) != 0)
+            the_dirent = the_dirent->next;
+    }
+
+    // Open the file
+    FILE *f = args.envp->root_fs->fopen(args.envp->root_fs, the_dirent, "r");
+
+    // Close the file
+    args.envp->root_fs->fclose(args.envp->root_fs, f);
     errno = ENOSYS;
     return -1;
 }
