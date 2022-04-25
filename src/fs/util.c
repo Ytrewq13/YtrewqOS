@@ -9,10 +9,51 @@
 
 int ls(struct process_env *env, const char *path)
 {
-    printf("ls '%s'\n", path);
-    printf("ERROR: ls is not yet implemented!\n");
-    errno = ENOSYS;
-    return -1;
+    // Path is an absolute path, so scan from the root of the filesystem
+    struct block_device *dev = env->root_fs->parent;
+    struct exfat_superblock exfat_info;
+    exfat_read_boot_block(dev, &exfat_info);
+    struct exfat_block_device ebd = { .bd = dev, .sb = exfat_info };
+    uintptr_t rootdir_block = (exfat_info.rootdir_start - 2) *
+        exfat_info.clustersize + exfat_info.clusterheap_offset;
+    struct dirent *d = exfat_readdir_fromblock(&ebd, rootdir_block);
+
+    char *path2 = malloc(strlen(path) + 1);
+    strcpy(path2, path);
+    memset(path2+strlen(path), 0, 1);
+
+    if (! (strlen(path) == 1 && path[0] == '/')) {
+        int i = 0, j = 0;
+        while (i <= strlen(path)) {
+            if (path2[i] == '/') i++;
+            j = i;
+            while (path2[i] != '/' && path2[i] != 0) {
+                i++;
+            }
+            path2[i] = 0;
+            while (d != NULL && strcmp(path2+j, d->name) != 0) d = d->next;
+            i++;
+            if (NULL == d) {
+                errno = EINVAL;
+                return -1;
+            }
+            if (!d->is_dir) {
+                errno = ENOTDIR;
+                return -1;
+            }
+            d = exfat_readdir_fromblock(&ebd, (((struct exfat_file_contents*)d->opaque)->start_cluster - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset);
+        }
+    }
+
+    // Print the ls
+    while (NULL != d) {
+        printf("%s", d->name);
+        if (d->is_dir) printf("/");
+        printf("\n");
+        d = d->next;
+    }
+
+    return 0;
 }
 
 // TODO:

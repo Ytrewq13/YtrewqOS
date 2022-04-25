@@ -194,7 +194,20 @@ int shell_cmd_cd(struct command_args args)
         errno = E2BIG;
         return -1;
     }
-    args.envp->wdir = args.argv[1];
+    if (args.argv[1][0] == '/')
+        args.envp->wdir = args.argv[1];
+    else {
+        int wdirlen = strlen(args.envp->wdir);
+        int sep = args.envp->wdir[wdirlen-1] != '/';
+        int tgtdirlen = strlen(args.argv[1]);
+        int nul = args.argv[1][tgtdirlen-1] != '/';
+        char *newwdir = malloc(wdirlen + sep + tgtdirlen + nul);
+        strcpy(newwdir, args.envp->wdir);
+        if (sep) memset(newwdir+wdirlen, '/', 1);
+        strcpy(newwdir+wdirlen+sep, args.argv[1]);
+        memset(newwdir+wdirlen+sep+tgtdirlen-1+nul, 0, 1);
+        args.envp->wdir = newwdir;
+    }
     return 0;
 }
 
