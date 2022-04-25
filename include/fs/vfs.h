@@ -7,6 +7,7 @@ struct vfs_file;
 
 #include "fs/dirent.h"
 #include "fs/file.h"
+#include "fs/block.h"
 
 // An entry in the Virtual FileSystem
 struct vfs_entry {

@@ -1,6 +1,6 @@
 /* kernel/main.c
  * Copyright Sam Whitehead, 2021
- * Last updated 2022-01-01
+ * Last updated 2022-03-20
  */
 #include <stdint.h>
 
@@ -13,11 +13,15 @@
 #include "drivers/framebuf.h"
 #include "drivers/graphics/console.h"
 #include "drivers/graphics/fb_pixels.h"
+#include "drivers/hw/gpio.h"
 #include "drivers/hw/eMMC.h"
 #include "drivers/hw/mbox.h"
 #include "drivers/hw/mem.h"
+#include "drivers/hw/power.h"
 #include "drivers/hw/uart.h"
+#include "fs/fs.h"
 #include "fs/fat.h"
+#include "kernel/shell.h"
 #include "kernel/test.h"
 #include "printf.h"
 #include "stdlib.h"
@@ -29,58 +33,6 @@ extern void PUT32(uint64_t addr, uint32_t x);
 extern uint32_t GET32(uint64_t addr);
 extern uint64_t GET_EL();
 extern int syscall(long nr, ...);
-
-struct dirent_chain {
-    struct dirent_chain *next;
-    struct dirent *d;
-};
-
-// TODO:
-// - Move this function into a utility that is shipped with the OS and can be invoked from the shell
-// - Add path parsing
-// - Improve directory formatting
-void test_printtree(struct exfat_superblock exfat_info, struct block_device *dev)
-{
-    uintptr_t rootdir_block = (exfat_info.rootdir_start - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset;
-    struct exfat_block_device ebd = { .bd = dev, .sb = exfat_info };
-    struct dirent *d, *dirent_it;
-    struct dirent_chain *chain = NULL, *tmpchain;
-    d = exfat_readdir_fromblock(&ebd, rootdir_block);
-
-    size_t tree_depth = 0;
-    dirent_it = d;
-    while (dirent_it != NULL || chain != NULL) {
-        for (int i = 0; i < tree_depth; i++) {
-            printf("| ");
-        }
-        if (dirent_it->is_dir) console_set_tmp_fg_color(CONFIG_COLOR_TEST_PASS);
-        printf("%s", dirent_it->name);
-        if (dirent_it->is_dir) {
-            console_reset_colors();
-            printf("/");
-            // Save the dirent iterator so we can pick up where we left off
-            tmpchain = malloc(sizeof(struct dirent_chain));
-            if (tmpchain == NULL) {
-                errno = ENOMEM;
-                return;
-            }
-            tmpchain->next = chain;
-            tmpchain->d = dirent_it;
-            chain = tmpchain;
-            tree_depth++;
-            dirent_it = exfat_readdir_fromblock(&ebd, (((struct exfat_file_contents*)dirent_it->opaque)->start_cluster - 2) * exfat_info.clustersize + exfat_info.clusterheap_offset);
-        } else {
-            dirent_it = dirent_it->next;
-        }
-        printf("\n");
-        while (dirent_it == NULL && chain != NULL) {
-            tree_depth--;
-            tmpchain = chain->next;
-            dirent_it = chain->d->next;
-            chain = tmpchain;
-        }
-    }
-}
 
 void delay(size_t time)
 {
@@ -307,7 +259,6 @@ void kernel_main()
     printf("\n");
 
     // TODO: refactor all of this into unit tests
-    uint8_t c;
 
     el = GET_EL();
     printf("Current Exception Level: %ld\n", el);
@@ -402,20 +353,41 @@ void kernel_main()
 
 
     printf("\n");
-    // FIXME: some filenames don't print correctly
-    // - Could be an issue with str_from_wchar function?
-    // - certain length filenames?
-    test_printtree(exfat_info, dev);
-    printf("\n");
 
-    // echo everything back
+    struct process_env kprocess_env;
+    kprocess_env.pid = 0;
+    kprocess_env.process_state = PROC_STATE_RUNNING;
+    kprocess_env.wdir = "/";
+
+    // Create the exfat fs struct
+    struct fs exfat_fs;
+    exfat_fs.parent = dev;
+    exfat_fs.fs_name = "exFAT";
+    exfat_fs.flags = 0;
+    exfat_fs.block_size = dev->block_size;
+    exfat_fs.fopen = exfat_fopen;
+    exfat_fs.fread = exfat_fread;
+    exfat_fs.fwrite = NULL;
+    exfat_fs.fclose = exfat_fclose;
+    exfat_fs.fsize = NULL;
+    exfat_fs.fseek = NULL;
+    exfat_fs.ftell = NULL;
+    exfat_fs.fflush = NULL;
+    exfat_fs.read_directory = NULL;
+
+    kprocess_env.root_fs = &exfat_fs;
+
+    // Initialise the shell with all of the valid commands (uses malloc)
+    shell_init();
+
+    // Basic built-in [s]hell
+    // Print an input prompt (TODO: add cwd to prompt - add a '$PS1' to
+    // environment?)
     while (1) {
-        c = uart0_getc();
-        uart0_putc(c);
-        console_putc(c);
+        shell_getline(&kprocess_env, "# ");
+        shell_execute_command(&kprocess_env);
     }
     // TODO: reading from keyboard - USB?
-    // TODO: Basic shell
 }
 
 /*
@@ -430,13 +402,13 @@ void kernel_main()
  *   screen
  * - Filesystem:
  *   - SD card
+ *   - FAT filesystem
  * - System calls:
  *   - syscall interface
  * - Memory management:
  *   - malloc, etc.
  *   TODO:
  * - Filesystem:
- *   - FAT filesystem
  *   - Virtual FS
  * - System calls:
  *   - implement basic syscalls
@@ -445,4 +417,5 @@ void kernel_main()
  *   - Page tables (MMU)
  *   - Track memory usage?
  * - USB drivers?
+ * - Keyboard character maps (escaped characters, backspace, tabs, etc.)
  */

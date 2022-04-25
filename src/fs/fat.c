@@ -359,6 +359,7 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
         errno = EINVAL;
         return -1;
     }
+
     dirent->byte_size = ed.data_length;
     file_contents = malloc(sizeof(struct exfat_file_contents));
     if (file_contents == NULL) {
@@ -430,4 +431,215 @@ struct dirent *exfat_readdir_fromblock(struct exfat_block_device *edev,
         edirent.direntset_idx++;
     }
     return res;
+}
+
+enum FILE_MODE {
+    /* r    open file for reading */
+    FILE_MODE_R,
+    /* r+   open file for reading and writing */
+    /* w    truncate file to zero length or create text file for writing */
+    /* w+   open for reading and writing. The file is created or truncated to
+     *      zero length */
+    /* a    open for appending. Stream is positioned at the end of the file */
+    /* a+   open for reading and appending */
+    FILE_MODE_INVALID,  // No writing support yet
+};
+
+static enum FILE_MODE get_file_mode(const char *mode)
+{
+    /* r    open file for reading
+     * NOT SUPPORTED YET:
+     * r+   open file for reading and writing
+     * w    truncate file to zero length or create text file for writing
+     * w+   open for reading and writing. The file is created or truncated to
+     *      zero length
+     * a    open for appending. Stream is positioned at the end of the file
+     * a+   open for reading and appending */
+    if (strcmp(mode, "r") == 0) return FILE_MODE_R;
+    else return FILE_MODE_INVALID;
+}
+
+struct exfat_file_opaque {
+    struct exfat_superblock *super;
+    struct block_device *bd;
+    // First cluster of the file's contents
+    uint32_t first_cluster;
+    // The cluster containing the current position
+    uint32_t current_cluster;
+    // The block index into the current cluster
+    size_t block_cluster_offset;
+    // The index into the block
+    size_t pos_block_offset;
+};
+
+/* "Open" a file */
+FILE *exfat_fopen(struct fs *fs, struct dirent *file, const char *mode)
+{
+    FILE *fp = malloc(sizeof(FILE));
+    if (NULL == fp) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    fp->fs = fs;
+    fp->pos = 0;  // TODO: this depends on the file mode
+    fp->pos = get_file_mode(mode);
+    if (fp->pos == FILE_MODE_INVALID) {
+        errno = EINVAL;
+        return NULL;
+    }
+    struct exfat_file_opaque *opaque = malloc(sizeof(struct exfat_file_opaque));
+    if (NULL == opaque) {
+        errno = ENOMEM;
+        return NULL;
+    }
+    opaque->super = malloc(sizeof(struct exfat_superblock));
+    if (NULL == opaque->super) {
+        free(opaque);
+        errno = ENOMEM;
+        return NULL;
+    }
+    struct exfat_file_contents *d_opaque = file->opaque;
+    memcpy(opaque->super, &d_opaque->ebd.sb, sizeof(struct exfat_superblock));
+    opaque->bd = malloc(sizeof(struct block_device));
+    if (NULL == opaque->bd) {
+        free(opaque);
+        errno = ENOMEM;
+        return NULL;
+    }
+    memcpy(opaque->bd, d_opaque->ebd.bd, sizeof(struct block_device));
+    opaque->first_cluster = d_opaque->start_cluster;
+    opaque->current_cluster = d_opaque->start_cluster;
+    opaque->block_cluster_offset = 0;
+    opaque->pos_block_offset = 0;
+    fp->opaque = opaque;  // TODO: put the file contents location in opaque
+    fp->len = file->byte_size;
+    fp->flags = 0;  // TODO: are there any important flags?
+    fp->fflush_cb = NULL;  // TODO
+    return fp;
+}
+
+// TODO: test this function
+size_t exfat_fread(struct fs *fs, void *ptr, size_t byte_size, FILE *stream)
+{
+    /*
+     * Read to the next full cluster
+     *      Need to read (clustersize-currentblock) blocks
+     *      - Read the current block to a temporary buffer
+     *      - Copy the end of the temporary buffer (from the current position)
+     *        into the given buffer
+     *      - Read all of the full blocks
+     * Read all of the full clusters
+     *      For each cluster:
+     *      - Read the cluster using exfat_read_cluster_to_buf()
+     *      - Get the next cluster using fat_idx_to_cluster_idx()
+     * Read the remaining blocks
+     *      - Read all of the full blocks
+     *      - Read the next block to a temporary buffer
+     *      - Copy the data we want to the given buffer
+     */
+    struct exfat_file_opaque *opaque = stream->opaque;
+    // The first cluster in the requested region (The cluster in which the
+    // region starts)
+    size_t first_cluster = opaque->current_cluster;
+
+    // Create a temporary buffer used to hold single blocks
+    void *tmp_buf = malloc(opaque->bd->block_size);
+    if (NULL == tmp_buf) {
+        errno = ENOMEM;
+        return 0;
+    }
+
+    // Check the logical end position against the file size
+    if (stream->pos + byte_size >= stream->len)
+        byte_size = stream->len - stream->pos;
+
+    size_t bytes_read = 0;
+
+    // Read to the end of the current cluster
+    /////////////////////////////////////////
+
+    // Read the current block to a temporary buffer
+    size_t current_block = cluster_to_block(first_cluster, *opaque->super) +
+        opaque->block_cluster_offset;
+    opaque->bd->read(opaque->bd, tmp_buf, opaque->bd->block_size, current_block);
+    // Copy the end of the temporary buffer into the given buffer
+    size_t read_size = opaque->bd->block_size - opaque->pos_block_offset;
+    memcpy(ptr, tmp_buf+opaque->pos_block_offset, read_size);
+    bytes_read += read_size;
+    opaque->pos_block_offset = 0;
+    opaque->block_cluster_offset++;
+    if (opaque->block_cluster_offset == opaque->super->clustersize) {
+        opaque->block_cluster_offset = 0;
+        opaque->current_cluster = fat_idx_to_cluster_idx(opaque->bd,
+                *opaque->super, opaque->current_cluster);
+    } else {
+        // Read all of the full blocks
+        current_block = cluster_to_block(opaque->current_cluster,
+                *opaque->super);
+        read_size = opaque->bd->block_size * (opaque->super->clustersize -
+                opaque->block_cluster_offset);
+        opaque->bd->read(opaque->bd, ptr+bytes_read, read_size, current_block);
+        bytes_read += read_size;
+        opaque->pos_block_offset = 0;
+        opaque->block_cluster_offset = 0;
+        opaque->current_cluster = fat_idx_to_cluster_idx(opaque->bd,
+                *opaque->super, opaque->current_cluster);
+    }
+
+    // Read all of the full clusters
+    ////////////////////////////////
+
+    // How many bytes will be left over after the full clusters
+    size_t loose_bytes = (byte_size - bytes_read) % (opaque->super->clustersize
+            * opaque->bd->block_size);
+    // How many full clusters to read
+    size_t clusters_count = (byte_size - bytes_read - loose_bytes) /
+        opaque->super->clustersize / opaque->bd->block_size;
+
+    while (clusters_count--) {
+        struct exfat_cluster cluster;
+        cluster.idx = opaque->current_cluster;
+        exfat_read_cluster_to_buf(opaque->bd, opaque->super, &cluster,
+                ptr+bytes_read, opaque->super->clustersize *
+                opaque->bd->block_size);
+        bytes_read += opaque->super->clustersize * opaque->bd->block_size;
+        opaque->current_cluster = fat_idx_to_cluster_idx(opaque->bd,
+                *opaque->super, opaque->current_cluster);
+    }
+
+    // Read the remaining blocks
+    ////////////////////////////
+
+    // Read all of the full blocks
+    current_block = cluster_to_block(opaque->current_cluster, *opaque->super);
+    read_size = (loose_bytes / opaque->bd->block_size) * opaque->bd->block_size;
+    opaque->bd->read(opaque->bd, ptr+bytes_read, read_size, current_block);
+    bytes_read += read_size;
+    opaque->block_cluster_offset = read_size / opaque->bd->block_size;
+    loose_bytes -= read_size;
+
+    // Read the next block to a temporary buffer
+    current_block += opaque->block_cluster_offset;
+    read_size = opaque->bd->block_size;
+    opaque->bd->read(opaque->bd, tmp_buf, read_size, current_block);
+    bytes_read += read_size;
+
+    // Copy the data we want to the given buffer
+    memcpy(ptr+bytes_read, tmp_buf, loose_bytes);
+
+    // Update the file stream's position
+    stream->pos += bytes_read;
+    opaque->pos_block_offset = loose_bytes;
+
+    // Free the temporary buffer
+    free(tmp_buf);
+
+    return bytes_read;
+}
+
+int exfat_fclose(struct fs *fs, FILE *fp)
+{
+    free(fp->opaque);
+    free(fp);
+    return 0;
 }
