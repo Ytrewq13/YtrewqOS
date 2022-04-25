@@ -37,6 +37,7 @@
 % 2022-04-25T03:00, 10350 words, 21 pages
 % 2022-04-25T06:00, 10250 words, 20 pages
 % 2022-04-25T08:00, 10050 words, 20 pages
+% 2022-04-25T09:30, 9850 words, 19.5 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -197,8 +198,7 @@ made Unix very popular, and soon there were many Unix-like \glspl{os}.
 \blockquote[\cite{unix-like}]{A Unix-like \gls{os} is one that behaves in a
 similar manner to a Unix system}.
 There are many examples of Unix-like \glspl{os}, including some very popular
-ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs. The
-\gls{os} I am creating in this project aims to be Unix-like in its behaviour.
+ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs.
 
 \subsection{Why the Raspberry Pi?}
 The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
@@ -226,11 +226,10 @@ implement my own \gls{os} at that low level.
 
 With this project, I wanted to develop a deeper understanding of the inner
 workings of \glspl{os} and how the programs I run on my computer interact with
-the hardware they run on. I wanted to understand the entire software stack, and
-one large gap in my knowledge was the internals of the \glsfmtlong{os}. It is a
-black box to most students of Computer Science, and I was determined to fill
-that gap in my own understanding. I wanted to know how system calls work, and
-how they relate to the concept of a ``secure monitor''. I already knew how
+the hardware they run on. I wanted to understand the entire software stack; it
+is a black box to most students of Computer Science, and I was determined to
+fill that gap in my own understanding. I wanted to know how system calls work,
+and how they relate to the concept of a ``secure monitor''. I already knew how
 filesystems work in theory, but I wanted to experience implementing one to gain
 a practical appreciation of the topic.
 
@@ -256,20 +255,19 @@ The project ``rpi-boot''~\cite{rpi-boot-gh} contains code for a \gls{fat}
 implementation of the \texttt{malloc} function~\cite{dlmalloc}, used to
 allocate memory.
 
-I will use the \gls{fs} code from this source as inspiration for the \gls{fs}
-of my \gls{os}. The \texttt{malloc} implementation will also be used as the
-basis for my memory management system.
+I used the \gls{fs} code from this source as inspiration for the \gls{fs} of my
+\gls{os}. The \texttt{malloc} implementation was also used as the basis for my
+memory management system.
 
 \subsection{\texorpdfstring{\gls{cpu}}{CPU} mode initialisation for
 \texorpdfstring{\gls{arm} \glspl{cpu}}{arm CPUs}}
 A project~\cite{raspberry-pi-os-gh} which contains assembly code to switch
 \gls{arm} 64-bit architecture \glspl{cpu} into the correct operation mode for
-an \gls{os}. This code will be very useful when I write the boot code, as I
-will want to setup the processor into the correct \gls{arm-el} for the kernel.
+an \gls{os}. This code was very useful when I wrote the boot code, as I needed
+to setup the processor into the correct \gls{arm-el} for the kernel.
 
 This project also contains example code for Exception handlers, which is
-something I will need in order to implement System Calls
-(\autoref{sec:impl_syscalls}).
+something used to implement System Calls (\autoref{sec:impl_syscalls}).
 
 \subsection{\texorpdfstring{\gls{uart}}{UART} serial
 \texorpdfstring{\gls{io}}{IO}}
@@ -298,8 +296,8 @@ understand than that of Linux, so I will reference BSD implementations of any
 The RiscOS operating System~\cite{riscOS-source} was the first \gls{os} written
 for \gls{arm} \glspl{cpu}. It has been kept updated and a version is available
 which runs on the \gls{rpi}. The entire \gls{os} is written in \gls{arm}
-assembly language, so it will not be particularly useful to me, but I can take
-a look at its implementation of any components I get particularly stuck on.
+assembly language, so I can take a look at its implementation of any components
+I get particularly stuck on.
 
 \defbibheading{relworks}{\subsection*{References for the
 {\hypersetup{hidelinks}\nameref{sec:related-works}}}}
@@ -310,21 +308,11 @@ a look at its implementation of any components I get particularly stuck on.
 
 \section{Description of the work}
 This project will produce a piece of software. The software will aim to achieve
-two main goals: to be an \gls{os} and to be a useful starting point for anyone
+one main goal: to be a useful starting point for anyone
 wanting to teach themselves \gls{os} development.
 
 \subsection{The goals of the project}
-To meet the first goal, the software produced should qualify as an \gls{os}.
-For this, it should have its code organised into a ``kernel'' structure. There
-should be drivers for the essential hardware, such as the serial port (for a
-debug console), the framebuffer (for graphical output), and the eMMC chip,
-which controls access to SD cards on the \gls{rpi}. There should also be enough
-filesystem code to allow for reading and writing of files, and there should be
-implementations of familiar standard library file I/O wrapper functions,
-including \texttt{fread} and \texttt{fwrite}.
-
-For the second goal (being a useful starting point for someone learning about
-\gls{os} development), the \gls{os} needs to be simple enough for a competent
+To meet the goal, the \gls{os} needs to be simple enough for a competent
 programmer to get a basic understanding of how all of the components fit
 together, within only a couple of hours of first studying the source code. As
 with the first goal, it will need to include all of the required features for a
@@ -332,6 +320,14 @@ basic \gls{os}, and these were described previously. It should also have plenty
 of room for future development, as I believe that one of the best ways to
 understand a topic (and to become familiar with an existing project) is to try
 to develop a new feature involving the topic or extend the project.
+
+The software produced should also qualify as an \gls{os}. For this, there
+should be drivers for the essential hardware, such as the serial port (for a
+debug console), the framebuffer (for graphical output), and the eMMC chip which
+controls access to SD cards on the \gls{rpi}. There should also be enough
+filesystem code to allow for reading and writing of files, and there should be
+implementations of familiar standard library file I/O wrapper functions,
+including \texttt{fread} and \texttt{fwrite}.
 
 
 \subsection{Specification of the project}
@@ -483,14 +479,14 @@ source code to be easier to read and understand.
 
 \subsubsection{\texorpdfstring{\glsxtrlong{rpi}}{RPi} 3 Emulator}
 QEMU~\cite{qemu} is an emulator with out-of-the-box support for emulating the
-host architecture. This means that on an \texttt{x86} machine, we can
-emulate another \texttt{x86} machine. This isn't enough for emulating a
-\gls{rpi}, as the \gls{rpi} uses the Aarch64 architecture. Thankfully, there is
-a package on most linux distributions, ususally called something like
-\texttt{qemu-arch-extra}, which adds support for other architectures. This
-provides the program \texttt{qemu-system-aarch64}, which spins up an emulator
-for Aarch64-based machines. The \gls{rpi} 3 is supported as a machine preset,
-using the command line argument \texttt{-machine raspi3}.
+host architecture. This means that, on an \texttt{x86} machine, we can emulate
+another \texttt{x86} machine. This isn't enough for emulating a \gls{rpi}, as
+the \gls{rpi} uses the Aarch64 architecture. There is a package on most linux
+distributions, ususally called \texttt{qemu-arch-extra}, which adds support for
+other architectures. This provides the program \texttt{qemu-system-aarch64},
+which spins up an emulator for Aarch64-based machines. The \gls{rpi} 3 is
+supported as a machine preset, using the command line argument \texttt{-machine
+raspi3}.
 
 The emulator can emulate everything about the \gls{rpi} except for the first
 stage bootloader, which is the code that runs at the very start of the boot
@@ -607,11 +603,10 @@ project's result to the \emph{Unix structure}, can be seen in
 \subsection{User Interface and the graphics of the
 \texorpdfstring{\gls{os}}{OS}}
 The interface of the \gls{os} is the console. It is the text that is displayed
-to the user from the \gls{rpi}. I will implement some quality of life features,
-such as terminal scrollback, which allows the user to scroll up and see what
-was printed to the terminal earlier. This feature reduces the need for a
-terminal output pager such as \texttt{less}, which will not be implemented
-until very late in the development.
+to the user from the \gls{rpi}. After this project finishes, I will implement
+some quality of life features, such as terminal scrollback, which allows the
+user to scroll up and see what was printed to the terminal earlier. This
+feature will remove the need for a terminal output pager such as \texttt{less}.
 
 The font I decided to use for the console is Bizcat~\cite{bizcat-font}. It is
 an 8x16 bitmap font, and I converted it into a C source file as a constant
@@ -692,10 +687,10 @@ which handles each subdirectory of the main \texttt{src/} directory.
 \subsubsection{Bootloader}
 On the \gls{rpi} 3, the \gls{gpu} contains a first-stage bootloader which
 automatically does most of the required setup for booting into an \gls{os}
-kernel. However, the \gls{cpu} will not be setup completely, and so I will need
+kernel. However, the \gls{cpu} will not be set up completely, and so I needed
 to write some code to set register values and verify that everything is as it
-should be before we jump into the kernel \texttt{main} function. I will call
-this code the `second-stage' bootloader.
+should be before we jump into the kernel \texttt{main} function. I will refer
+to this code as the \emph{second-stage} bootloader.
 
 \subsubsection{\texorpdfstring{\glsxtrshort{uart}}{UART} driver for keyboard
 input and initial console output}
@@ -703,51 +698,53 @@ input and initial console output}
 different \gls{uart} ports: a mini-UART and a full PL011
 \gls{uart}~\cite{rpi-uarts}. The PL011 \gls{uart} is faster and more reliable
 than the mini-UART, but it is disabled by default, enabling it disables
-bluetooth, and it is more complex to program for. I will use the mini-UART to
-debug the setup of the PL011 \gls{uart}, which will be used as the main serial
-connection once it is enabled and working. I won't be using bluetooth in this
+bluetooth, and it is more complex to program for. I used the mini-UART to
+debug the setup of the PL011 \gls{uart}, which was then used as the main serial
+connection once it was enabled and working. I didn't use bluetooth in this
 project, but future projects which expand on my code could switch back to the
-mini-UART if they wanted to use the \gls{rpi}'s bluetooth chip.
+mini-UART if they wanted to use the \gls{rpi}'s bluetooth chip. Bluetooth
+support is a feature that could be implemented almost immediately by new
+developers, and it would also involve in-depth modification of the kernel, so
+it would be perfect for developers to learn about \gls{os} development.
 
 Serial communication is used in this project as a means of interacting with the
-\gls{os}, as I will not be implementing support for USB peripherals. All
-keyboard input is expected to come through the serial port. I will also use the
-serial port for debugging as I develop the graphics driver (see
+\gls{os}, as I did not implement support for USB peripherals. All keyboard
+input is expected to come through the serial port. I also used the serial port
+for debugging as I developed the graphics driver (see
 \autoref{sec:design_graphics_driver}).
 
-For the initial console output, I will implement a \texttt{printf} function for
+For the initial console output, I implemented a \texttt{printf} function for
 formatted printing of characters, integers, hexadecimal numbers, and strings.
-This will allow me to easily print the values of registers, so that I can make
-sure that all values are as I expect during the boot process. The
-\texttt{printf} function will be generic, so that I can use the same
-\texttt{printf} function for both of the \glspl{uart} and also eventually for
-the graphical console.
+This allowed me to easily print the values of registers, so that I could make
+sure that all values were as I expected during the boot process. The
+\texttt{printf} function is generic, so I was able to use the same
+\texttt{printf} function for both of the \glspl{uart} and also the graphical
+console.
 
-The \gls{os} will get keyboard input from the serial port, which will be
-provided by QEMU, the \gls{rpi} emulator. QEMU uses VT100 escape
-sequences~\cite{vt100} for its serial interface, so normal keys on the keyboard
-(and shifted keys) are passed to the \gls{os} as the ASCII value of the
-characters they represent.
+The \gls{os} gets keyboard input from the serial port, which is provided by
+QEMU, the \gls{rpi} emulator. QEMU uses VT100 escape sequences~\cite{vt100} for
+its serial interface, so normal keys on the keyboard (and shifted keys) are
+passed to the \gls{os} as the ASCII value of the characters they represent.
 
 \subsubsection{Graphics driver for displaying pixels on the screen}
 \label{sec:design_graphics_driver}
-Once I have a working serial terminal, I will implement a graphics driver for
-interacting with the \gls{rpi}'s framebuffer. This will include a function for
+Once I had a working serial terminal, I implemented a graphics driver for
+interacting with the \gls{rpi}'s framebuffer. This included a function for
 setting individual pixels, a function for setting the entire screen to a
 colour, and a function to display a bitmap to the screen at a given location.
-With these functions, I will write functions for displaying characters to the
-screen, with variables for the current position on the screen. I will convert a
+With these functions, I wrote functions for displaying characters to the
+screen, with variables for the current position on the screen. I converted a
 bitmap font~\cite{bizcat-font} into a constant array of bitmap values, and the
-character printing function can use the character as an index into this array
-to get the bitmap to display to the screen.
+character printing function uses the character as an index into this array to
+get the bitmap to display to the screen.
 
-The screen blanking function will use a \texttt{memset} function to set the
-entire framebuffer to a given value, as this would be much faster than setting
-each pixel individually. The bitmap function will use the pixel setting
-function internally, and will use the bitmap to decide which pixels should be
-set. Each of these functions is very simple on its own, and will be relatively
-easy to implement, but once put together they will create the complex behaviour
-required for displaying characters to the screen.
+The screen blanking function uses a \texttt{memset} function to set the entire
+framebuffer to a given value, as this would be much faster than setting each
+pixel individually. The bitmap function uses the pixel setting function
+internally, and will use the bitmap to decide which pixels should be set. Each
+of these functions is very simple on its own, and they were all relatively easy
+to implement, but once put together they create the complex behaviour required
+for displaying characters to the screen.
 
 \subsubsection{System calls}
 TODO: explain that syscalls are split into 2 different components: the
@@ -755,35 +752,35 @@ mechanism to allow for them and the implementations of the syscall functions
 themselves.
 
 \paragraph{System call mechanism using software interrupts}
-The kernel will include a system call mechanism, which would eventually be the
-way for processes (at the user level) to escalate privileges temporarily to
-request that the kernel perform some action on their behalf. Processes and the
-user / kernel level split will not yet be implemented, but I will implement
-support for system calls to prepare for the time when they are needed.
+The kernel includes a system call mechanism, which will eventually be the way
+for processes (at the user level) to escalate privileges temporarily to request
+that the kernel perform some action on their behalf. Processes and the user /
+kernel level split are not yet implemented, but I did implement support for
+system calls to prepare for the time when they are needed.
 
-The \gls{os} will use software interrupts to trigger a system call, with an
+The \gls{os} uses software interrupts to trigger a system call, with an
 exception handler to interpret which system call function needs to be called.
 On \gls{arm} \glspl{cpu}, a software interrupt is capable of changing the
 \gls{arm-el}. In user-mode (once that is implemented) the \gls{cpu} would be in
-\gls{arm-el} 0, and kernel code will execute in \gls{arm-el} 1. The software
-interrupt will place the \gls{cpu} into \gls{arm-el} 1, entering kernel-mode,
-and when the system call function returns, the exception handler will run an
+\gls{arm-el} 0, and kernel code executes in \gls{arm-el} 1. The software
+interrupt places the \gls{cpu} into \gls{arm-el} 1, entering kernel-mode, and
+when the system call function returns, the exception handler executes an
 exception return instruction, placing the \gls{cpu} back into the \gls{arm-el}
 that it was in when the software interrupt occurred. This is how the system
-call mechanism will allow the \gls{os} to separate user space from kernel space
+call mechanism allows the \gls{os} to separate user space from kernel space,
 while still allowing user-mode processes to perform operations that require
 kernel permissions.
 
-Each system call will be assigned a number, and I will copy these from Linux at
-the start. Most Linux system calls will not ever be implemented, but having
-some level of equivalence between this system and Linux system calls will
-ensure that developer will feel confident that at least some of the knowledge
-is transferable.
+Each system call is assigned a number, and I copied these from Linux to start
+with. Most Linux system calls will not ever be implemented, but having some
+level of equivalence between this system and Linux system calls ensures that
+developers will feel confident that at least some of the knowledge is
+transferable.
 
-The system call exception handler will use the system call number to determine
-which function to call. This will be done using a table in memory which maps
-system call numbers to function pointers. The exception handler will lookup the
-correct table entry and then call the function at the address it finds.
+The system call exception handler uses the system call number to determine
+which function to call. This is done using a table in memory which maps system
+call numbers to function pointers. The exception handler looks up the correct
+table entry and then calls the function at the address it finds.
 
 \paragraph{System call implementations}
 The implementation of the system calls can be separated from the mechanism
@@ -792,12 +789,12 @@ TODO: Expand this
 
 \subsubsection{SD card driver}
 In order to read data from the SD card on the \gls{rpi} (and write data back to
-it), the \gls{os} will need to implement a driver for the \gls{rpi}'s eMMC
-chip. The simplest way to do this will be to copy an existing driver for that
-chip. I will take code from one of the related works~\cite{rpi-boot-gh}.
+it), the \gls{os} needs to implement a driver for the \gls{rpi}'s eMMC chip.
+The simplest way to do this is to copy an existing driver for that chip. I took
+code from one of the related works~\cite{rpi-boot-gh}.
 
 \subsubsection{exFAT filesystem}
-The kernel will include an implementation of the exFAT filesystem. I considered
+The kernel includes an implementation of the exFAT filesystem. I considered
 several different filesystems including FAT32, exFAT, and
 YAFFS~\cite{yaffs-fs}. The exFAT filesystem's popularity was the reason I chose
 it over YAFFS. The FAT32 filesystem seems simpler to implement than exFAT, but
@@ -808,7 +805,7 @@ specification gave me more confidence that different tools would work together.
 Also, the exFAT filesystem is partially supported on Linux systems (FAT32 is
 not as well supported), and I am developing the \gls{os} on Linux.
 
-The file system implementation will need several features in order to work as
+The file system implementation needs several features in order to work as
 the main filesystem of this \gls{os}. These are listed below, using terminology
 that will be explained in \autoref{sec:impl_fs}.
 
@@ -937,7 +934,7 @@ kernel checks the current \gls{arm-el} and runs some code to put the \gls{cpu}
 into \gls{arm-el} 1. The code sets up the system registers correctly to fake
 the \gls{cpu} returning from an exception. When the registers are correctly
 set, the \gls{arm} instruction \texttt{eret} is run, and the \gls{cpu}
-``returns'' from the ``exception handler'', jumping into the kernel code and
+`returns' from the `exception handler', jumping into the kernel code and
 entering into \gls{arm-el} 1. This is done in this way because exceptions are
 the only way to change \gls{arm-el}, and the only way to reduce the
 \gls{arm-el} is to perform an exception return (\texttt{eret}).
@@ -1123,8 +1120,6 @@ is used by the system call exception handler is in place, so once the system
 call functions are written they can easily be dropped into the table and then
 immediately those system call numbers will start to function.
 
-TODO: refer back to second aim of the project.
-
 \subsubsection{Filesystem}
 The exFAT \gls{fs} was only just implemented. Reading directory entries works,
 but there aren't many functions built on top of that to allow for more abstract
@@ -1195,31 +1190,32 @@ required to discover if any additional changes need to be made to the boot code
 to get the \gls{cpu} to run in \gls{arm-el} 0 correctly.
 
 \section{The Shell}
-The design of the shell is important. If it is done correctly, developers who
-are comfortable using a shell will immediately feel at home when they sit down
-in from of this \gls{os}. A simple and intuitive shell will give a good first
-impression to the project's code, which is important for the project's aims.
+The design of the shell is important. If done correctly, developers who are
+comfortable using a shell will immediately feel at home when they sit down in
+from of this \gls{os}. A simple and intuitive shell gives a good first
+impression to the project's code, which is important for fulfilling the
+project's aim.
 
 \subsection{Design}
 
 \subsubsection{Commands as functions}
-In the initial implementation, I will develop the shell as a part of the
-kernel, and all of the commands will be functions built into the final compiled
-kernel. I will do it this way because it is simple, and my \gls{os} will not
-have a binary file loader at this stage, which would be needed for loading
-external versions of commands. The downside of using this method is that any
-new commands or changes to commands would require a recompile and rebuild of
-the entire kernel, but so far building the kernel from scratch is a relatively
+In the initial implementation, I developed the shell as a part of the kernel,
+and all of the commands are functions built into the final compiled kernel. I
+did it this way because it is simple to program, and the \gls{os} does not have
+a binary file loader at this stage, which would be needed for loading external
+versions of commands. The downside of using this method is that any new
+commands or changes to commands would require a recompile and rebuild of the
+entire kernel, but so far building the kernel from scratch is a relatively
 quick process.
 
-Commands in the shell will be functions in the shell source code files. The
-functions for commands will all share the same function signature, which will
-be the same as the function signature for a \texttt{main}
-function~\cite{c-main-func}. This will mean minimal changes would be needed to
-eventually turn each command into its own executable, with the binaries being
-stored on the filesystem (in a \texttt{/bin} directory). This change will be
-the natural next step from what I create, so I am designing my shell
-implementation with that in mind from the start.
+Commands in the shell are functions in the shell source code files. The
+functions for commands all share the same function signature, which is similar
+to the function signature for a \texttt{main} function~\cite{c-main-func}. This
+means minimal changes would be needed to eventually turn each command into its
+own executable, with the binaries being stored on the filesystem (in a
+\texttt{/bin} directory). This change will be the natural next step from what I
+have already created, so I designed the shell implementation with that in mind
+from the start.
 
 \subsubsection{The shell loop}
 The logic of an interactive shell is quite simple. It consists of an infinite
@@ -1235,27 +1231,32 @@ loop:
 
 The shell needs to get user input on a line-by-line basis, since each command
 starts at the beginning of the line and ends at the newline character. In the
-first iteration, I will store the text input in a fixed-size buffer, meaning
-that there will be a maximum size for an input line. I will set this maximum
-size to a reasonable value such that it will not cause any problems, and I will
+first iteration, the shell stores the text input in a fixed-size buffer,
+meaning that there is a maximum size for an input line. I set this maximum size
+to a reasonable value such that it does not cause any problems, and I will
 leave this problem to fixed in a future update to the shell's user input
 functions.
 
-I will split the line by spaces and place the words into a `vector',
+The shell splits the line by spaces and places the words into a `vector',
 passed to the commands as the argument \texttt{argv}.
 
 \subsubsection{The commands}
-I will create several commands, starting with the simplest and most essential
-ones. The \gls{os} will need a way to shutdown the \gls{rpi}, so I will
-implement a \texttt{shutdown} command. I will write a \texttt{pwd} command to
-print the current working directory, as this will be a very simple (and also
-useful) operation. When I write the filesystem, I will create a function for
-printing the contents of directories (\texttt{ls}), and also a recursive
-version of this, \texttt{tree}, shich shows an entire directory structure in
-context.
+I created several commands, starting with the simplest and most essential
+ones.
+
+The \gls{os} needs a way to shutdown the \gls{rpi}, so I implemented a
+\texttt{shutdown} command.
+
+I then wrote a \texttt{pwd} command to print the current working directory, as
+this was a very simple (and also useful) operation.
+
+When I implemented the filesystem, I created a recursive function for
+printing the contents of directories (\texttt{tree}), which shows an entire
+directory structure in context.
 
 Once I have implemented enough of the filesystem to get file contents from the
 SD card, I will create a \texttt{cat} command to print files to the screen.
+
 Finally, a command for getting file attributes, like \texttt{stat} on Linux
 systems. On Linux systems, \texttt{stat} is implemented via a system call
 (\texttt{fstatat}), so this command could be rewritten using that if a future
@@ -1266,7 +1267,7 @@ One feature that would significantly improve the shell would be the inclusion
 of a binary file loader. This could either support only raw binary files, or
 statically compiled \gls{elf} files. A file loader would not be possible
 without first implementing file reading in the filesystem, so this would be a
-very late feature to start implementing if I put it into the \gls{os}.
+very late feature to start implementing if I include it in the \gls{os}.
 
 For loading \gls{elf} files, I would implement a basic \gls{elf} parser to
 extract the instructions from the file and put them into memory. The loader
@@ -1279,11 +1280,11 @@ instructions from the \gls{elf} structure, just loading the instructions from
 the filesystem and then jumping into the loaded file contents.
 
 \subsubsection{Rewrite commands using system calls}
-Many of the commands I will implement would benefit from using some standard
-system calls, but I will not have implemented any system calls by the time I
-create the commands. Rewriting these commands to use the system calls would be
-a nice-to-have feature. It would also give an incentive to implement the
-common system calls, as I would be developing system calls I need at the time.
+Many of the commands I implemented would benefit from using some standard
+system calls, but I have not implemented any system calls. Rewriting these
+commands to use the system calls would be a nice-to-have feature. It would also
+give an incentive to implement the common system calls, as I would be
+developing system calls I need at the time.
 
 Some commands which would benefit from this would be \texttt{ls} (system call
 \texttt{getdents}), \texttt{stat} (\texttt{fstatat}), and \texttt{cat} (which
@@ -1468,7 +1469,7 @@ to complete them, and some tasks were given more time.
 \subsubsection{Unexpected difficulties in development}
 I encountered several issues during development which I did not account
 for in the original project plan. The first is not so much an issue as it is a
-task not being required in the way that I expected. The \textbf{debug shell}
+task not being required in the way that I expected. The \emph{debug shell}
 was not needed in the way I had planned to implement it. My plan was to prompt
 the user for a command, and for the shell to support a very limited range of
 commands, perhaps starting with a command to print the contents of a memory
@@ -1482,7 +1483,7 @@ The ``debug'' part of the debug shell task was still completed, as the current
 version of the kernel prints debugging information to the serial port (and also
 to the \gls{rpi} video output once the framebuffer is allocated).
 
-\textbf{System calls} were far more difficult to implement than I expected. The
+\emph{System calls} were far more difficult to implement than I expected. The
 way that system calls were implemented was using \gls{arm} exceptions
 to execute a function with the processor in a privileged mode of operation.
 Unfortunately, when I started working on the system call implementation, I did
@@ -1495,7 +1496,7 @@ handle the exception.
 I spent some extra time learning about \gls{arm} system registers in depth, and
 gained the knowledge I needed to finish the system call mechanism.
 
-When I started working on the \textbf{filesystem}, I immediately realised
+When I started working on the \emph{filesystem}, I immediately realised
 something that I forgot to consider for the original project plan. The
 filesystem would require an SD card driver in order to interact with the
 \gls{rpi} storage. I used an existing implementation of a simple \gls{rpi} SD
@@ -1511,14 +1512,6 @@ gave recommendations for some of the areas I was originally unsure of or less
 knowledgeable about. He suggested that I implement the FAT \gls{fs} as it is
 simple and relatively easy to implement, and he reminded me that on \gls{arm}
 based systems, system calls would utilise software interrupts.
-
-I think that the original project plan was too ambitious. I failed to consider
-that I would have other modules and also extra-curricular obligations, and I
-underestimated how much of my time would be taken up doing things unrelated to
-the project. Overall, the project has not progressed as quickly as I had
-originally expected. This is why I have scaled back the plan for the second
-half of the year, replacing the shell and libc with ports of already existing
-versions.
 
 
 
