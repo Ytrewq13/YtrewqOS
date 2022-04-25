@@ -150,8 +150,8 @@
 
             Over the course of developing this \gls{os}, I learned a lot about
             which \gls{os} components are needed at which stages of
-            development. This project has followed a logical ``first
-            discovery'' journey into \gls{os} development, which shadowed the
+            development. This project has followed a logical \emph{first
+            discovery} journey into \gls{os} development, which shadowed the
             historic major advances in \gls{os} technology.
 
             The \gls{os} I have created provides a kernel, with a system call
@@ -188,17 +188,16 @@ because the \gls{rpi} 3's \gls{cpu} is an \gls{arm} 64-bit \gls{cpu}.
 \subsection{What is an Operating System? (And Unix)}
 \glspl{os} are programs which run directly on top of computer hardware and
 allow other software to run on the computer. They come in many different
-varieties, but this project will be based on the ``microkernel'' design. Unix
-was an \gls{os} developed at Bell Labs of AT\&T in the 1970s. It was originally
-written in assembly language for the specific target machine, the PDP7, but for
-its 4th version it was rewritten in C, a new language at the time (also created
-at Bell Labs). Being written in C made the \gls{os} very portable, as only the
-compiler had to be ported for the entire system to run on a new machine. This
-made Unix very popular, and soon there were many Unix-like \glspl{os}.
-\blockquote[\cite{unix-like}]{A Unix-like \gls{os} is one that behaves in a
-similar manner to a Unix system}.
-There are many examples of Unix-like \glspl{os}, including some very popular
-ones like Linux, MacOS, and the family of \glspl{os} known as the BSDs.
+varieties. Unix was an \gls{os} developed at Bell Labs of AT\&T in the 1970s.
+It was originally written in assembly language for the specific target machine,
+the PDP7, but for its 4th version it was rewritten in C, a new language at the
+time (also created at Bell Labs). Being written in C made the \gls{os} very
+portable, as only the compiler had to be ported for the entire system to run on
+a new machine. This made Unix very popular, and soon there were many Unix-like
+\glspl{os}. \blockquote[\cite{unix-like}]{A Unix-like \gls{os} is one that
+behaves in a similar manner to a Unix system}. There are many examples of
+Unix-like \glspl{os}, including some very popular ones like Linux, MacOS, and
+the family of \glspl{os} known as the BSDs.
 
 \subsection{Why the Raspberry Pi?}
 The \gls{rpi} is a cheap \gls{sbc} powered by an \gls{arm} \gls{soc}. This
@@ -1215,7 +1214,9 @@ means minimal changes would be needed to eventually turn each command into its
 own executable, with the binaries being stored on the filesystem (in a
 \texttt{/bin} directory). This change will be the natural next step from what I
 have already created, so I designed the shell implementation with that in mind
-from the start.
+from the start. Having the next steps follow on so naturally from the current
+implementation aligns very well with this project's main goal of being a gentle
+introduction to \gls{os} development.
 
 \subsubsection{The shell loop}
 The logic of an interactive shell is quite simple. It consists of an infinite
@@ -1468,7 +1469,10 @@ to complete them, and some tasks were given more time.
 
 \subsubsection{Unexpected difficulties in development}
 I encountered several issues during development which I did not account
-for in the original project plan. The first is not so much an issue as it is a
+for in the original project plan.
+
+\paragraph{Debug shell vs GDB}
+The first is not so much an issue as it is a
 task not being required in the way that I expected. The \emph{debug shell}
 was not needed in the way I had planned to implement it. My plan was to prompt
 the user for a command, and for the shell to support a very limited range of
@@ -1479,10 +1483,11 @@ development process, and I don't believe it will be needed at all, as I can use
 the \gls{os} kernel to be in a working state, which would be the most likely
 scenario for if I would need to read memory.
 
-The ``debug'' part of the debug shell task was still completed, as the current
+The `debug' part of the debug shell task was still completed, as the current
 version of the kernel prints debugging information to the serial port (and also
 to the \gls{rpi} video output once the framebuffer is allocated).
 
+\paragraph{System calls}
 \emph{System calls} were far more difficult to implement than I expected. The
 way that system calls were implemented was using \gls{arm} exceptions
 to execute a function with the processor in a privileged mode of operation.
@@ -1496,6 +1501,7 @@ handle the exception.
 I spent some extra time learning about \gls{arm} system registers in depth, and
 gained the knowledge I needed to finish the system call mechanism.
 
+\paragraph{Filesystem and SD card}
 When I started working on the \emph{filesystem}, I immediately realised
 something that I forgot to consider for the original project plan. The
 filesystem would require an SD card driver in order to interact with the
