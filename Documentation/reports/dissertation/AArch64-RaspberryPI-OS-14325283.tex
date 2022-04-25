@@ -35,6 +35,7 @@
 % 2022-04-24T22:00, 10650 words, 21.5 pages
 % 2022-04-25T02:30, 10850 words, 22 pages
 % 2022-04-25T03:00, 10350 words, 21 pages
+% 2022-04-25T06:00, 10250 words, 20 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -221,11 +222,6 @@ discover more about \gls{os} design. The source code will be made available
 under an open source license.
 
 \section{Motivation}
-%TODO: Motivation explaining the problem being solved and its importance or need
-%for it.
-
-TODO: explain the problem being solved
-
 My personal motivation for choosing to create an \gls{os} for this project
 stems from my interest in low-level programming. I have an interest in
 understanding how computers work at the lowest level, and the best way to learn
@@ -242,22 +238,16 @@ how they relate to the concept of a ``secure monitor''. I already knew how
 filesystems work in theory, but I wanted to experience implementing one to gain
 a practical appreciation of the topic.
 
-TODO: why is this project ``needed'' or ``important''?
-\begin{itemize}
-    \item Understanding common OS choices from an historical perspective by
-        analyzing original OS methods
-\end{itemize}
-
-I believe that this project is needed because although \glspl{os} are a common
-hobby project, there are no \gls{os} development projects which have aimed to
-highlight the motivation behind the choices that have been made by the largest
-\glspl{os}. No project exists which shows clearly the reasons behind why
-\gls{os} development as a field has taken the direction that it has. Why does
-every major \gls{os} use a software interrupt based system call architecture to
-distinguish between user-level code and privileged kernel operations? What are
-some of the reasons for choosing to include hardware drivers in the kernel of
-an \gls{os} instead of running those drivers as user code? These questions, and
-others like them, have not been answered to a suitable level by other projects.
+This project is needed because although \glspl{os} are a common hobby project,
+there are no \gls{os} development projects which have aimed to highlight the
+motivation behind the choices that have been made by the largest \glspl{os}. No
+project exists which shows clearly the reasons behind why \gls{os} development
+as a field has taken the direction that it has. Why does every major \gls{os}
+use a software interrupt based system call architecture to distinguish between
+user-level code and privileged kernel operations? What are some of the reasons
+for choosing to include hardware drivers in the kernel of an \gls{os} instead
+of running those drivers as user code? These questions, and others like them,
+have not been answered to a suitable level by other projects.
 
 \section{Related work}
 \label{sec:related-works}
@@ -323,10 +313,6 @@ a look at its implementation of any components I get particularly stuck on.
 \end{refsection}
 
 \section{Description of the work}
-%TODO: Description of the work explaining what your project is meant to achieve,
-%how it is meant to function, e.g., perhaps even a functional specification for
-%a software-oriented project.
-
 This project will produce a piece of software. The software will aim to achieve
 two main goals: to be an \gls{os} and to be a useful starting point for anyone
 wanting to teach themselves \gls{os} development.
@@ -382,21 +368,18 @@ removed as I decided that I will not have enough time to complete them
     Graphics driver & 2 \\
     Syscall interface & 4 \\
     Memory allocation & 2 \\
+    SD card driver & 2 \\
     Filesystem & 9 \\
     \hline \textbf{Shell} & \\
     Debug terminal & 2 \\
     Graphical console & 3 \\
+    Kernel shell interface & 4 \\
+    Basic shell commands & 2 \\
     \hline \textbf{Tools and libraries} & \\
-    Setup cross-compiler and build environment & 1 \\
+    Setup build environment & 1 \\
     IO and strings libraries & 2 \\
     libc & 8 \\
-    \hline \textbf{Programs} & \\
-    \texttt{cat}, \texttt{head}, \texttt{less}, etc. & 2 \\
-    \texttt{roff} & 2 \\
-    \texttt{man} & 1 \\
     \hline \textbf{Documents} & \\
-    Interim report & 2 \\
-    Documentation & 4 \\
     Dissertation & 7 \\
     \hline
 \end{tabular}
@@ -408,73 +391,39 @@ each component will take.}
 
 \subsubsection{Work Packages}
 \label{sec:work_packages}
-A ``Work Package'' is a collection of tasks with a well-defined deliverable.
+A \emph{Work Package} is a collection of tasks with a well-defined deliverable.
 Not every task will be part of a work package, and some tasks will be work
 packages on their own. \autoref{tab:work-packages} contains all of the work
-packages for this project. Some changes have been made to the descriptions of
-the deliverables from the work packages listed in the original table of work
-packages from the initial project proposal
-(\autoref{tab:original-work-packages}, in the Appendix). The work package
-``Init system and service manager'' has been removed, as I do not think I will
-have enough time to create a working init system, and a service manager is not
-an essential part of an \gls{os}, especially when the \gls{os} is very simple
-and will not need to run any services.
+packages for this project.
 
 \begin{table}[tbp]
 \begin{center}
-\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|X|p{0.15\textwidth}|}
+\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|X|}
     \hline
-    \textbf{Work package} & \textbf{Description of the deliverable} & \textbf{Progress}
+    \textbf{Work package} & \textbf{Description of the deliverable}
     \\ \hline
-    \makecell[lt]{Debug terminal using the \\ graphics driver} &
-    A debug terminal which is printed on the \gls{rpi}'s display. The debug
-    terminal should print important values to the display while the \gls{os} is
-    starting up, allowing me to debug the features I am working on easily by
-    verifying that memory addresses are set correctly and that functions are
-    performing their behaviours as I expect them to. &
-    Finished.
+    \makecell[lt]{Debug terminal using the \\ serial port} &
+    A debug terminal which is printed to the \gls{rpi}'s serial port. The debug
+    terminal should print important values while the \gls{os} is starting up,
+    allowing basic debugging by verifying that memory addresses are set
+    correctly and that functions are performing their behaviours as expected.
     \\ \hline
-    \makecell[lt]{A basic kernel which can \\ load (from disk) and jump \\ into
-        a compiled \gls{elf} \\ program} &
-    A program that can load a statically compiled \gls{elf} executable binary
-    into memory and then jump to its entry point. This requires a filesystem
-    library to be implemented, and also includes the \gls{elf} loader task. &
-    In progress.
+    \makecell[lt]{A basic kernel which can \\ interact with the hardware} &
+    A program that is invoked from the bootloader and contains drivers for some
+    essential hardware such as the eMMC controller and the framebuffer.
     \\ \hline
-    \makecell[lt]{Scheduling algorithm} &
-    A scheduling algorithm with support for multiple processes running on the
-    system concurrently. This will include an implementation of
-    \texttt{fork(3)} or a similar function in order to spawn new processes and
-    \texttt{execve(2)} to replace the current program with a new process. It
-    will also require process control infrastructure in the kernel to keep
-    track of the running processes. &
-    Not started.
+    \makecell[lt]{A shell built into the \\ kernel} &
+    A simple shell which takes user input one line at a time and executes
+    commands based on the first word of the input line. This shell will run as
+    part of the kernel and will execute at the same privilege level as the rest
+    of kernel code.
     \\ \hline
-    \makecell[lt]{A shell} &
-    A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
-    Dash\cite{dash-shell}. If I decide that implementing my own POSIX-compliant
-    shell is too large of a task, then I will port the source code for Dash to
-    run on my \gls{os}, implementing the required syscalls to get it working.
-    This shell will be the main way users interact with the \gls{os}. &
-    Not started.
-    \\ \hline
-    \makecell[lt]{Documentation} &
-    This package contains several parts. I will create documentation for how
-    each part of the \gls{os} works, and a guide for how new programmers can get
-    started developing programs for the system. The documentation will be
-    completed in stages as I develop the \gls{os}, and I will go back
-    to keep it up-to-date as I make changes to components and add new
-    features. &
-    Not started.
-    \\ \hline
-    \makecell[lt]{Multithreading support \\ and multi-core scheduling} &
-    The \gls{rpi} 3 has 4 \gls{cpu} cores. This work package will enable users
-    to take advantage of the additional processing power of the other 3 cores
-    for their programs. This includes a threading library similar to
-    \texttt{pthread} on Linux systems, and improvements to the scheduler so
-    that it can give different \gls{cpu} cores to multiple threads owned by the
-    same process. \textbf{This work package is optional}. &
-    Not started.
+    \makecell[lt]{A separate shell and \\ commands} &
+    A version of the shell that is packaged as a separate executable compared
+    with the kernel. The commands that the shell executes will also be separate
+    executables stored in the \gls{fs}. The kernel will execute the shell using
+    a binary file loader, and the shell will contain the same loader for
+    executing commands.
     \\ \hline
 \end{tabularx}
 \caption{The work packages of the project and their deliverables.}
@@ -490,34 +439,28 @@ and will not need to run any services.
 
 
 \section{Methodology}
-%TODO: Methodology describing the (theoretical / experimental / analytical /
-%numerical / software development-based / research-based, etc.) methodologies /
-%techniques / tools / algorithms / technologies / etc. that are relevant to the
-%project topic justifying the choices made for the project, where possible with
-%supporting evidence derived from the existing work.
-
 \subsection{Setting up the build system}
 For this project, I could not use a traditional compilation setup. Normally, a
 program runs in a hosted environment, which means that it can use a standard
 library for some basic functions. In the case of C code, this is \texttt{libc}.
-My \gls{os} runs on ``bare metal'', so it cannot use any of the standard header
-files provided by \texttt{libc}, which means that the entire C standard library
-is unavailable. I still have access to some header files, including
+My \gls{os} runs on \emph{bare metal}, so it cannot use any of the standard
+header files provided by \texttt{libc}, which means that the entire C standard
+library is unavailable. I still have access to some header files, including
 \texttt{stddef.h} and \texttt{stdint.h}, as these are provided as part of the
-compiler. There are other header files available in this ``freestanding''
+compiler. There are other header files available in this \emph{freestanding}
 environment, but these two were the main ones for the first stages of
 development, since they define types such as \texttt{uint32\_t} and
 \texttt{size\_t}.
 
 In addition to the compiler flags needed for freestanding development, I also
-needed a completely different compiler. This relates to the
-\textbf{Architecture} of the system running the compiler. The Raspberry Pi I
-used for this project has an architecture of \texttt{Aarch64}, or 64-bit ARM,
-whereas desktop PCs are usually \texttt{x86} or \texttt{x86\_64} architecture
-computers. This means I needed a compiler that generates machine code for
-\texttt{Aarch64} based systems. Such a compiler would be called a
-\textbf{Cross-compiler} if it runs on a different architecture compared with
-the machine code it produces.
+needed a completely different compiler. This relates to the \emph{Architecture}
+of the system running the compiler. The Raspberry Pi I used for this project
+has an architecture of \texttt{Aarch64}, or 64-bit ARM, whereas desktop PCs are
+usually \texttt{x86} or \texttt{x86\_64} architecture computers. This means I
+needed a compiler that generates machine code for \texttt{Aarch64} based
+systems. Such a compiler would be called a \emph{Cross-compiler} if it runs on
+a different architecture compared with the machine code it produces.
+
 \subsubsection{Cross-compilation terminology and tools}
 \begin{itemize}
     \item \textbf{Build}: The architecture of the computer used to compile the
@@ -530,9 +473,9 @@ the machine code it produces.
 For this project I used the LLVM suite of tools, as it was designed to be a
 cross-compiler first, so all of the tools (compiler, assembler, binary
 manipulation tools, etc.) are capable of handling the required Aarch64 host
-system. The compiler, ``clang'', takes a command-line argument which indicates
+system. The compiler, \texttt{clang}, takes a command-line argument which indicates
 the architecture of the host system (LLVM ignores the difference between host
-and target, calling them both ``target'').
+and target, calling them both `target').
 \subsection{The build process - Make and Makefile}
 TODO
 
@@ -705,7 +648,6 @@ dark grey background. A comparison of the colorschemes can be seen in
 \end{figure}
 
 \section{Programming languages and compilation toolchain}
-TODO: rename this section (`build system' or `compilation toolchain'?)
 \subsection{Programming languages used}
 From the beginning of this project, I had already decided to write the majority
 of the code for the \gls{os} in C~\cite{c-programming-language}. C is primarily
@@ -758,7 +700,6 @@ be kept simpler, so I moved the compilation commands into a separate Makefile
 which handles each subdirectory of the main \texttt{src/} directory.
 
 \section{The Kernel}
-TODO
 \subsection{Design}
 \label{sec:kernel_design}
 %TODO: Design containing a comprehensive description of the design chosen, how
@@ -918,11 +859,6 @@ Future possibilities - move to evaluation section
 
 
 \subsection{Implementation}
-%TODO: Implementation containing a comprehensive description of the
-%implementation of your software, including the language(s) and platform chosen,
-%problems encountered, any changes made to the design as a result of the
-%implementation, etc.
-
 \subsubsection{Bootloader}
 The second-stage bootloader\footnote{The `bootloader' is more accurately
 described as boot code, since it does not do any loading of the kernel from
@@ -1196,12 +1132,6 @@ to make space for the next line.
 
 
 \subsection{Evaluation}
-%TODO: Evaluation and External Aspects explaining how your software/approach was
-%tested (using different datasets or in different environments), statistical
-%evaluation of performance, results of user evaluation questionnaires, etc. You
-%should explicitly address how your project fulfilled (or not) its original
-%intentions with regard to its `external aspect'.
-
 Overall, the kernel met the requirements that I set out in
 \autoref{sec:kernel_design}. Most of the components designed for the kernel
 have been implemented. The ones which have not been fully implemented are
@@ -1438,8 +1368,6 @@ shell.
 
 
 \subsection{Implementation}
-TODO
-
 \subsubsection{Getting input from the keyboard}
 The shell needs to get input from the keyboard line-by-line, so the terminal
 can buffer the current line as it is being typed. A buffer of a fixed size is
@@ -1459,9 +1387,6 @@ current working directory and the return value of the previous command. Once
 the \gls{os} implements the concept of user and kernel space, only a subset of
 this struct would be passed to commands, and then the commands would need to
 use system calls (see \autoref{sec:impl_syscalls}) to access that information.
-
-TODO: add a diagram explaining the contents of the \texttt{struct
-process\_env}.
 
 \subsubsection{Storage of enabled commands}
 The shell's memory contains a linked list which contains all of the enabled
@@ -1546,12 +1471,6 @@ also be an attractive feature to many would-be new kernel developers, which
 links back to one of the main aims of this project.
 
 \section{Evaluation and External Aspects}
-%TODO: Evaluation and External Aspects explaining how your software/approach was
-%tested (using different datasets or in different environments), statistical
-%evaluation of performance, results of user evaluation questionnaires, etc. You
-%should explicitly address how your project fulfilled (or not) its original
-%intentions with regard to its 'external aspect'.
-
 \subsection{Code style consistency}
 The consistency of my coding style was not good over the course of this
 project.
