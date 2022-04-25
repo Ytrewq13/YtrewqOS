@@ -746,9 +746,15 @@ to implement, but once put together they create the complex behaviour required
 for displaying characters to the screen.
 
 \subsubsection{System calls}
-TODO: explain that syscalls are split into 2 different components: the
-mechanism to allow for them and the implementations of the syscall functions
-themselves.
+The concept of system calls is split into two different parts in this project:
+the mechanism which allows for system calls to be invoked, and the system call
+functions themselves. I have treated the system call interface as more
+important, because the system call functions would be useless without the
+system call mechanism. Once the system call mechanism is implemented, the
+functions themselves can be implemented as they are needed.
+
+The system call functions themselves are not currently implemented at all, so
+they will not be considered in this section.
 
 \paragraph{System call mechanism using software interrupts}
 The kernel includes a system call mechanism, which will eventually be the way
@@ -780,11 +786,6 @@ The system call exception handler uses the system call number to determine
 which function to call. This is done using a table in memory which maps system
 call numbers to function pointers. The exception handler looks up the correct
 table entry and then calls the function at the address it finds.
-
-\paragraph{System call implementations}
-The implementation of the system calls can be separated from the mechanism
-which enables them to operate.
-TODO: Expand this
 
 \subsubsection{SD card driver}
 In order to read data from the SD card on the \gls{rpi} (and write data back to
