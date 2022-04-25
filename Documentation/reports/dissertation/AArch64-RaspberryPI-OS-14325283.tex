@@ -131,7 +131,7 @@
 
         \texttt{psysrw@nottingham.ac.uk}
 
-        Msci Computer Science
+        MSci Computer Science
 
         \vfill
 
@@ -143,10 +143,8 @@
 
         \begin{abstract}
             % TODO: finalise (reword) this
-            In this project I aimed to create an \gls{os} for the \gls{rpi} 3.
-            I originally intended to follow the design of the Unix system from
-            the beginning, but at the start my work did not seem to be heading
-            in that direction.
+            In this project I aim to create an \gls{os} for the \gls{rpi} 3.
+            I originally intended to follow the design of the Unix system.
 
             Over the course of developing this \gls{os}, I learned a lot about
             which \gls{os} components are needed at which stages of
@@ -177,9 +175,6 @@
 \mypagenumbering{arabic}
 
 \section{Introduction}
-% TODO: reword this
-First, an introduction to some of the concepts on which this project relies.
-
 \subsection{What is ARM64?}
 ARM64 (or more commonly Aarch64) is the name given to the 64 bit architecture
 of \gls{arm} \glspl{cpu}. This term describes the project's target hardware
@@ -311,7 +306,7 @@ one main goal: to be a useful starting point for anyone
 wanting to teach themselves \gls{os} development.
 
 \subsection{The goals of the project}
-To meet the goal, the \gls{os} needs to be simple enough for a competent
+To meet the goals, the \gls{os} needs to be simple enough for a competent
 programmer to get a basic understanding of how all of the components fit
 together, within only a couple of hours of first studying the source code. As
 with the first goal, it will need to include all of the required features for a
@@ -615,8 +610,9 @@ array. The font is easy to read at a screen resolution of 640x480, which gives
 The original colorscheme of the console was solid white text on a completely
 black background, but I found that this was too harsh to look at for long
 periods of time. I changed both the background and foreground colours to what I
-found more pleasant to read text from, with a very light grey text on a very
-dark grey background. A comparison of the colorschemes can be seen in
+found more pleasant to read text from, in an effort to improve the general user
+experience. The result is very light grey text on a very dark grey background.
+A comparison of the colorschemes can be seen in
 \autoref{fig:console_colorscheme_comparison}.
 
 \begin{figure}[htpb]
@@ -685,45 +681,11 @@ which handles each subdirectory of the main \texttt{src/} directory.
 \label{sec:kernel_design}
 \subsubsection{Bootloader}
 On the \gls{rpi} 3, the \gls{gpu} contains a first-stage bootloader which
-automatically does most of the required setup for booting into an \gls{os}
-kernel. However, the \gls{cpu} will not be set up completely, and so I needed
-to write some code to set register values and verify that everything is as it
-should be before we jump into the kernel \texttt{main} function. I will refer
-to this code as the \emph{second-stage} bootloader.
-
-\subsubsection{\texorpdfstring{\glsxtrshort{uart}}{UART} driver for keyboard
-input and initial console output}
-\gls{uart} is used on the \gls{rpi} for serial communication, with two
-different \gls{uart} ports: a mini-UART and a full PL011
-\gls{uart}~\cite{rpi-uarts}. The PL011 \gls{uart} is faster and more reliable
-than the mini-UART, but it is disabled by default, enabling it disables
-bluetooth, and it is more complex to program for. I used the mini-UART to
-debug the setup of the PL011 \gls{uart}, which was then used as the main serial
-connection once it was enabled and working. I didn't use bluetooth in this
-project, but future projects which expand on my code could switch back to the
-mini-UART if they wanted to use the \gls{rpi}'s bluetooth chip. Bluetooth
-support is a feature that could be implemented almost immediately by new
-developers, and it would also involve in-depth modification of the kernel, so
-it would be perfect for developers to learn about \gls{os} development.
-
-Serial communication is used in this project as a means of interacting with the
-\gls{os}, as I did not implement support for USB peripherals. All keyboard
-input is expected to come through the serial port. I also used the serial port
-for debugging as I developed the graphics driver (see
-\autoref{sec:design_graphics_driver}).
-
-For the initial console output, I implemented a \texttt{printf} function for
-formatted printing of characters, integers, hexadecimal numbers, and strings.
-This allowed me to easily print the values of registers, so that I could make
-sure that all values were as I expected during the boot process. The
-\texttt{printf} function is generic, so I was able to use the same
-\texttt{printf} function for both of the \glspl{uart} and also the graphical
-console.
-
-The \gls{os} gets keyboard input from the serial port, which is provided by
-QEMU, the \gls{rpi} emulator. QEMU uses VT100 escape sequences~\cite{vt100} for
-its serial interface, so normal keys on the keyboard (and shifted keys) are
-passed to the \gls{os} as the ASCII value of the characters they represent.
+automatically performs most of the required setup for booting into an \gls{os}
+kernel. However, the \gls{cpu} is not set up completely, so additional code is
+needed to set register values and verify that everything is as it should be
+before we jump into the kernel \texttt{main} function. I will refer to this
+code as the \emph{second-stage} bootloader.
 
 \subsubsection{Graphics driver for displaying pixels on the screen}
 \label{sec:design_graphics_driver}
@@ -741,7 +703,7 @@ The screen blanking function uses a \texttt{memset} function to set the entire
 framebuffer to a given value, as this would be much faster than setting each
 pixel individually. The bitmap function uses the pixel setting function
 internally, and will use the bitmap to decide which pixels should be set. Each
-of these functions is very simple on its own, and they were all relatively easy
+of these functions is very simple on its own, and they are all relatively easy
 to implement, but once put together they create the complex behaviour required
 for displaying characters to the screen.
 
@@ -754,7 +716,8 @@ system call mechanism. Once the system call mechanism is implemented, the
 functions themselves can be implemented as they are needed.
 
 The system call functions themselves are not currently implemented at all, so
-they will not be considered in this section.
+they will not be considered in this section (see
+\autoref{sec:eval_no_syscalls}).
 
 \paragraph{System call mechanism using software interrupts}
 The kernel includes a system call mechanism, which will eventually be the way
@@ -780,18 +743,13 @@ Each system call is assigned a number, and I copied these from Linux to start
 with. Most Linux system calls will not ever be implemented, but having some
 level of equivalence between this system and Linux system calls ensures that
 developers will feel confident that at least some of the knowledge is
-transferable.
+transferable, which will encourage them to study this project and learn about
+\gls{os} developement from it.
 
 The system call exception handler uses the system call number to determine
 which function to call. This is done using a table in memory which maps system
 call numbers to function pointers. The exception handler looks up the correct
 table entry and then calls the function at the address it finds.
-
-\subsubsection{SD card driver}
-In order to read data from the SD card on the \gls{rpi} (and write data back to
-it), the \gls{os} needs to implement a driver for the \gls{rpi}'s eMMC chip.
-The simplest way to do this is to copy an existing driver for that chip. I took
-code from one of the related works~\cite{rpi-boot-gh}.
 
 \subsubsection{exFAT filesystem}
 The kernel includes an implementation of the exFAT filesystem. I considered
@@ -860,7 +818,7 @@ the \gls{cpu} into \gls{arm-el} 1 and resumes execution at the address of the
 \paragraph{The floating point / vector registers}
 Once I started to implement the function \verb!printf!, which is a
 \emph{variadic} function\footnote{A variadic function is one with a variable
-number of arguments}, I started to experience strange behaviour. I debugged the
+number of arguments}, the \gls{os} exhibited strange behaviour. I debugged the
 compiled kernel using remote debugging in GDB, and discovered that upon
 entering the \verb!printf! function, the executing kernel would jump to an
 address near \texttt{0x0}, the beginning of memory. This meant that an
@@ -879,6 +837,37 @@ The solution was to enable the floating point registers after switching to
 \gls{arm-el} 1, by setting some bits in one of the system registers. Setting
 those bits enabled the floating point registers (also called vector registers)
 and enabled the use of variadic functions in the C code.
+
+\subsubsection{\texorpdfstring{\glsxtrshort{uart}}{UART} driver for keyboard
+input and initial console output}
+\gls{uart} is used on the \gls{rpi} for serial communication, with two
+different \gls{uart} ports: a mini-UART and a full PL011
+\gls{uart}~\cite{rpi-uarts}. The PL011 \gls{uart} is faster and more reliable
+than the mini-UART, but it is disabled by default, enabling it disables
+bluetooth, and it is more complex to program for. I used the mini-UART to
+debug the setup of the PL011 \gls{uart}, which was then used as the main serial
+connection once it was enabled and working. I didn't use bluetooth in this
+project, but future projects which expand on my code could switch back to the
+mini-UART if they wanted to use the \gls{rpi}'s bluetooth chip.
+
+Serial communication is used in this project as a means of interacting with the
+\gls{os}, as I did not implement support for USB peripherals. All keyboard
+input is expected to come through the serial port. I also used the serial port
+for debugging as I developed the graphics driver (see
+\autoref{sec:design_graphics_driver}).
+
+For the initial console output, I implemented a \texttt{printf} function for
+formatted printing of characters, integers, hexadecimal numbers, and strings.
+This allowed me to easily print the values of registers, so that I could make
+sure that all values were as I expected during the boot process. The
+\texttt{printf} function is generic, so I was able to use the same
+\texttt{printf} function for both of the \glspl{uart} and also the graphical
+console.
+
+The \gls{os} gets keyboard input from the serial port, which is provided by
+QEMU, the \gls{rpi} emulator. QEMU uses VT100 escape sequences~\cite{vt100} for
+its serial interface, so normal keys on the keyboard (and shifted keys) are
+passed to the \gls{os} as the ASCII value of the characters they represent.
 
 \subsubsection{System Calls}
 \label{sec:impl_syscalls}
@@ -939,19 +928,25 @@ entering into \gls{arm-el} 1. This is done in this way because exceptions are
 the only way to change \gls{arm-el}, and the only way to reduce the
 \gls{arm-el} is to perform an exception return (\texttt{eret}).
 
+\subsubsection{SD card driver}
+In order to read data from the SD card on the \gls{rpi} (and write data back to
+it), the \gls{os} needs to implement a driver for the \gls{rpi}'s eMMC chip.
+The simplest way to do this is to copy an existing driver for that chip. Code
+was taken from one of the related works which were reviewed~\cite{rpi-boot-gh}.
+
 \subsubsection{exFAT \texorpdfstring{\gls{fs}}{Filesystem}}
 \label{sec:impl_fs}
-I took an existing driver for interfacing with an SD card (via the \gls{rpi}'s
-eMMC controller) and integrated it into the kernel. This code defines a
-structure called a \verb!struct block_device!. I also copied some \gls{fs} code
-from the same related work~\cite{rpi-boot-gh}, but most of the code for the
-\gls{fs} I wrote by myself.
+I took an existing driver~\cite{rpi-boot-gh} for interfacing with an SD card
+(via the \gls{rpi}'s eMMC controller) and integrated it into the kernel. This
+code defines a structure called a \verb!struct block_device!. I also used some
+\gls{fs} code from the same related work~\cite{rpi-boot-gh}, but only some
+structures. I wrote all of the \gls{fs} logic by myself.
 
 I first created a function to read the `superblock' of an exFAT system. The
 superblock is the first block of the disk partition, and contains some critical
 information for interpreting the information on the rest of the disk. The
 structure used to store this information and the declaration for the function
-are both sown in \autoref{lst:exfat-read-superblock}. The function is called
+are both shown in \autoref{lst:exfat-read-superblock}. The function is called
 \verb!exfat_read_boot_block()! because sometimes the superblock is referred to
 as the `boot block' (although ususally only when talking about disks instead of
 \glspl{fs}).
@@ -1121,12 +1116,13 @@ call functions are written they can easily be dropped into the table and then
 immediately those system call numbers will start to function.
 
 \subsubsection{Filesystem}
-The exFAT \gls{fs} was only just implemented. Reading directory entries works,
-but there aren't many functions built on top of that to allow for more abstract
-access to the \gls{fs}. The virtual filesystem abstraction is severely lacking
-in the current version of the \gls{os}. All code which interacts with the
-\gls{fs} directly uses exFAT-specific functions. This limits both ease of
-programming with the \gls{fs}, and the overall usefulness of the \gls{fs}.
+The exFAT \gls{fs} was implemented exactly enough to provide the necessary
+features. Reading directory entries works, but there aren't many functions
+built on top of that to allow for more abstract access to the \gls{fs}. The
+virtual filesystem abstraction was somewhat ignored in the current version of
+the \gls{os}. All code which interacts with the \gls{fs} directly uses
+exFAT-specific functions. This limits both ease of programming with the
+\gls{fs}, and the overall usefulness of the \gls{fs}.
 
 I started to move towards having a simple virtual \gls{fs} abstraction in
 recent development by creating several of the functions presented by the
@@ -1142,8 +1138,9 @@ was changed to make the implementation of the functions easier, because the
 \verb!struct dirent! already points directly at a file, whereas a string
 representing a file path can be difficult to interpret. Unfortunately, this
 change just made it more difficult to write code which uses the functions,
-since the calling function now needs to do the job of converting a path into a
-\verb!dirent! structure.
+since the calling function would now need to do the job of converting a path
+into a \verb!dirent! structure, complicating any code that calls these
+functions.
 
 \begin{lstlisting}[language=C, caption={Function declarations of the exFAT
                    versions of \texttt{fopen}, \texttt{fread}, and
@@ -1155,46 +1152,27 @@ int exfat_fclose(struct fs *, FILE *fp);
 
 \subsubsection{Testing}
 The test coverage of the kernel is currently very limited. I wrote enough tests
-to determine that the testing system works and intended, then after that no
-more tests were written. I should have been writing unit tests for every kernel
-component, but instead most of them are effectively untested.
+to determine that the testing system works as intended, then after that no
+more tests were written. A better way to go about writing tests would have been
+to test as I developed other components, but instead most of them are
+effectively untested. The lack of testing could cause underlying issues to go
+unnoticed until they become much larger issues than they would have been if
+they were discovered during testing.
 
 The lack of testing provides a great opportunity for new developers to become
 familiar with the project. Writing tests for an existing component would give a
-new developer very good in-depth knowledge of how that component works. A
-developer who enjoys writing unit tests would be able to learn the entire
-kernel just from writing tests. The testing could even be expanded to
-components of the shell, which would allow a new developer to both improve the
-reliability of the \gls{os} and learn how it works, priming them to start
-creating new features.
-
-\subsubsection{Kernel / user space}
-The \gls{os} features no separation between \emph{kernel space} and \emph{user
-space}. Everything that runs under the \gls{os} is effectively kernel code,
-including the shell. Ideally, the shell would run at a lower \gls{arm-el} than
-the kernel (i.e. \gls{arm-el} 0), giving it reduced permissions to access
-hardware and execute restricted instructions (such as stopping the \gls{cpu}).
-However, doing this would require system calls to be available to the user mode
-shell, and (as mentioned in \autoref{sec:eval_no_syscalls}) there are currently
-no system call functions implemented in a working state. Therefore, creating a
-separation between kernel code and user code is not currently possible. This
-will be a high priority feature once system calls are available.
-
-On the other hand, this feature could be used to drive the implementation of
-system call functions. A developer could start work on getting non-critical
-code to run in \gls{arm-el} 0, and then implement system calls as they are
-required. This would be possible because the system call mechanism is already
-implemented, and the only thing needed to get a given system call working is an
-implementation of the function. A small amount of experimentation will also be
-required to discover if any additional changes need to be made to the boot code
-to get the \gls{cpu} to run in \gls{arm-el} 0 correctly.
+new developer very good in-depth knowledge of how that component works. The
+testing could even be expanded to components of the shell, which would allow a
+new developer to both improve the reliability of the \gls{os} and learn how it
+works, priming them to start creating new features.
 
 \section{The Shell}
 The design of the shell is important. If done correctly, developers who are
 comfortable using a shell will immediately feel at home when they sit down in
-from of this \gls{os}. A simple and intuitive shell gives a good first
-impression to the project's code, which is important for fulfilling the
-project's aim.
+front of this \gls{os}. A simple and intuitive shell gives a good first
+impression to the project's code. A high level of user-friendliness would make
+the project more inviting to developers who are learning about \gls{os}
+development for the first time, which is the project's goal.
 
 \subsection{Design}
 
@@ -1213,11 +1191,11 @@ functions for commands all share the same function signature, which is similar
 to the function signature for a \texttt{main} function~\cite{c-main-func}. This
 means minimal changes would be needed to eventually turn each command into its
 own executable, with the binaries being stored on the filesystem (in a
-\texttt{/bin} directory). This change will be the natural next step from what I
-have already created, so I designed the shell implementation with that in mind
-from the start. Having the next steps follow on so naturally from the current
+\texttt{/bin} directory). This change would be the natural progression from the
+existing system, so I designed the shell implementation with that in mind from
+the start. Having the next steps follow on so naturally from the current
 implementation aligns very well with this project's main goal of being a gentle
-introduction to \gls{os} development.
+introduction to \gls{os} development for developers who are new to the field.
 
 \subsubsection{The shell loop}
 The logic of an interactive shell is quite simple. It consists of an infinite
@@ -1235,9 +1213,8 @@ The shell needs to get user input on a line-by-line basis, since each command
 starts at the beginning of the line and ends at the newline character. In the
 first iteration, the shell stores the text input in a fixed-size buffer,
 meaning that there is a maximum size for an input line. I set this maximum size
-to a reasonable value such that it does not cause any problems, and I will
-leave this problem to fixed in a future update to the shell's user input
-functions.
+to a reasonable value such that it does not cause any problems, but it is still
+a limitation. Future developments could remove this limitation.
 
 The shell splits the line by spaces and places the words into a `vector',
 passed to the commands as the argument \texttt{argv}.
@@ -1419,10 +1396,10 @@ like a much more complete package. The inclusion of a scriptable shell would
 also be an attractive feature to many would-be new kernel developers, which
 links back to one of the main aims of this project.
 
-\section{Evaluation and External Aspects}
+\section{Evaluation}
 \subsection{Code style consistency}
-The consistency of my coding style was not good over the course of this
-project.
+Although the code for each module was written efficiently, the modular design
+resulted in a somewhat fragmented coding style.
 
 At the beginning of the project, I was writing functions with return
 type \verb!ERROR_TYPE!, which was an alias of \verb!size_t!. Every possible
@@ -1433,9 +1410,9 @@ Once \texttt{errno.h} was created, I started using \texttt{errno} to represent
 errors. Functions would not return \texttt{int}, with a zero meaning success
 and a nonzero return value indicating a problem.
 
-These two coding styles have co-existed in the project, but I should have
-refactored all of the \verb!ERROR_TYPE! functions to return \texttt{int} and
-use \texttt{errno}.
+It is possible that this may result in added difficulty for a new developer to
+read and understand the code. To improve this, future developments may refactor
+the legacy style functions to better fit in with the rest of the project.
 
 \subsection{Functions from \texttt{string.h}}
 Most of the functions declared in the \texttt{string.h} header file have no
@@ -1452,6 +1429,27 @@ for the project. Providing implementations for these simple functions could be
 a non-threatening introduction to the project for an inexperienced developer,
 who may then go on to learn \gls{os} development using this project.
 
+\subsection{Kernel / user space}
+The \gls{os} features no separation between \emph{kernel space} and \emph{user
+space}. Everything that runs under the \gls{os} is effectively kernel code,
+including the shell. Ideally, the shell would run at a lower \gls{arm-el} than
+the kernel (i.e. \gls{arm-el} 0), giving it reduced permissions to access
+hardware and execute restricted instructions (such as stopping the \gls{cpu}).
+However, doing this would require system calls to be available to the user mode
+shell, and (as mentioned in \autoref{sec:eval_no_syscalls}) there are currently
+no system call functions implemented in a working state. Therefore, creating a
+separation between kernel code and user code is not currently possible. This
+will be a high priority feature once system calls are available.
+
+On the other hand, this feature could be used to drive the implementation of
+system call functions. A developer could start work on getting non-critical
+code to run in \gls{arm-el} 0, and then implement system calls as they are
+required. This would be possible because the system call mechanism is already
+implemented, and the only thing needed to get a given system call working is an
+implementation of the function. A small amount of experimentation will also be
+required to discover if any additional changes need to be made to the boot code
+to get the \gls{cpu} to run in \gls{arm-el} 0 correctly.
+
 \section{Summary and Reflections}
 The result of the project was not what I originally had hoped to achieve, but
 the development of the \gls{os} provided more education than I expected about
@@ -1460,29 +1458,29 @@ educational experience will prove valuable to others, and so I consider this
 project to have been a success.
 
 \subsection{Project management}
-\subsubsection{Re-planning the project}
 The original plan for the project was a little over-ambitious, which I
-discovered as I was developing the current implementation. I modified the
-plan considering
-my experience developing the \gls{os} so far. Some of the later, more complex
-tasks were removed from the plan, as I realised I would not be able
-to complete them, and some tasks were given more time.
+discovered as I was developing the current implementation. I modified the plan
+considering my experience developing the \gls{os} so far. Some of the later,
+more complex tasks were removed from the plan, as I realised I would not be
+able to complete them, and some tasks were given more time.
 
-\subsubsection{Unexpected difficulties in development}
-I encountered several issues during development which I did not account
-for in the original project plan.
+\subsubsection{Re-planning the project}
+During the development process, a number of unexpected issues arose. In many
+cases, this was by readon of guidance which failed to account for various
+compatibility details of the \gls{rpi} 3. Additional time commitments for
+debugging caused unexpected delays in the development process.
 
 \paragraph{Debug shell vs GDB}
-The first is not so much an issue as it is a
-task not being required in the way that I expected. The \emph{debug shell}
-was not needed in the way I had planned to implement it. My plan was to prompt
-the user for a command, and for the shell to support a very limited range of
-commands, perhaps starting with a command to print the contents of a memory
-address. This type of debugging has not been needed so far during the
-development process, and I don't believe it will be needed at all, as I can use
-\gls{gdb} for debugging memory locations, and \gls{gdb} doesn't even require
-the \gls{os} kernel to be in a working state, which would be the most likely
-scenario for if I would need to read memory.
+The first is not so much an issue as it is a task not being required in the way
+that I expected. The \emph{debug shell} was not needed in the way I had planned
+to implement it. My plan was to prompt the user for a command, and for the
+shell to support a very limited range of commands, perhaps starting with a
+command to print the contents of a memory address. This type of debugging has
+not been needed so far during the development process, and I don't believe it
+will be needed at all, as I can use \gls{gdb} for debugging memory locations,
+and \gls{gdb} doesn't even require the \gls{os} kernel to be in a working
+state, which would be the most likely scenario giving rise to the requirement
+to read memory.
 
 The `debug' part of the debug shell task was still completed, as the current
 version of the kernel prints debugging information to the serial port (and also
@@ -1492,25 +1490,24 @@ to the \gls{rpi} video output once the framebuffer is allocated).
 \emph{System calls} were far more difficult to implement than I expected. The
 way that system calls were implemented was using \gls{arm} exceptions
 to execute a function with the processor in a privileged mode of operation.
-Unfortunately, when I started working on the system call implementation, I did
-not have a very good understanding of the \gls{cpu} mechanisms by which
-\gls{arm} processors handle exceptions. The \gls{cpu} uses a large number
-of system registers, along with the current \gls{arm-el}, to decide where the
-exception handler can be found, and in which \gls{arm-el} the \gls{cpu} should
-handle the exception.
+\gls{arm} \glspl{cpu} handle exceptions in an unusual way, which resulted in
+time taken to work out how to be able to implement the system calls. The
+\gls{cpu} uses a large number of system registers, along with the current
+\gls{arm-el}, to decide where the exception handler can be found, and in which
+\gls{arm-el} the \gls{cpu} should handle the exception.
 
 I spent some extra time learning about \gls{arm} system registers in depth, and
 gained the knowledge I needed to finish the system call mechanism.
 
 \paragraph{Filesystem and SD card}
-When I started working on the \emph{filesystem}, I immediately realised
-something that I forgot to consider for the original project plan. The
-filesystem would require an SD card driver in order to interact with the
-\gls{rpi} storage. I used an existing implementation of a simple \gls{rpi} SD
-card driver~\cite{rpi-boot-gh}, which only required a small amount of
-modification to get working. Once I had it integrated into my kernel, I created
-an SD card image and added it to the emulator, then tested the driver to see if
-it recognised the SD card.
+When I started working on the \emph{filesystem}, I became aware of an
+additional unanticipated low-level requirement: the filesystem would require an
+SD card driver in order to interact with the \gls{rpi} storage. I used an
+existing implementation of a simple \gls{rpi} SD card
+driver~\cite{rpi-boot-gh}, which only required a small amount of modification
+to get working. Once I had it integrated into my kernel, I created an SD card
+image and added it to the emulator, then tested the driver to see if it
+recognised the SD card.
 
 \subsection{Contributions and reflections}
 The project's external sponsor (who is also my project supervisor), introduced
@@ -1519,6 +1516,12 @@ gave recommendations for some of the areas I was originally unsure of or less
 knowledgeable about. He suggested that I implement the FAT \gls{fs} as it is
 simple and relatively easy to implement, and he reminded me that on \gls{arm}
 based systems, system calls would utilise software interrupts.
+
+This project has contributed to the wider body of work on \gls{os} developement
+education. I have created a new \gls{os} for development that is easy to
+understand and pick up. As a free and open source project, its educational
+value is available to everyone, and provides a useful basis for new \gls{os}
+developers to learn from.
 
 
 
