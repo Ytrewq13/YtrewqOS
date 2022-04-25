@@ -3,9 +3,8 @@
 *.o
 *.img
 
-Documentation/dissertation/*/build/*
-!Documentation/dissertation/*/build/*.pdf
-Documentation/misc-notes
+# Ignore all documentation files - they go in the report branch
+Documentation
 
 # Vim swapfiles
 *.swp
