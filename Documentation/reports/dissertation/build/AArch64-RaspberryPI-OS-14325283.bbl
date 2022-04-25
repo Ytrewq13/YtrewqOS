@@ -140,22 +140,6 @@
       \verb https://github.com/neoclide/coc.nvim
       \endverb
     \endentry
-    \entry{dash-shell}{online}{}
-      \field{sortinit}{D}
-      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
-      \field{labeltitlesource}{title}
-      \field{title}{Debian Almquist Shell (Dash)}
-      \field{urlday}{26}
-      \field{urlmonth}{10}
-      \field{urlyear}{2021}
-      \field{urldateera}{ce}
-      \verb{urlraw}
-      \verb https://git.kernel.org/pub/scm/utils/dash/dash.git/
-      \endverb
-      \verb{url}
-      \verb https://git.kernel.org/pub/scm/utils/dash/dash.git/
-      \endverb
-    \endentry
     \entry{ed}{online}{}
       \field{sortinit}{e}
       \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}

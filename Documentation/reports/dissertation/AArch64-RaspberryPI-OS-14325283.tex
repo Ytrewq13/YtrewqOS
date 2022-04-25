@@ -36,6 +36,7 @@
 % 2022-04-25T02:30, 10850 words, 22 pages
 % 2022-04-25T03:00, 10350 words, 21 pages
 % 2022-04-25T06:00, 10250 words, 20 pages
+% 2022-04-25T08:00, 10050 words, 20 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -175,19 +176,14 @@
 \mypagenumbering{arabic}
 
 \section{Introduction}
-%TODO: Introduction setting out the aims and objectives of your project,
-%\textbf{explaining the overall intention of the project and specific steps that
-%will be taken to achieve that intention.}
-
-
 % TODO: reword this
 First, an introduction to some of the concepts on which this project relies.
 
 \subsection{What is ARM64?}
-\begin{itemize}
-    \item ARM64 (or more commonly Aarch64) is the name given to the 64 bit
-        architecture of \gls{arm} \glspl{cpu}.
-\end{itemize}
+ARM64 (or more commonly Aarch64) is the name given to the 64 bit architecture
+of \gls{arm} \glspl{cpu}. This term describes the project's target hardware
+because the \gls{rpi} 3's \gls{cpu} is an \gls{arm} 64-bit \gls{cpu}.
+
 \subsection{What is an Operating System? (And Unix)}
 \glspl{os} are programs which run directly on top of computer hardware and
 allow other software to run on the computer. They come in many different
@@ -238,7 +234,7 @@ how they relate to the concept of a ``secure monitor''. I already knew how
 filesystems work in theory, but I wanted to experience implementing one to gain
 a practical appreciation of the topic.
 
-This project is needed because although \glspl{os} are a common hobby project,
+This project is needed because, although \glspl{os} are a common hobby project,
 there are no \gls{os} development projects which have aimed to highlight the
 motivation behind the choices that have been made by the largest \glspl{os}. No
 project exists which shows clearly the reasons behind why \gls{os} development
@@ -348,15 +344,8 @@ below. The components are split into two parts: the \nameref{sec:tasks} of the
 Tasks are the individual components of the project, separated into the
 components of the Kernel and Shell, the miscellaneous parts, and the documents
 I will need to produce for the project. These tasks are enumerated in
-\autoref{tab:interim-work-plan} on page~\pageref*{tab:interim-work-plan} and
+\autoref{tab:work-plan} on page~\pageref*{tab:work-plan} and
 then assembled into a Gantt chart in \autoref{fig:gantt-chart}.
-
-Some of the tasks are different to the ones in the original table from the
-project proposal, which can be found in the Appendix
-(\autoref{tab:original-work-plan}). Some tasks have changed places, and some
-have been given extra time. Also, some of the tasks have been completely
-removed as I decided that I will not have enough time to complete them
-(primarily: init system and service manager, and multithreading).
 
 \begin{table}[tbp]
 \begin{center}
@@ -385,7 +374,7 @@ removed as I decided that I will not have enough time to complete them
 \end{tabular}
 \caption{The plan of work for the project, including how many weeks I think
 each component will take.}
-\label{tab:interim-work-plan}
+\label{tab:work-plan}
 \end{center}
 \end{table}
 
@@ -433,7 +422,8 @@ packages for this project.
 
 \begin{figure}[htbp]
     \includegraphics[width=0.95\textwidth]{build/gantt.pdf}
-    \caption{Gantt chart}
+    \caption{Gantt chart showing the proposed breakdown of when I would do each
+    task for the project.}
     \label{fig:gantt-chart}
 \end{figure}
 
@@ -476,9 +466,6 @@ manipulation tools, etc.) are capable of handling the required Aarch64 host
 system. The compiler, \texttt{clang}, takes a command-line argument which indicates
 the architecture of the host system (LLVM ignores the difference between host
 and target, calling them both `target').
-\subsection{The build process - Make and Makefile}
-TODO
-
 \subsection{Software tools used to aid development}
 \subsubsection{Source code editing}
 For editing the source code of the \gls{os}, I use the text editor
@@ -702,9 +689,6 @@ which handles each subdirectory of the main \texttt{src/} directory.
 \section{The Kernel}
 \subsection{Design}
 \label{sec:kernel_design}
-%TODO: Design containing a comprehensive description of the design chosen, how
-%it addresses the problem, and \textbf{why it is designed the way it is}.
-
 \subsubsection{Bootloader}
 On the \gls{rpi} 3, the \gls{gpu} contains a first-stage bootloader which
 automatically does most of the required setup for booting into an \gls{os}
@@ -837,26 +821,6 @@ that will be explained in \autoref{sec:impl_fs}.
     \item Write to a file and correctly update its metadata for size and
         modification time
 \end{itemize}
-
-TODO:
-
-Nice-to-haves
-\begin{itemize}
-    \item Virtual filesystem abstraction
-    \item System call implementations for commonly used operations
-    \item Kernel / user mode separation
-\end{itemize}
-
-Future possibilities - move to evaluation section
-\begin{itemize}
-    \item Scheduler for multiprocessing (with a process control table / vector
-        in the kernel)
-    \item USB driver for keyboard input (a port of an existing USB driver
-        project)
-    \item Drivers for some other hardware on the \gls{rpi} (Ethernet /
-        Bluetooth)
-\end{itemize}
-
 
 \subsection{Implementation}
 \subsubsection{Bootloader}
@@ -1121,15 +1085,14 @@ then wrote a function to print a character from this array onto the
 framebuffer, and I added global variables which keep track of the current
 character position on the screen.
 
-TODO: write about changes here (scrolling at the bottom of the screen - uses
-the swap rectangle function)
-
 When the console reaches the end of a line, it moves to the start of the next
-one. At the moment, when it reaches the end of the last line, it moves back to
-the start of the first line. In the future I will implement scrolling, so that
-when the console reaches the bottom of the screen, every line will be moved up
-to make space for the next line.
-
+one. When it gets close to the bottom of the screen, the entire screen moves up
+by one line each time the line wraps or a newline is printed. This is done
+using a function that swaps rectangles on the framefuffer. First, the top row
+is cleared, then each row of text on the screen is treated as a rectangle and
+swapped with the line above it. The final result of this is that every line of
+text moves up by one row, except the row already at the top, which is removed
+(since it would go off the screen if it moved up).
 
 \subsection{Evaluation}
 Overall, the kernel met the requirements that I set out in
@@ -1232,27 +1195,10 @@ required to discover if any additional changes need to be made to the boot code
 to get the \gls{cpu} to run in \gls{arm-el} 0 correctly.
 
 \section{The Shell}
-TODO: reword this into an introduction to the shell
-
-\begin{itemize}
-    \item Design of the shell is important
-    \item If it is done well people will immediately feel comfortable using the
-        \gls{os}
-    \item A simple but intuitive shell will give a good first impression to the
-        project's code
-\end{itemize}
-
-FIXME:
-The shell which I will include in the \gls{os} will be a port of a POSIX
-compliant, simple shell, such as Dash~\cite{dash-shell}. This shell will be the
-main way that users interact with the system, as it will allow them to execute
-programs which do anything they need, such as compiling other programs, editing
-text files, or viewing the contents of files. The shell will run in user space,
-and any time it needs to run kernel-level functions, it will do so through the
-system call interface. This is the same way the Bourne Shell ran on Unix, and
-it is a known good way of allowing the user to control a computer. Anyone who
-has experience with a shell will immediately feel at home when they see the
-input prompt and a flashing cursor.
+The design of the shell is important. If it is done correctly, developers who
+are comfortable using a shell will immediately feel at home when they sit down
+in from of this \gls{os}. A simple and intuitive shell will give a good first
+impression to the project's code, which is important for the project's aims.
 
 \subsection{Design}
 
@@ -1651,8 +1597,148 @@ versions.
 
 {\Large\bfseries Appendices\vspace{2ex}}
 
-\section{Interim: Appendices}
-\subsection{The original project plan}
+\section{Interim report tables and figures}
+
+\subsection{Tasks}
+Tasks are the individual components of the project, separated into the
+components of the Kernel and Shell, the miscellaneous parts, and the documents
+I will need to produce for the project. These tasks are enumerated in
+\autoref{tab:interim_work_plan} on page~\pageref*{tab:work-plan} and then assembled into
+a Gantt chart in \autoref{fig:interim_gantt}.
+
+Some of the tasks are different to the ones in the original table from the
+project proposal, which can be found in the Appendix
+(\autoref{tab:original-work-plan}). Some tasks have changed places, and some
+have been given extra time. Also, some of the tasks have been completely
+removed as I decided that I will not have enough time to complete them
+(primarily: init system and service manager, and multithreading).
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular}{|l|r|}
+    \hline
+    Task & Duration (weeks) \\
+    \hline \textbf{Kernel} & \\
+    Bootloader & 1 \\
+    Graphics driver & 2 \\
+    Syscalls & 7 \\
+    Memory management & 5 \\
+    Filesystem & 4 \\
+    Statically linked ELF Loader & 2 \\
+    Process control & 8 \\
+    \hline \textbf{Shell} & \\
+    Debug terminal & 2 \\
+    \texttt{pwd}, \texttt{cd}, \texttt{ls}, \texttt{stat}, etc. & 1 \\
+    \texttt{export}, variables, \texttt{set}, etc. & 2 \\
+    \texttt{if}, \texttt{while}, \texttt{for}, \texttt{case}, globs, etc. & 3 \\
+    Command substitution & 4 \\
+    IO pipes and output redirection & 1 \\
+    \hline \textbf{Tools and libraries} & \\
+    Setup cross-compiler and build environment & 1 \\
+    IO and strings libraries & 2 \\
+    libc & 8 \\
+    \hline \textbf{Programs} & \\
+    \texttt{cat}, \texttt{head}, \texttt{less}, etc. & 2 \\
+    \texttt{roff} & 2 \\
+    \texttt{man} & 1 \\
+    \hline \textbf{Documents} & \\
+    Interim report & 2 \\
+    Documentation & 4 \\
+    Dissertation & 7 \\
+    \hline
+\end{tabular}
+\caption{The plan of work for the project, including how many weeks I think
+each component will take.}
+\label{tab:interim_work_plan}
+\end{center}
+\end{table}
+
+\subsection{Work Packages}
+A ``Work Package'' is a collection of tasks with a well-defined deliverable.
+Not every task will be part of a work package, and some tasks will be work
+packages on their own. \autoref{tab:work-packages} contains all of the work
+packages for this project. Some changes have been made to the descriptions of
+the deliverables from the work packages listed in the original table of work
+packages from the initial project proposal
+(\autoref{tab:original-work-packages}, in the Appendix). The work package
+``Init system and service manager'' has been removed, as I do not think I will
+have enough time to create a working init system, and a service manager is not
+an essential part of an \gls{os}, especially when the \gls{os} is very simple
+and will not need to run any services.
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabularx}{\textwidth}{|p{0.25\textwidth}|X|p{0.15\textwidth}|}
+    \hline
+    \textbf{Work package} & \textbf{Description of the deliverable} & \textbf{Progress}
+    \\ \hline
+    \makecell[lt]{Debug terminal using the \\ graphics driver} &
+    A debug terminal which is printed on the \gls{rpi}'s display. The debug
+    terminal should print important values to the display while the \gls{os} is
+    starting up, allowing me to debug the features I am working on easily by
+    verifying that memory addresses are set correctly and that functions are
+    performing their behaviours as I expect them to. &
+    Finished.
+    \\ \hline
+    \makecell[lt]{A basic kernel which can \\ load (from disk) and jump \\ into
+        a compiled \gls{elf} \\ program} &
+    A program that can load a statically compiled \gls{elf} executable binary
+    into memory and then jump to its entry point. This requires a filesystem
+    library to be implemented, and also includes the \gls{elf} loader task. &
+    In progress.
+    \\ \hline
+    \makecell[lt]{Scheduling algorithm} &
+    A scheduling algorithm with support for multiple processes running on the
+    system concurrently. This will include an implementation of
+    \texttt{fork(3)} or a similar function in order to spawn new processes and
+    \texttt{execve(2)} to replace the current program with a new process. It
+    will also require process control infrastructure in the kernel to keep
+    track of the running processes. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{A shell} &
+    A (POSIX-compliant) shell \textbf{or} a port of a simple shell like
+    Dash\cite{dash-shell}. If I decide that implementing my own POSIX-compliant
+    shell is too large of a task, then I will port the source code for Dash to
+    run on my \gls{os}, implementing the required syscalls to get it working.
+    This shell will be the main way users interact with the \gls{os}. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{Documentation} &
+    This package contains several parts. I will create documentation for how
+    each part of the \gls{os} works, and a guide for how new programmers can get
+    started developing programs for the system. The documentation will be
+    completed in stages as I develop the \gls{os}, and I will go back
+    to keep it up-to-date as I make changes to components and add new
+    features. &
+    Not started.
+    \\ \hline
+    \makecell[lt]{Multithreading support \\ and multi-core scheduling} &
+    The \gls{rpi} 3 has 4 \gls{cpu} cores. This work package will enable users
+    to take advantage of the additional processing power of the other 3 cores
+    for their programs. This includes a threading library similar to
+    \texttt{pthread} on Linux systems, and improvements to the scheduler so
+    that it can give different \gls{cpu} cores to multiple threads owned by the
+    same process. \textbf{This work package is optional}. &
+    Not started.
+    \\ \hline
+\end{tabularx}
+\caption{The work packages of the project and their deliverables.}
+\label{tab:interim_work_packages}
+\end{center}
+\end{table}
+
+\subsection{Gantt chart}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{build/interim-gantt.pdf}
+    \caption{The Gantt chart}
+    \label{fig:interim_gantt}
+\end{figure}
+
+\clearpage
+\section{Project proposal tables and figures}
 This appendix contains all of the tables, figures, and diagrams from the
 original project proposal, laying out my initial beliefs about what the project
 entailed, and how much work each part of the project would take.
