@@ -33,6 +33,8 @@
 % 2022-04-24T18:30, 10400 words, 21 pages
 % 2022-04-24T19:00, 10650 words, 21 pages
 % 2022-04-24T22:00, 10650 words, 21.5 pages
+% 2022-04-25T02:30, 10850 words, 22 pages
+% 2022-04-25T03:00, 10350 words, 21 pages
 
 \usepackage[margin=1in]{geometry}
 %\usepackage[margin=0.55in,bottom=0.75in]{geometry}
@@ -340,14 +342,14 @@ implementations of familiar standard library file I/O wrapper functions,
 including \texttt{fread} and \texttt{fwrite}.
 
 For the second goal (being a useful starting point for someone learning about
-\gls{os} development), the \gls{os} I produce needs to be simple enough for a
-competent programmer to get a basic understanding of how all of the components
-fit together, within only a couple of hours of first studying the source code.
-As with the first goal, it will need to include all of the required features
-for a basic \gls{os}, and these were described previously. It should also have
-plenty of room for future development, as I believe that one of the best ways
-to understand a topic (and to become familiar with an existing project) is to
-try to develop a new feature involving the topic or extend the project.
+\gls{os} development), the \gls{os} needs to be simple enough for a competent
+programmer to get a basic understanding of how all of the components fit
+together, within only a couple of hours of first studying the source code. As
+with the first goal, it will need to include all of the required features for a
+basic \gls{os}, and these were described previously. It should also have plenty
+of room for future development, as I believe that one of the best ways to
+understand a topic (and to become familiar with an existing project) is to try
+to develop a new feature involving the topic or extend the project.
 
 
 \subsection{Specification of the project}
@@ -378,18 +380,12 @@ removed as I decided that I will not have enough time to complete them
     \hline \textbf{Kernel} & \\
     Bootloader & 1 \\
     Graphics driver & 2 \\
-    Syscalls & 7 \\
-    Memory management & 5 \\
-    Filesystem & 4 \\
-    Statically linked ELF Loader & 2 \\
-    Process control & 8 \\
+    Syscall interface & 4 \\
+    Memory allocation & 2 \\
+    Filesystem & 9 \\
     \hline \textbf{Shell} & \\
     Debug terminal & 2 \\
-    \texttt{pwd}, \texttt{cd}, \texttt{ls}, \texttt{stat}, etc. & 1 \\
-    \texttt{export}, variables, \texttt{set}, etc. & 2 \\
-    \texttt{if}, \texttt{while}, \texttt{for}, \texttt{case}, globs, etc. & 3 \\
-    Command substitution & 4 \\
-    IO pipes and output redirection & 1 \\
+    Graphical console & 3 \\
     \hline \textbf{Tools and libraries} & \\
     Setup cross-compiler and build environment & 1 \\
     IO and strings libraries & 2 \\
@@ -568,7 +564,7 @@ using the command line argument \texttt{-machine raspi3}.
 
 The emulator can emulate everything about the \gls{rpi} except for the first
 stage bootloader, which is the code that runs at the very start of the boot
-process on a real \gls{rpi} and then loads the kerrnel (\texttt{kernel8.img}
+process on a real \gls{rpi} and then loads the kernel (\texttt{kernel8.img}
 for 64 bit mode). This bootloader is proprietary and runs on the \gls{rpi}'s
 VideoCore GPU. I am not trying to develop a first stage bootloader, though, so
 I do not need to worry about the lack of this functionality. The compiled
@@ -696,9 +692,19 @@ The original colorscheme of the console was solid white text on a completely
 black background, but I found that this was too harsh to look at for long
 periods of time. I changed both the background and foreground colours to what I
 found more pleasant to read text from, with a very light grey text on a very
-dark grey background. A comparison of the colorschemes can be seen in (FIXME: make comparison images).
+dark grey background. A comparison of the colorschemes can be seen in
+\autoref{fig:console_colorscheme_comparison}.
 
-\section{General implementation details}
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figure/black.png}
+    \includegraphics[width=0.45\textwidth]{figure/grey.png}
+    \caption{The original colorscheme of the console (left) and the new
+    colorscheme (right).}
+    \label{fig:console_colorscheme_comparison}
+\end{figure}
+
+\section{Programming languages and compilation toolchain}
 TODO: rename this section (`build system' or `compilation toolchain'?)
 \subsection{Programming languages used}
 From the beginning of this project, I had already decided to write the majority
@@ -718,7 +724,7 @@ with meaningful names. These features were used extensively in the bootloader
 and in \autoref{sec:impl_cpu_setup} for explaining the values placed into
 various \gls{cpu} registers.
 
-\subsection{Problems ecountered with the original implementation details}
+\subsection{Problems with the original compilation toolchain}
 At the start of development, I was using the GNU cross-compiler for bare-metal
 \gls{arm} 64-bit targets, \texttt{gcc-aarch64-none-elf}. This was working but
 the build system I was using at the time (CMake) was easier to configure using
@@ -1011,10 +1017,8 @@ common system calls, but for now the way that C code would run the
 \texttt{read} system call, for example, would be as shown in
 \autoref{lst:syscall-example-read}.
 
-\begin{lstlisting}[language=C,
-                   caption={How some C code would invoke the system call
-                   \texttt{read} in the current implementation.},
-                   float,
+\begin{lstlisting}[language=C, caption={How some C code would invoke the system
+                   call \texttt{read} in the current implementation.}, float,
                    label={lst:syscall-example-read}]
 extern int syscall(long nr, ...);
 // read syscall is syscall number 0
@@ -1055,11 +1059,9 @@ are both sown in \autoref{lst:exfat-read-superblock}. The function is called
 as the `boot block' (although ususally only when talking about disks instead of
 \glspl{fs}).
 
-\begin{lstlisting}[language=C,
-                   caption={The structure used to represent the exFAT
-                   superblock information, and the declaration of the function
-                   used to read it},
-                   float,
+\begin{lstlisting}[language=C, caption={The structure used to represent the
+                   exFAT superblock information, and the declaration of the
+                   function used to read it}, float,
                    label={lst:exfat-read-superblock}]
 struct exfat_superblock {
     uint64_t partition_offset;
@@ -1090,11 +1092,9 @@ by reading the \gls{fat} section on the volume (see section 4.1
 in~\cite{exFAT-specs}). The function signature is shown in
 \autoref{lst:exfat-read-fat}.
 
-\begin{lstlisting}[language=C,
-                   caption={The function which is used to get the cluster index
-                   of the next cluster in a cluster chain},
-                   float,
-                   label={lst:exfat-read-fat}]
+\begin{lstlisting}[language=C, caption={The function which is used to get the
+                   cluster index of the next cluster in a cluster chain},
+                   float, label={lst:exfat-read-fat}]
 static uint32_t fat_idx_to_cluster_idx(struct block_device *dev, struct
         exfat_superblock sb, uint32_t fat_idx);
 \end{lstlisting}
@@ -1107,11 +1107,9 @@ stored in a \verb!struct exfat_directory_info!, and information describing a
 single directory entry is stored in a \verb!struct exfat_dirent_info!. These
 are both defined in \autoref{lst:exfat-dirent-structs}.
 
-\begin{lstlisting}[language=C,
-                   caption={The structures which describe directories and
-                   directory entries on an exFAT volume},
-                   float,
-                   label={lst:exfat-dirent-structs}]
+\begin{lstlisting}[language=C, caption={The structures which describe
+                   directories and directory entries on an exFAT volume},
+                   float, label={lst:exfat-dirent-structs}]
 struct exfat_directory_info {
     struct block_device *bd;
     struct exfat_superblock super;
@@ -1212,13 +1210,12 @@ groundwork has already been laid to make developing the features easier. This
 was done to help new developers to more easily understand the source code of
 the project.
 
-\subsubsection{Evaluation of the designed features}
-\paragraph{Bootloader}
+\subsubsection{Bootloader}
 The bootloader is robust and reliable, starting the kernel main function every
 time the \gls{os} boots. It sets up the \gls{cpu} into the correct
 configuration, following the kernel's current requirements.
 
-\paragraph{System call mechanism}
+\subsubsection{System call mechanism}
 The interface to system calls is well-implemented. The wrapper function used to
 invoke a system call checks that the system call number is within the valid
 range of numbers, preventing unnecessary software interrupts from being
@@ -1226,7 +1223,7 @@ generated. The complex mechanism required for properly managing system call
 generation and handling has been broken down into logical parts which are each
 small enough to be easily understood.
 
-\paragraph{System call implementations}
+\subsubsection{System call implementations}
 \label{sec:eval_no_syscalls}
 There are currently no system call functions in the \gls{os}. The table which
 is used by the system call exception handler is in place, so once the system
@@ -1235,7 +1232,7 @@ immediately those system call numbers will start to function.
 
 TODO: refer back to second aim of the project.
 
-\paragraph{Filesystem}
+\subsubsection{Filesystem}
 The exFAT \gls{fs} was only just implemented. Reading directory entries works,
 but there aren't many functions built on top of that to allow for more abstract
 access to the \gls{fs}. The virtual filesystem abstraction is severely lacking
@@ -1260,17 +1257,15 @@ change just made it more difficult to write code which uses the functions,
 since the calling function now needs to do the job of converting a path into a
 \verb!dirent! structure.
 
-\begin{lstlisting}[language=C,
-                   caption={Function declarations of the exFAT versions of
-                   \texttt{fopen}, \texttt{fread}, and \texttt{fclose}.},
-                   float,
-                   label={lst:exfat-fread}]
+\begin{lstlisting}[language=C, caption={Function declarations of the exFAT
+                   versions of \texttt{fopen}, \texttt{fread}, and
+                   \texttt{fclose}.}, float, label={lst:exfat-fread}]
 FILE *exfat_fopen(struct fs*, struct dirent*, const char *mode);
 size_t exfat_fread(struct fs *, void *ptr, size_t byte_size, FILE *stream);
 int exfat_fclose(struct fs *, FILE *fp);
 \end{lstlisting}
 
-\paragraph{Testing}
+\subsubsection{Testing}
 The test coverage of the kernel is currently very limited. I wrote enough tests
 to determine that the testing system works and intended, then after that no
 more tests were written. I should have been writing unit tests for every kernel
@@ -1285,7 +1280,7 @@ components of the shell, which would allow a new developer to both improve the
 reliability of the \gls{os} and learn how it works, priming them to start
 creating new features.
 
-\paragraph{Kernel / user space}
+\subsubsection{Kernel / user space}
 The \gls{os} features no separation between \emph{kernel space} and \emph{user
 space}. Everything that runs under the \gls{os} is effectively kernel code,
 including the shell. Ideally, the shell would run at a lower \gls{arm-el} than
@@ -1331,10 +1326,7 @@ input prompt and a flashing cursor.
 
 \subsection{Design}
 
-TODO: write a specification for each component
-\subsubsection{Features I expect to complete}
-
-\paragraph{Commands as functions}
+\subsubsection{Commands as functions}
 In the initial implementation, I will develop the shell as a part of the
 kernel, and all of the commands will be functions built into the final compiled
 kernel. I will do it this way because it is simple, and my \gls{os} will not
@@ -1353,7 +1345,7 @@ stored on the filesystem (in a \texttt{/bin} directory). This change will be
 the natural next step from what I create, so I am designing my shell
 implementation with that in mind from the start.
 
-\paragraph{The shell loop}
+\subsubsection{The shell loop}
 The logic of an interactive shell is quite simple. It consists of an infinite
 loop:
 
@@ -1376,7 +1368,7 @@ functions.
 I will split the line by spaces and place the words into a `vector',
 passed to the commands as the argument \texttt{argv}.
 
-\paragraph{The commands}
+\subsubsection{The commands}
 I will create several commands, starting with the simplest and most essential
 ones. The \gls{os} will need a way to shutdown the \gls{rpi}, so I will
 implement a \texttt{shutdown} command. I will write a \texttt{pwd} command to
@@ -1393,8 +1385,7 @@ systems. On Linux systems, \texttt{stat} is implemented via a system call
 (\texttt{fstatat}), so this command could be rewritten using that if a future
 development creates that system call.
 
-\subsubsection{Nice-to-haves}
-\paragraph{Executable file loader}
+\subsubsection{Executable file loader}
 One feature that would significantly improve the shell would be the inclusion
 of a binary file loader. This could either support only raw binary files, or
 statically compiled \gls{elf} files. A file loader would not be possible
@@ -1411,7 +1402,7 @@ entry point would be fixed. There would also be no need to extract the
 instructions from the \gls{elf} structure, just loading the instructions from
 the filesystem and then jumping into the loaded file contents.
 
-\paragraph{Rewrite commands using system calls}
+\subsubsection{Rewrite commands using system calls}
 Many of the commands I will implement would benefit from using some standard
 system calls, but I will not have implemented any system calls by the time I
 create the commands. Rewriting these commands to use the system calls would be
@@ -1425,7 +1416,7 @@ would benefit from the system calls \texttt{open} and \texttt{read}). The
 \texttt{write}, writing to a file descriptor which represents the graphical
 console.
 
-\paragraph{Replace the shell and all commands with separate executables}
+\subsubsection{Replace the shell and all commands with separate executables}
 As a follow up to including a binary file loader in the shell, I could also
 completely separate the shell and kernel. This would allow me to modify the
 shell, which will be growing in size, without recompiling the kernel, which
@@ -1444,27 +1435,6 @@ directory would eventually be replaced by an environment variable
 Doing this would allow modification of the commands available on the system
 without recompiling the kernel, restarting the \gls{os}, or even restarting the
 shell.
-
-\subsubsection{Ideas for next steps}
-TODO: Move this to evaluation - rename to just `Possibilities'?
-
-TODO:
-\begin{itemize}
-    \item Support for arrow-key navigation (and other special non-character
-        keys) in the console input line
-        \begin{itemize}
-            \item History of previous lines entered into the console with
-                up-arrow to get the previous line
-            \item Cursor position on the line (cursor is between two
-                characters)
-            \item Backspace to delete one character back, delete to delete one
-                character forwards
-        \end{itemize}
-    \item Line-based text editor (like \texttt{ed})
-    \item Text pager, like \texttt{less} or \texttt{more}
-    \item Shell scripting language (try to be POSIX compliant) interpreter - or
-        port dash~\cite{dash-shell}
-\end{itemize}
 
 
 \subsection{Implementation}
@@ -1502,9 +1472,8 @@ containing the word that is used to invoke that command, and \verb!fun! is a
 function pointer to the function that will be used whenever the first word of
 an input line is equal to \verb!cmd_str!.
 
-\begin{lstlisting}[language=C,
-                   caption={The definition of the \texttt{shell\_command}
-                   struct},
+\begin{lstlisting}[language=C, caption={The definition of the
+                   \texttt{shell\_command} struct}, float,
                    label={lst:struct-shell-command}]
 struct shell_command {
     int (*fun)(struct command_args);
@@ -1523,9 +1492,8 @@ creates a \verb!struct shell_command! from them, adding it to the shell's
 calls \verb!add_command()! once for every shell command, initialising the shell
 to prepare it for running commands.
 
-\begin{lstlisting}[language=C,
-                   caption={The signatures of some important functions for the
-                   shell},
+\begin{lstlisting}[language=C, caption={The signatures of some important
+                   functions for the shell}, float,
                    label={lst:shell-func-signatures}]
 int command_function(struct command_args);
 int add_command(const char *cmd_str, int (*fun)(struct command_args));
@@ -1533,35 +1501,49 @@ int shell_init();
 \end{lstlisting}
 
 \subsection{Evaluation}
-TODO
+Overall I am pleased with the progress I have made with the shell, but I have
+not made as much progress as I originally hoped for. I think this was due to
+the kernel containing some surprises that I did not consider or have the
+knowledge to pre-empt at the beginning of the project.
 
-Good:
-\begin{itemize}
-    \item Modular system for creating new shell commands: only need to define a
-        function \texttt{int fun(struct command\_args*)} and decide a string for
-        invoking the command
-    \item The structure passed to the shell functions contains the three
-        arguments that would be passed to the \texttt{main()} function of a
-        binary file (\texttt{int argv, char **argv, char *envp[]}). The
-        environment argument is not exactly the same and is actually a pointer
-        to a struct containing all the important information about the kernel
-        process, such as the current working directory and the (currently
-        unused) process ID (PID). The vector of environment variables could be
-        extracted from this struct with some easy pre-processing.
-\end{itemize}
-Bad:
-\begin{itemize}
-    \item No text editor: line-based editor (based on \texttt{ed})
-    \item TODO
-\end{itemize}
-Future:
-\begin{itemize}
-    \item Create a binary file loader (Maybe ELF)
-    \item Make the shell a separate binary
-    \item Make each shell command a separate binary
-    \item Implement some shell language features (make the shell an
-        interpreter)
-\end{itemize}
+The modular design for creating shell commands was a good implementation
+choice. It is very simple to create new commands and get them working with the
+shell -- this will be enticing to developers who see how easy it is to create a
+simple utility function\footnote{A \emph{Hello world} example function could be
+placed into the \texttt{README.md} of the git repository to showcase how easy
+it is.}. All that is needed is a wrapper function with the correct signature
+and a name for the command.
+
+The argument to the shell command functions is very similar to the arguments
+that a \texttt{main()} function would take once the shell moves to the commands
+being individual executables. The first two arguments\footnote{The first two
+members of the structure} are exactly the same (\verb!int argc, char *argv!).
+This similarity will make the transition to commands as separate executable
+files much easier since the command function can be copied directly to a main
+function and then compiled on its own.
+
+The third member of the \verb!command_args! structure, \verb!envp! is badly
+named -- it doesn't contain any environment variables. In the future, the data
+which is currently stored in this \verb!struct process_env! will be stored in a
+table in the kernel, and tracked on a per-process level. Shell commands will
+use system calls to access the same information.
+
+One command that I would like to implement in the near future is a basic text
+editor. This would be a line-oriented editor, with the basic functionality of
+\texttt{ed}~\cite{ed}, the Unix text editor. Writing a simple text editor will
+require the ability to write and create files, so this would prompt me to
+implement that functionality into the exFAT \gls{fs}.
+
+A final extension to the shell would be to include some shell language
+features. This will effectively make the shell program an interpreter for an
+\texttt{sh}-like language. The interactive version of the shell would become a
+Read-Evaluate-Print-Loop (REPL) for the interpreter. Implementing a full
+interpreter is obviously well outside of the scope of this project, but adding
+these features would turn the shell into something that could be used for
+scripting, which would complement the \gls{os} nicely, and would make it seem
+like a much more complete package. The inclusion of a scriptable shell would
+also be an attractive feature to many would-be new kernel developers, which
+links back to one of the main aims of this project.
 
 \section{Evaluation and External Aspects}
 %TODO: Evaluation and External Aspects explaining how your software/approach was
@@ -1570,127 +1552,83 @@ Future:
 %should explicitly address how your project fulfilled (or not) its original
 %intentions with regard to its 'external aspect'.
 
-\subsection{Overall evaluation of the results}
-TODO:
-\begin{itemize}
-    \item Inconsistent code style
-        \begin{itemize}
-            \item Started writing functions with return type \verb!ERROR_TYPE!,
-                an alias of \verb!size_t!. Each possible error was assigned a
-                value, and a return value of zero meant no error
-            \item Once \verb!errno.h! was created, I switched to using
-                \verb!errno! to represent errors
-            \item Later functions return \verb!int!, with zero meaning success
-                and a non-zero value meaning failure
-            \item On non-zero, the calling function should check \verb!errno!
-                to interpret what the error was
-        \end{itemize}
-    \item Test coverage was very limited
-        \begin{itemize}
-            \item I effectively gave up on writing tests after writing tests
-                for the \verb!malloc()! function and for the eMMC driver
-        \end{itemize}
-    \item Most of the functions in \verb!string.h! do not have definitions
-        \begin{itemize}
-            \item This is not a bad thing (although maybe they shouldn't be in
-                the header file if they are not implemented)
-            \item Functions are implemented as they are needed - most of the
-                functions are very simple and take less than half an hour to
-                write
-            \item Eventually I will reach a point where only a couple of the
-                functions in that header file are not implemented, and I will
-                either remove them or implement them
-        \end{itemize}
-\end{itemize}
+\subsection{Code style consistency}
+The consistency of my coding style was not good over the course of this
+project.
 
-\subsection{Evaluation in relation to the external aspect}
-TODO:
-\begin{itemize}
-    \item The \gls{os} provides a familiar interface to anyone who has used a
-        Unix-like system in the past
-    \item The code is somewhat easy to understand
-        \begin{itemize}
-            \item Some source code is located in places that might not make
-                much sense - The shell should probably have its own top-level
-                directory \verb!src/shell/! instead of \verb!src/kernel/shell/!
-            \item I commented most of the complex logic and tried to explain it
-        \end{itemize}
-    \item There are plenty of possibilities for immediate improvement to the
-        project
-        \begin{itemize}
-            \item This provides options for developers who discover the project
-                to start working on an \gls{os} development project at whatever
-                level they feel comfortable with
-            \item They could provide implementations of the functions in
-                \verb!string.h!
-            \item They could write timer functions - the \verb!usleep()! and
-                similar functions are currently empty stub functions, and
-                accurate timers would be very useful for future development
-        \end{itemize}
-\end{itemize}
+At the beginning of the project, I was writing functions with return
+type \verb!ERROR_TYPE!, which was an alias of \verb!size_t!. Every possible
+error was assigned a unique value (in an unmaintainable way), and for each
+component there would be a unique success value.
+
+Once \texttt{errno.h} was created, I started using \texttt{errno} to represent
+errors. Functions would not return \texttt{int}, with a zero meaning success
+and a nonzero return value indicating a problem.
+
+These two coding styles have co-existed in the project, but I should have
+refactored all of the \verb!ERROR_TYPE! functions to return \texttt{int} and
+use \texttt{errno}.
+
+\subsection{Functions from \texttt{string.h}}
+Most of the functions declared in the \texttt{string.h} header file have no
+implementation. This is not a bad thing, as I was implementing those functions
+as I needed them. Most of the functions from that header file are very simple
+and take less than half an hour to write.
+
+Eventually I will reach a point where a very small number of the functions are
+missing implementations, and at that point I will either implement the rest of
+them all at once, or remove them.
+
+The lack of simple function implementations could also be seen as a positive
+for the project. Providing implementations for these simple functions could be
+a non-threatening introduction to the project for an inexperienced developer,
+who may then go on to learn \gls{os} development using this project.
 
 \section{Summary and Reflections}
-%TODO: Summary and Reflections including a discussion of results in a wider
-%context (considering other work).
+The result of the project was not what I originally had hoped to achieve, but
+the development of the \gls{os} provided more education than I expected about
+the many components required for an \gls{os} to function. I believe that this
+educational experience will prove valuable to others, and so I consider this
+project to have been a success.
 
 \subsection{Project management}
-%TODO: Project management covering the tasks as a part of your work plan and
-%progress as well as how time and resources are managed. For a COMP4028 project,
-%role of each individual should be explicitly discussed.
-
-\subsubsection{Project management -- Re-planning the project}
+\subsubsection{Re-planning the project}
 The original plan for the project was a little over-ambitious, which I
-discovered as I was developing the current implementation. I have modified the
-plan to account for the more restrictive time constraints, and also considering
+discovered as I was developing the current implementation. I modified the
+plan considering
 my experience developing the \gls{os} so far. Some of the later, more complex
-tasks have been removed from the plan, as I no longer believe I would be able
-to complete them, and some tasks have been given more time.
-\autoref{tab:interim-work-plan} shows the new plan for the project's tasks, and
-\autoref{fig:gantt-chart} is the Gantt chart which describes the dates
-on which I expect to start and finish each of the tasks.
+tasks were removed from the plan, as I realised I would not be able
+to complete them, and some tasks were given more time.
 
 \subsubsection{Unexpected difficulties in development}
-I have encountered several issues during development which I did not account
+I encountered several issues during development which I did not account
 for in the original project plan. The first is not so much an issue as it is a
 task not being required in the way that I expected. The \textbf{debug shell}
 was not needed in the way I had planned to implement it. My plan was to prompt
 the user for a command, and for the shell to support a very limited range of
 commands, perhaps starting with a command to print the contents of a memory
 address. This type of debugging has not been needed so far during the
-development process, and I don't believe it will be needed, as I can use
+development process, and I don't believe it will be needed at all, as I can use
 \gls{gdb} for debugging memory locations, and \gls{gdb} doesn't even require
 the \gls{os} kernel to be in a working state, which would be the most likely
 scenario for if I would need to read memory.
 
 The ``debug'' part of the debug shell task was still completed, as the current
 version of the kernel prints debugging information to the serial port (and also
-to the \gls{rpi} video output once the framebuffer is allocated). This
-debugging information is changing as I add more features to the \gls{os}, and
-lines which tested code that will not change again (i.e. the \texttt{printf}
-function) are removed.
+to the \gls{rpi} video output once the framebuffer is allocated).
 
 \textbf{System calls} were far more difficult to implement than I expected. The
-way that system calls will be implemented is using \gls{arm} exceptions
+way that system calls were implemented was using \gls{arm} exceptions
 to execute a function with the processor in a privileged mode of operation.
 Unfortunately, when I started working on the system call implementation, I did
 not have a very good understanding of the \gls{cpu} mechanisms by which
-\gls{arm} processors handle exceptions. The \gls{cpu} will use a large number
+\gls{arm} processors handle exceptions. The \gls{cpu} uses a large number
 of system registers, along with the current \gls{arm-el}, to decide where the
 exception handler can be found, and in which \gls{arm-el} the \gls{cpu} should
-handle the exception. I did not know any of this at the time that I started to
-implement the system call mechanism, and I was using documentation for a very
-old version of the \gls{arm} architecture. I did not even know which
-\gls{arm-el} the \gls{cpu} was executing the kernel in, so I worked on code for
-the \textbf{filesystem} for a while.
+handle the exception.
 
-When I returned to working on system calls, I knew I needed to initialise the
-\gls{cpu} state, so I followed a tutorial~\cite{raspberry-pi-os-gh} and used
-the \gls{arm} developer documentation~\cite{arm-developer-regs} to learn enough
-about \gls{arm} \glspl{arm-el} and exceptions. I wrote code to initialise the
-\gls{cpu} into \gls{arm-el} 1, which I am going to use for the kernel of my
-\gls{os}. I also set up the processor registers to correctly handle exceptions,
-so that any system calls from either user space (\gls{arm-el} 0) or kernel
-space (\gls{arm-el} 1) will both be handled by the kernel in \gls{arm-el} 1.
+I spent some extra time learning about \gls{arm} system registers in depth, and
+gained the knowledge I needed to finish the system call mechanism.
 
 When I started working on the \textbf{filesystem}, I immediately realised
 something that I forgot to consider for the original project plan. The
@@ -1699,30 +1637,9 @@ filesystem would require an SD card driver in order to interact with the
 card driver~\cite{rpi-boot-gh}, which only required a small amount of
 modification to get working. Once I had it integrated into my kernel, I created
 an SD card image and added it to the emulator, then tested the driver to see if
-it recognised the SD card. To my surprise, the driver knew when the SD card
-image was present, and the initialisation function returned the expected value
-when the image was present on the emulated \gls{rpi}.
-
-My initial expectation of the difficulty of memory allocation was very
-inaccurate. It is a much more complicated process than I had assumed it was,
-and managing the memory that is allocated requires more kernel infrastructure
-than I expected. As a result of this, memory management was brought forwards in
-the list of tasks. However, I will need to finish implementing system calls
-without a \texttt{malloc()} function. Programming without \texttt{malloc()} is
-difficult and confusing, as functions must take pointers to data structures as
-arguments. Results must be placed on the stack, as there is no heap. The
-easiest way to implement \texttt{malloc()} is to use a system call
-\texttt{mmap}, but my \gls{os} does not yet have a system call interface, so if
-it turns out I need memory on the heap, I cannot implement \texttt{malloc()}
-that way.
-
+it recognised the SD card.
 
 \subsection{Contributions and reflections}
-%TODO: Contributions and reflections providing the details of your achievements
-%and contributions including innovation, creativity and novelty (if there is
-%any) as well as a personal reflection on the plan and your experience of the
-%project (a critical appraisal of how the project went).
-
 The project's external sponsor (who is also my project supervisor), introduced
 me to several of the related works~\cite{netBSD-git, riscOS-source}. He also
 gave recommendations for some of the areas I was originally unsure of or less
@@ -1737,17 +1654,6 @@ the project. Overall, the project has not progressed as quickly as I had
 originally expected. This is why I have scaled back the plan for the second
 half of the year, replacing the shell and libc with ports of already existing
 versions.
-
-\subsection{Foo}
-My aim for this project was to produce a Unix-like \gls{os} for the \gls{rpi} 3
-which would be capable of being used as a general purpose hobbyist \gls{os}.
-The result of the project was not what I originally had hoped to achieve, but
-the development of the \gls{os} provided more education than I expected about
-the many components required for an \gls{os} to function. I believe that this
-educational experience will prove valuable to others, and so I consider this
-project to have been a success.
-% FIXME: move this to evaluation at the end? Reword the intro part?
-
 
 
 
@@ -1982,6 +1888,25 @@ work packages for this project.
     \caption{The structure of the Unix \gls{os}.}
     \label{fig:appendix_os_block_diagram}
 \end{figure}
+
+\section{Shell future ideas}
+
+Here are some `honorable mentions' which didn't make it into the main report.
+
+\begin{itemize}
+    \item Support for arrow-key navigation (and other special non-character
+        keys) in the console input line
+        \begin{itemize}
+            \item History of previous lines entered into the console with
+                up-arrow to get the previous line
+            \item Cursor position on the line (cursor is between two
+                characters)
+            \item Backspace to delete one character back, delete to delete one
+                character forwards
+        \end{itemize}
+    \item Text pager, like \texttt{less} or \texttt{more}
+\end{itemize}
+
 
 \clearpage
 % End of main document - print glossaries, references, etc.

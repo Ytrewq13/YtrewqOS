@@ -51,23 +51,6 @@
       \verb https://yaffs.net/
       \endverb
     \endentry
-    \entry{arm-developer-regs}{online}{}
-      \field{sortinit}{A}
-      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
-      \field{labeltitlesource}{title}
-      \field{title}{ARM Cortex-A Series Programmer's Guide for ARMv8-A: System Registers}
-      \field{urlday}{1}
-      \field{urlmonth}{12}
-      \field{urlyear}{2021}
-      \field{version}{1.0}
-      \field{urldateera}{ce}
-      \verb{urlraw}
-      \verb https://developer.arm.com/documentation/den0024/a/ARMv8-Registers/System-registers
-      \endverb
-      \verb{url}
-      \verb https://developer.arm.com/documentation/den0024/a/ARMv8-Registers/System-registers
-      \endverb
-    \endentry
     \entry{design-of-unix-os}{book}{}
       \name{author}{1}{}{%
         {{hash=55ef3bc342391d87c2fb28669713aa20}{%
@@ -171,6 +154,22 @@
       \endverb
       \verb{url}
       \verb https://git.kernel.org/pub/scm/utils/dash/dash.git/
+      \endverb
+    \endentry
+    \entry{ed}{online}{}
+      \field{sortinit}{e}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labeltitlesource}{title}
+      \field{title}{ed - edit text}
+      \field{urlday}{21}
+      \field{urlmonth}{4}
+      \field{urlyear}{2022}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://pubs.opengroup.org/onlinepubs/9699919799/
+      \endverb
+      \verb{url}
+      \verb https://pubs.opengroup.org/onlinepubs/9699919799/
       \endverb
     \endentry
     \entry{exFAT-specs}{online}{}
@@ -282,22 +281,6 @@
       \endverb
       \verb{url}
       \verb https://www.raspberrypi.com/documentation/computers/configuration.html#primary-and-secondary-uart
-      \endverb
-    \endentry
-    \entry{raspberry-pi-os-gh}{online}{}
-      \field{sortinit}{r}
-      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
-      \field{labeltitlesource}{title}
-      \field{title}{\texttt{raspberry-pi-os}: Learning \gls{os} development using Linux kernel and \gls{rpi}.}
-      \field{urlday}{28}
-      \field{urlmonth}{11}
-      \field{urlyear}{2021}
-      \field{urldateera}{ce}
-      \verb{urlraw}
-      \verb https://github.com/s-matyukevich/raspberry-pi-os
-      \endverb
-      \verb{url}
-      \verb https://github.com/s-matyukevich/raspberry-pi-os
       \endverb
     \endentry
     \entry{sub-make}{online}{}
