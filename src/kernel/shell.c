@@ -128,6 +128,7 @@ int shell_init()
     add_command("cd", shell_cmd_cd);
     add_command("ls", shell_cmd_ls);
     add_command("pwd", shell_cmd_pwd);
+    add_command("cat", shell_cmd_cat);
 
     return 0;
 }
@@ -204,31 +205,36 @@ struct dirs_ll {
 };
 
 // FIXME: test for malloc errors
+// FIXME: this doesn't work because of timer issues - need to implement timers
 int shell_cmd_cat(struct command_args args)
 {
+    printf("ENTER shell_cmd_cat\n");
     if (args.argc < 2) {
         errno = EINVAL;
         return -1;
     }
-    // Just read the first 4 bytes of the file for now
-    char *path = malloc(strlen(args.envp->wdir) + 1 + strlen(args.argv[1]) + 1);
-    size_t wdirlen = strlen(args.envp->wdir);
-    memcpy(path, args.envp->wdir, wdirlen);
-    memset(path+wdirlen, '/', 1);
-    strcpy(path+wdirlen+1, args.argv[1]);
-    char *pathtok = malloc(strlen(args.envp->wdir) + 1 + strlen(args.argv[1]) + 1);
+//    char *path = malloc(strlen(args.envp->wdir) + 1 + strlen(args.argv[1]) + 1);
+    char *path = malloc(strlen(args.argv[1]) + 1);
+//    size_t wdirlen = strlen(args.envp->wdir);
+//    memcpy(path, args.envp->wdir, wdirlen);
+//    memset(path+wdirlen, '/', 1);
+//    strcpy(path+wdirlen+1, args.argv[1]);
+    strcpy(path, args.argv[1]);
+    char *pathtok = malloc(strlen(path) + 1);
     strcpy(pathtok, path);
     // Tokenise the path
 //    char *arg = strtok_r(shell_input_buf, " ", &next_arg);
 //        arg = strtok_r(NULL, " ", &next_arg);
     char *next_lvl = pathtok;
     char *tok = strtok_r(pathtok, "/", &next_lvl);
-    struct dirs_ll *top_lvl = NULL;
+    struct dirs_ll *top_lvl = malloc(sizeof(struct dirs_ll));
+    top_lvl->this_lvl = pathtok;
     struct dirs_ll *prev = NULL;
     size_t cur_depth = 0;
     while (NULL != tok) {
         struct dirs_ll *cur = malloc(sizeof(struct dirs_ll));
-        strcpy(cur->this_lvl, tok);
+        cur->this_lvl = tok;
+//        strcpy(cur->this_lvl, tok);
         cur->depth = cur_depth;
         if (NULL != prev) prev->next = cur;
         else {
@@ -236,6 +242,8 @@ int shell_cmd_cat(struct command_args args)
             prev = cur;
         }
     }
+    struct dirs_ll *cur = malloc(sizeof(struct dirs_ll));
+    cur->this_lvl = next_lvl;
 
     // TODO: tidy up this setup - put all of these details somewhere out of the
     // way in the environment
@@ -243,18 +251,31 @@ int shell_cmd_cat(struct command_args args)
     exfat_read_boot_block(args.envp->root_fs->parent, &super);
     struct exfat_block_device ebd = {.bd = args.envp->root_fs->parent,
         .sb = super};
-    uintptr_t this_dir_block = super.rootdir_start * super.clustersize;
-    struct dirent *the_dirent = NULL;
+    // Get the root directory block (to start from)
+    uintptr_t this_dir_block = (super.rootdir_start - 2) * super.clustersize +
+        super.clusterheap_offset;
+    struct dirent *d = NULL;
     bool done = false;
+    cur = top_lvl;
     while (!done) {  // FIXME
-        struct dirent *dirent_ll = exfat_readdir_fromblock(&ebd, this_dir_block);
-        struct dirent *the_dirent = dirent_ll;
-        while (strcmp(the_dirent->name, args.argv[1]) != 0)
-            the_dirent = the_dirent->next;
+        struct dirent *dirent_ll = exfat_readdir_fromblock(&ebd,
+                this_dir_block);
+        d = dirent_ll;
+        while (strcmp(d->name, cur->this_lvl) != 0)
+            d = d->next;
+        if (!d->is_dir) done = true;
+        struct exfat_file_contents *opaque = d->opaque;
+        this_dir_block = (opaque->start_cluster - 2) * super.clustersize +
+            super.clusterheap_offset;
+        cur = cur->next;
     }
 
     // Open the file
-    FILE *f = args.envp->root_fs->fopen(args.envp->root_fs, the_dirent, "r");
+    FILE *f = args.envp->root_fs->fopen(args.envp->root_fs, d, "r");
+
+    char fread_buf[4];
+    args.envp->root_fs->fread(args.envp->root_fs, fread_buf, 4, f);
+    printf("%c%c%c%c\n", fread_buf[0], fread_buf[1], fread_buf[2], fread_buf[3]);
 
     // Close the file
     args.envp->root_fs->fclose(args.envp->root_fs, f);

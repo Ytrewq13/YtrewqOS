@@ -338,12 +338,6 @@ static uint16_t exfat_name_hash(int16_t *filename, uint8_t namelength)
     return hash;
 }
 
-struct exfat_dirent_opaque {
-    struct exfat_directory_info *parent;
-    uint32_t first_cluster;
-    uint64_t valid_data_length;
-};
-
 /* Read the directory set of one whole file into a dirent struct */
 static int read_file_direntset(struct exfat_dirent_info first_edirent, struct dirent *dirent)
 {
@@ -366,21 +360,9 @@ static int read_file_direntset(struct exfat_dirent_info first_edirent, struct di
         return -1;
     }
 
-    // Get the information needed for reading file contents
-    struct exfat_dirent_opaque *opaque = malloc(sizeof(struct exfat_dirent_opaque));
-    if (NULL == opaque) {
-        errno = ENOMEM;
-        return -1;
-    }
-    opaque->parent = ed.parent;
-    opaque->first_cluster = ed.first_cluster;
-    opaque->valid_data_length = ed.entry_data.stream_extension
-        .valid_data_length;
-
     dirent->byte_size = ed.data_length;
     file_contents = malloc(sizeof(struct exfat_file_contents));
     if (file_contents == NULL) {
-        free(opaque);
         errno = ENOMEM;
         return -1;
     }
@@ -510,17 +492,23 @@ FILE *exfat_fopen(struct fs *fs, struct dirent *file, const char *mode)
         errno = ENOMEM;
         return NULL;
     }
-    struct exfat_dirent_opaque *d_opaque = file->opaque;
-    memcpy(opaque->super, &d_opaque->parent->super, sizeof(struct exfat_superblock));
+    opaque->super = malloc(sizeof(struct exfat_superblock));
+    if (NULL == opaque->super) {
+        free(opaque);
+        errno = ENOMEM;
+        return NULL;
+    }
+    struct exfat_file_contents *d_opaque = file->opaque;
+    memcpy(opaque->super, &d_opaque->ebd.sb, sizeof(struct exfat_superblock));
     opaque->bd = malloc(sizeof(struct block_device));
     if (NULL == opaque->bd) {
         free(opaque);
         errno = ENOMEM;
         return NULL;
     }
-    memcpy(opaque->bd, d_opaque->parent->bd, sizeof(struct block_device));
-    opaque->first_cluster = d_opaque->first_cluster;
-    opaque->current_cluster = d_opaque->first_cluster;
+    memcpy(opaque->bd, d_opaque->ebd.bd, sizeof(struct block_device));
+    opaque->first_cluster = d_opaque->start_cluster;
+    opaque->current_cluster = d_opaque->start_cluster;
     opaque->block_cluster_offset = 0;
     opaque->pos_block_offset = 0;
     fp->opaque = opaque;  // TODO: put the file contents location in opaque
