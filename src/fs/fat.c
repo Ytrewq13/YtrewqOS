@@ -324,19 +324,19 @@ int exfat_read_cluster_to_buf(struct block_device *dev, struct
 /* Returns the exfat hash of a filename. Filename argument is given as a wide
  * character string (2 bytes per character) and should be up-cased prior to
  * calling this function. */
-static uint16_t exfat_name_hash(int16_t *filename, uint8_t namelength)
-{
-    uint16_t *buffer = (uint16_t *)filename;
-    uint16_t number_of_bytes = (uint16_t)namelength * 2;
-    uint16_t hash = 0;
-    uint16_t index;
-
-    for (index = 0; index < number_of_bytes; index++) {
-        hash = ((hash & 1) ? 0x8000 : 0) + (hash >> 1) +
-            (uint16_t)buffer[index];
-    }
-    return hash;
-}
+//static uint16_t exfat_name_hash(int16_t *filename, uint8_t namelength)
+//{
+//    uint16_t *buffer = (uint16_t *)filename;
+//    uint16_t number_of_bytes = (uint16_t)namelength * 2;
+//    uint16_t hash = 0;
+//    uint16_t index;
+//
+//    for (index = 0; index < number_of_bytes; index++) {
+//        hash = ((hash & 1) ? 0x8000 : 0) + (hash >> 1) +
+//            (uint16_t)buffer[index];
+//    }
+//    return hash;
+//}
 
 /* Read the directory set of one whole file into a dirent struct */
 static int read_file_direntset(struct exfat_dirent_info first_edirent, struct dirent *dirent)
