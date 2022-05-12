@@ -381,9 +381,8 @@ void kernel_main()
     // Initialise the shell with all of the valid commands (uses malloc)
     shell_init();
 
-    // Basic built-in [s]hell
-    // Print an input prompt (TODO: add cwd to prompt - add a '$PS1' to
-    // environment?)
+    // Basic built-in shell
+    // Print an input prompt
     while (1) {
         shell_getline(&kprocess_env, "# ");
         shell_execute_command(&kprocess_env);

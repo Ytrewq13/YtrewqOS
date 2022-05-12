@@ -229,8 +229,7 @@ struct dirs_ll {
     struct dirs_ll *next;
 };
 
-// FIXME: test for malloc errors
-// FIXME: this doesn't work because of timer issues - need to implement timers
+// FIXME: this doesn't work yet
 int shell_cmd_cat(int argc, char **argv, struct process_env *envp)
 {
     printf("[NOTE] This command is a work in progress and currently doesn't work at all\n");
