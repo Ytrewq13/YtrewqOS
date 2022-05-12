@@ -26,6 +26,9 @@
 
 #include <stdint.h>
 
+#include "errno.h"
+#include "drivers/hw/mmio.h"
+
 typedef int useconds_t;
 
 struct timer_wait

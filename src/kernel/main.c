@@ -23,6 +23,7 @@
 #include "fs/fat.h"
 #include "kernel/shell.h"
 #include "kernel/test.h"
+#include "kernel/timer.h"
 #include "printf.h"
 #include "stdlib.h"
 #include "string.h"

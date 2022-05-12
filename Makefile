@@ -48,7 +48,7 @@ export INCDIR_ABS = $(CURDIR)/$(INCDIR)
 CF_INCLUDE = -I$(INCDIR_ABS)
 CF_RESTRICT = -std=c99 -ffreestanding -nostdlib
 ifeq ($(DEBUG), 1)
-	CF_DBG = -g
+	CF_DBG = -g -DDEBUG
 	CF_OPTIM = -O0
 #	CF_WARN = -Wpedantic -Werror  # TODO: enum is int, not long
 	CF_WARN = -Wall
@@ -72,6 +72,7 @@ _SRCS_C = calls/calls.c \
 		  drivers/graphics/fb_pixels.c \
 		  drivers/power/power.c \
 		  drivers/mbox.c \
+		  drivers/mmio.c \
 		  fonts/bizcat_font.c \
 		  fs/fat.c \
 		  fs/util.c \

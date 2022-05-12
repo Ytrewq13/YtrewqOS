@@ -74,8 +74,14 @@ void uart0_send(uint32_t c)
     PUT32(UART0_DR, c);
 }
 
+#ifdef DEBUG_PRINT_SLOW
+#include "kernel/timer.h"
+#endif
 void uart0_putc(uint32_t c)
 {
+#ifdef DEBUG_PRINT_SLOW
+    usleep(DEBUG_PRINT_SLOW);
+#endif
     if (c == '\n') uart0_send('\r');
     uart0_send(c);
 }

@@ -22,7 +22,7 @@ int ls(struct process_env *env, const char *path)
     strcpy(path2, path);
     memset(path2+strlen(path), 0, 1);
 
-    if (! (strlen(path) == 1 && path[0] == '/')) {
+    if (! (path[0] == '/' && strlen(path) == 1)) {
         int i = 0, j = 0;
         while (i <= strlen(path)) {
             if (path2[i] == '/') i++;

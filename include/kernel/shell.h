@@ -14,18 +14,10 @@
 
 // FIXME: Move internal structs to .c files, make static
 
-// struct that contains the arguments that would be passed to main() once we
-// implement shell commands as executable binaries
-struct command_args {
-    int argc;
-    char **argv;
-    struct process_env *envp; // NOT the same as `char *envp[];`
-};
-
 // struct that contains a command string and a function pointer to execute the
 // command
 struct shell_command {
-    int (*fun)(struct command_args);
+    int (*fun)(int argc, char **argv, struct process_env *envp);
     const char *cmd_str;
 };
 
